@@ -62,7 +62,7 @@ function AuthPage() {
           <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
             <ShieldCheck className="h-6 w-6" aria-hidden />
           </div>
-          <CardTitle as="h1" className="text-2xl">Painel de Licenças</CardTitle>
+          <CardTitle className="text-2xl">Painel de Licenças</CardTitle>
           <CardDescription>Acesso restrito a administradores</CardDescription>
         </CardHeader>
         <CardContent>
