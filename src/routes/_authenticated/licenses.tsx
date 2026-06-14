@@ -194,7 +194,7 @@ function formatDate(iso: string | null) {
   }
 }
 
-function EditLicenseDialog({ license }: { license: License }) {
+export function EditLicenseDialog({ license }: { license: License }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState(license.user_name ?? "");
@@ -228,6 +228,7 @@ function EditLicenseDialog({ license }: { license: License }) {
     onSuccess: () => {
       toast.success("Licença atualizada");
       qc.invalidateQueries({ queryKey: ["licenses"] });
+      qc.invalidateQueries({ queryKey: ["reseller-licenses"] });
       setOpen(false);
       setClearDevice(false);
       setResetSession(false);
