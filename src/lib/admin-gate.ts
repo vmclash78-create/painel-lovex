@@ -2,7 +2,7 @@
 // quem inspecionar o JS pode ler. Use só como obstáculo simples.
 // Para trocar a senha, edite ADMIN_PASSWORD abaixo.
 
-export const ADMIN_PASSWORD = "troque-esta-senha";
+export const ADMIN_PASSWORD = "121314";
 
 const STORAGE_KEY = "admin_gate_ok";
 
