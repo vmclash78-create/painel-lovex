@@ -189,21 +189,26 @@ function ResellerDialog({ mode, reseller }: { mode: "create" | "edit"; reseller?
   const [maxKeys, setMaxKeys] = useState<number>(reseller?.max_keys ?? 10);
   const [token, setToken] = useState(reseller?.token ?? generateResellerToken());
   const [active, setActive] = useState<boolean>(reseller?.active ?? true);
+  const [password, setPassword] = useState<string>(reseller?.password ?? "");
 
   const save = useMutation({
     mutationFn: async () => {
+      if (!password || password.length < 4) {
+        throw new Error("Defina uma senha de acesso (mínimo 4 caracteres).");
+      }
       if (mode === "create") {
         const { error } = await supabase.from("resellers").insert({
           name: name || "Revenda",
           max_keys: maxKeys,
           token,
           active,
+          password,
         });
         if (error) throw error;
       } else if (reseller) {
         const { error } = await supabase
           .from("resellers")
-          .update({ name, max_keys: maxKeys, token, active })
+          .update({ name, max_keys: maxKeys, token, active, password })
           .eq("id", reseller.id);
         if (error) throw error;
       }
@@ -216,6 +221,7 @@ function ResellerDialog({ mode, reseller }: { mode: "create" | "edit"; reseller?
         setName("");
         setMaxKeys(10);
         setToken(generateResellerToken());
+        setPassword("");
       }
     },
     onError: (e: Error) => toast.error(e.message),
@@ -231,6 +237,7 @@ function ResellerDialog({ mode, reseller }: { mode: "create" | "edit"; reseller?
           setMaxKeys(reseller.max_keys);
           setToken(reseller.token);
           setActive(reseller.active);
+          setPassword(reseller.password ?? "");
         }
       }}
     >
@@ -295,6 +302,21 @@ function ResellerDialog({ mode, reseller }: { mode: "create" | "edit"; reseller?
               <p className="text-xs text-muted-foreground">Quando inativa, o link bloqueia novas keys.</p>
             </div>
             <Switch id="ractive" checked={active} onCheckedChange={setActive} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="rpass">Senha de acesso do cliente</Label>
+            <Input
+              id="rpass"
+              type="text"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Senha que o revendedor usará no link"
+              required
+              minLength={4}
+            />
+            <p className="text-xs text-muted-foreground">
+              O cliente precisará informar esta senha ao abrir o link da revenda.
+            </p>
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
