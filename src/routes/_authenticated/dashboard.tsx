@@ -63,11 +63,11 @@ function DashboardPage() {
           ) : (data?.length ?? 0) === 0 ? (
             <p className="text-sm text-muted-foreground">Nenhuma licença ainda.</p>
           ) : (
-            <ul className="divide-y">
+            <ul className="divide-y divide-border/60">
               {data!.slice(0, 8).map((l) => {
                 const s = computeStatus(l);
                 return (
-                  <li key={l.id} className="flex items-center justify-between gap-3 py-2">
+                  <li key={l.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-md px-2 py-2.5 transition-colors hover:bg-muted/40">
                     <div className="min-w-0">
                       <div className="truncate font-mono text-sm">{l.license_key}</div>
                       <div className="truncate text-xs text-muted-foreground">{l.user_name ?? "—"}</div>
@@ -97,26 +97,36 @@ function StatCard({
   tone?: "success" | "info" | "warning" | "danger";
   loading?: boolean;
 }) {
-  const toneClass =
+  const toneText =
     tone === "success"
-      ? "text-emerald-600 dark:text-emerald-400"
+      ? "text-emerald-400"
       : tone === "info"
-        ? "text-sky-600 dark:text-sky-400"
+        ? "text-sky-400"
         : tone === "warning"
-          ? "text-amber-600 dark:text-amber-400"
+          ? "text-amber-400"
           : tone === "danger"
             ? "text-destructive"
             : "text-foreground";
+  const tonePill =
+    tone === "success"
+      ? "bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20"
+      : tone === "info"
+        ? "bg-sky-500/10 text-sky-400 ring-1 ring-sky-500/20"
+        : tone === "warning"
+          ? "bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20"
+          : tone === "danger"
+            ? "bg-destructive/10 text-destructive ring-1 ring-destructive/20"
+            : "bg-muted text-foreground ring-1 ring-border";
   return (
-    <Card className="relative overflow-hidden shadow-soft transition-all hover:shadow-elegant">
-      <CardContent className="flex items-center justify-between gap-2 py-5">
+    <Card className="relative overflow-hidden shadow-soft transition-all hover:-translate-y-0.5 hover:shadow-elegant">
+      <CardContent className="flex items-center justify-between gap-3 py-5">
         <div className="min-w-0">
           <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
-          <div className={`mt-1 text-3xl font-bold tracking-tight ${toneClass}`}>
+          <div className={`mt-1 text-3xl font-bold tracking-tight tabular-nums ${toneText}`}>
             {loading ? <Skeleton className="h-8 w-12" /> : value}
           </div>
         </div>
-        <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted ${toneClass}`}>
+        <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${tonePill}`}>
           <Icon className="h-5 w-5" aria-hidden />
         </div>
       </CardContent>
@@ -126,10 +136,10 @@ function StatCard({
 
 export function StatusBadge({ status }: { status: string | null }) {
   const map: Record<string, { label: string; className: string }> = {
-    active: { label: "Ativa", className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/20" },
-    trial: { label: "Trial", className: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/20" },
-    expired: { label: "Expirada", className: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/20" },
-    revoked: { label: "Revogada", className: "bg-destructive/15 text-destructive border-destructive/20" },
+    active: { label: "Ativa", className: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" },
+    trial: { label: "Trial", className: "bg-sky-500/15 text-sky-300 border-sky-500/30" },
+    expired: { label: "Expirada", className: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
+    revoked: { label: "Revogada", className: "bg-destructive/15 text-destructive border-destructive/30" },
   };
   const v = map[status ?? "active"] ?? map.active;
   return (
