@@ -39,7 +39,7 @@ function AuthedLayout() {
                   size="sm"
                   className={active ? "shadow-elegant" : ""}
                 >
-                  <Link to={item.to} className="gap-2">
+                  <Link to={item.to} aria-label={item.label} className="gap-2">
                     <item.icon className="h-4 w-4" aria-hidden />
                     <span className="hidden sm:inline">{item.label}</span>
                   </Link>
