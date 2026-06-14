@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, RefreshCw, Ban, Trash2 } from "lucide-react";
+import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Smartphone, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/licenses")({
@@ -150,6 +150,7 @@ function LicensesPage() {
                       <TableCell className="text-sm">{l.max_devices ?? 1}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
+                          <EditLicenseDialog license={l} />
                           <Button
                             variant="ghost"
                             size="sm"
@@ -191,6 +192,179 @@ function formatDate(iso: string | null) {
   } catch {
     return iso;
   }
+}
+
+function EditLicenseDialog({ license }: { license: License }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [userName, setUserName] = useState(license.user_name ?? "");
+  const [status, setStatus] = useState<NonNullable<License["status"]>>(license.status ?? "active");
+  const [maxDevices, setMaxDevices] = useState<number>(license.max_devices ?? 1);
+  const [expiresAt, setExpiresAt] = useState<string>(
+    license.expires_at ? toLocalInput(license.expires_at) : "",
+  );
+  const [clearDevice, setClearDevice] = useState(false);
+  const [resetSession, setResetSession] = useState(false);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const patch: Record<string, unknown> = {
+        user_name: userName || "Usuário",
+        status,
+        max_devices: maxDevices,
+        expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+        updated_at: new Date().toISOString(),
+      };
+      if (clearDevice) {
+        patch.device_id = null;
+        patch.activated_at = null;
+      }
+      if (resetSession) {
+        patch.session_id = crypto.randomUUID();
+      }
+      const { error } = await supabase.from("licenses").update(patch).eq("id", license.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Licença atualizada");
+      qc.invalidateQueries({ queryKey: ["licenses"] });
+      setOpen(false);
+      setClearDevice(false);
+      setResetSession(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (o) {
+          setUserName(license.user_name ?? "");
+          setStatus(license.status ?? "active");
+          setMaxDevices(license.max_devices ?? 1);
+          setExpiresAt(license.expires_at ? toLocalInput(license.expires_at) : "");
+          setClearDevice(false);
+          setResetSession(false);
+        }
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" aria-label="Editar">
+          <Pencil className="h-4 w-4" aria-hidden />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Editar licença</DialogTitle>
+          <DialogDescription className="font-mono text-xs break-all">{license.license_key}</DialogDescription>
+        </DialogHeader>
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            save.mutate();
+          }}
+        >
+          <div className="space-y-2">
+            <Label htmlFor="euname">Usuário</Label>
+            <Input id="euname" value={userName} onChange={(e) => setUserName(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="estatus">Status</Label>
+              <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
+                <SelectTrigger id="estatus"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Ativa</SelectItem>
+                  <SelectItem value="trial">Trial</SelectItem>
+                  <SelectItem value="expired">Expirada</SelectItem>
+                  <SelectItem value="revoked">Revogada</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edev">Dispositivos</Label>
+              <Input
+                id="edev"
+                type="number"
+                min={1}
+                value={maxDevices}
+                onChange={(e) => setMaxDevices(Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="eexp">Expira em</Label>
+            <div className="flex gap-2">
+              <Input
+                id="eexp"
+                type="datetime-local"
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+              />
+              <Button type="button" variant="outline" size="sm" onClick={() => setExpiresAt("")}>
+                Sem validade
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-md border bg-muted/30 p-3 space-y-2">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Ações rápidas</p>
+            <div className="text-xs text-muted-foreground">
+              Dispositivo atual: <span className="font-mono">{license.device_id ?? "—"}</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant={clearDevice ? "default" : "outline"}
+                size="sm"
+                onClick={() => setClearDevice((v) => !v)}
+                className="gap-2"
+              >
+                <Smartphone className="h-4 w-4" aria-hidden />
+                {clearDevice ? "Vai limpar dispositivo" : "Limpar dispositivo"}
+              </Button>
+              <Button
+                type="button"
+                variant={resetSession ? "default" : "outline"}
+                size="sm"
+                onClick={() => setResetSession((v) => !v)}
+                className="gap-2"
+              >
+                <RotateCcw className="h-4 w-4" aria-hidden />
+                {resetSession ? "Vai zerar sessão" : "Zerar sessão"}
+              </Button>
+              <Button
+                type="button"
+                variant={status === "revoked" ? "destructive" : "outline"}
+                size="sm"
+                onClick={() => setStatus("revoked")}
+                className="gap-2"
+              >
+                <Ban className="h-4 w-4" aria-hidden />
+                Revogar
+              </Button>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button type="submit" disabled={save.isPending}>
+              {save.isPending ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function NewLicenseDialog() {
