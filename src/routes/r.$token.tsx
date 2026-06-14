@@ -61,10 +61,23 @@ function ResellerPublicPage() {
     queryFn: () => fetchResellerByToken(token),
   });
 
+  const storageKey = `reseller_auth_${token}`;
+  const [authed, setAuthed] = useState<boolean>(false);
+  const [pwInput, setPwInput] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!reseller.data) return;
+    const saved = window.localStorage.getItem(storageKey);
+    if (saved && saved === reseller.data.password) {
+      setAuthed(true);
+    }
+  }, [reseller.data, storageKey]);
+
   const licenses = useQuery({
     queryKey: ["reseller-licenses", reseller.data?.id],
     queryFn: () => fetchResellerLicenses(reseller.data!.id),
-    enabled: !!reseller.data?.id,
+    enabled: !!reseller.data?.id && authed,
   });
 
   const [search, setSearch] = useState("");
@@ -122,6 +135,52 @@ function ResellerPublicPage() {
     );
   }
   if (!reseller.data) return <InvalidLinkScreen />;
+
+  if (!authed) {
+    return (
+      <div className="min-h-dvh grid place-items-center bg-background px-4">
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-primary" aria-hidden />
+              Acesso à revenda
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form
+              className="space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (pwInput === (reseller.data?.password ?? "")) {
+                  window.localStorage.setItem(storageKey, pwInput);
+                  setAuthed(true);
+                  toast.success("Acesso liberado");
+                } else {
+                  toast.error("Senha incorreta");
+                }
+              }}
+            >
+              <div className="space-y-2">
+                <Label htmlFor="pw">Senha</Label>
+                <Input
+                  id="pw"
+                  type="password"
+                  value={pwInput}
+                  onChange={(e) => setPwInput(e.target.value)}
+                  autoFocus
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  Informe a senha fornecida pelo administrador.
+                </p>
+              </div>
+              <Button type="submit" className="w-full">Entrar</Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-dvh bg-background">
