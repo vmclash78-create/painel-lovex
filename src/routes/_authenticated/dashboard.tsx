@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { licensesQueryOptions, computeStatus } from "@/lib/licenses";
+import { resellersQueryOptions } from "@/lib/resellers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { KeyRound, CheckCircle2, Clock, XCircle, AlertTriangle } from "lucide-react";
+import { KeyRound, CheckCircle2, Clock, XCircle, AlertTriangle, Store } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function DashboardPage() {
   const { data, isLoading, error } = useQuery(licensesQueryOptions);
+  const resellers = useQuery(resellersQueryOptions);
 
   const stats = (() => {
     const list = data ?? [];
@@ -41,12 +43,13 @@ function DashboardPage() {
         </Card>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
         <StatCard label="Total" value={stats.total} icon={KeyRound} loading={isLoading} />
         <StatCard label="Ativas" value={stats.active} icon={CheckCircle2} tone="success" loading={isLoading} />
         <StatCard label="Trial" value={stats.trial} icon={Clock} tone="info" loading={isLoading} />
         <StatCard label="Expiradas" value={stats.expired} icon={AlertTriangle} tone="warning" loading={isLoading} />
         <StatCard label="Revogadas" value={stats.revoked} icon={XCircle} tone="danger" loading={isLoading} />
+        <StatCard label="Revendas" value={resellers.data?.length ?? 0} icon={Store} tone="info" loading={resellers.isLoading} />
       </div>
 
       <Card>
