@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Linux Lovable" },
+      { name: "description", content: "Nova Creation is a web application for managing dashboards and licenses." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Linux Lovable" },
+      { property: "og:description", content: "Nova Creation is a web application for managing dashboards and licenses." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Linux Lovable" },
+      { name: "twitter:description", content: "Nova Creation is a web application for managing dashboards and licenses." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a9714854-2530-4890-9841-1d96e09e9110/id-preview-d524df28--941b8e21-c711-4c43-83f1-b269ccd31d5f.lovable.app-1781462901280.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a9714854-2530-4890-9841-1d96e09e9110/id-preview-d524df28--941b8e21-c711-4c43-83f1-b269ccd31d5f.lovable.app-1781462901280.png" },
     ],
     links: [
       {
