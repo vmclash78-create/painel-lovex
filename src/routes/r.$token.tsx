@@ -1,4 +1,4 @@
-import { createFileRoute, notFound } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase, type License } from "@/integrations/supabase/client";
@@ -31,7 +31,26 @@ export const Route = createFileRoute("/r/$token")({
   ssr: false,
   head: () => ({ meta: [{ title: "Painel de Revenda" }] }),
   component: ResellerPublicPage,
+  notFoundComponent: InvalidLinkScreen,
+  errorComponent: InvalidLinkScreen,
 });
+
+function InvalidLinkScreen() {
+  return (
+    <div className="min-h-dvh grid place-items-center bg-background px-4">
+      <div className="max-w-md text-center space-y-3">
+        <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-destructive/10 text-destructive">
+          <ShieldAlert className="h-6 w-6" aria-hidden />
+        </div>
+        <h1 className="text-xl font-semibold">Link inválido ou revogado</h1>
+        <p className="text-sm text-muted-foreground">
+          Este painel de revenda não está mais disponível. Entre em contato com o
+          administrador para obter um novo link.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function ResellerPublicPage() {
   const { token } = Route.useParams();
@@ -102,7 +121,7 @@ function ResellerPublicPage() {
       </div>
     );
   }
-  if (!reseller.data) throw notFound();
+  if (!reseller.data) return <InvalidLinkScreen />;
 
   return (
     <div className="min-h-dvh bg-background">
