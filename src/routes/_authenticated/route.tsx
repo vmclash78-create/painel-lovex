@@ -1,34 +1,14 @@
-import { createFileRoute, Outlet, redirect, Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { createFileRoute, Outlet, Link, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, KeyRound, LogOut, ShieldCheck } from "lucide-react";
-import { useEffect } from "react";
+import { LayoutDashboard, KeyRound, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: async () => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/auth" });
-    return { user: data.user };
-  },
   component: AuthedLayout,
 });
 
 function AuthedLayout() {
-  const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-
-  useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") navigate({ to: "/auth", replace: true });
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [navigate]);
-
-  async function signOut() {
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
-  }
 
   const nav = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -55,10 +35,6 @@ function AuthedLayout() {
                 </Button>
               );
             })}
-            <Button variant="ghost" size="sm" onClick={signOut} className="gap-2" aria-label="Sair">
-              <LogOut className="h-4 w-4" aria-hidden />
-              <span className="hidden sm:inline">Sair</span>
-            </Button>
           </nav>
         </div>
       </header>
