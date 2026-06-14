@@ -1,5 +1,5 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase, type License } from "@/integrations/supabase/client";
 import { fetchResellerByToken, fetchResellerLicenses } from "@/lib/resellers";
@@ -307,7 +307,12 @@ function NewResellerLicenseDialog({
   const [status, setStatus] = useState<NonNullable<License["status"]>>("active");
   const [days, setDays] = useState<number>(30);
   const [maxDevices, setMaxDevices] = useState<number>(1);
-  const [key, setKey] = useState<string>(generateLicenseKey());
+  const [key, setKey] = useState<string>("");
+
+  // Generate a fresh key each time the dialog opens (avoids SSR-cached value).
+  useEffect(() => {
+    if (open) setKey(generateLicenseKey());
+  }, [open]);
 
   const create = useMutation({
     mutationFn: async () => {
