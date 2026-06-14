@@ -178,3 +178,16 @@
 @utility shadow-soft {
   box-shadow: var(--shadow-soft);
 }
+
+/* Remove badge Lovable e overlays externos */
+[class*="lovable"],
+[id*="lovable"],
+iframe[src*="lovable"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body > div[style*="position: fixed"][style*="z-index"] {
+  display: none !important;
+}
