@@ -1,20 +1,31 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase, type License } from "@/integrations/supabase/client";
-import {
-  fetchResellerByToken,
-  fetchResellerLicenses,
-} from "@/lib/resellers";
-import { generateLicenseKey } from "@/lib/licenses";
+import { fetchResellerByToken, fetchResellerLicenses } from "@/lib/resellers";
+import { computeStatus, generateLicenseKey } from "@/lib/licenses";
+import { StatusBadge } from "./_authenticated/dashboard";
+import { EditLicenseDialog } from "./_authenticated/licenses";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { KeyRound, Copy, ShieldAlert, Plus, Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
+} from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
 
 export const Route = createFileRoute("/r/$token")({
   ssr: false,
@@ -37,43 +48,48 @@ function ResellerPublicPage() {
     enabled: !!reseller.data?.id,
   });
 
-  const [userName, setUserName] = useState("");
-  const [days, setDays] = useState<number>(30);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const filtered = useMemo(() => {
+    const list = licenses.data ?? [];
+    return list.filter((l) => {
+      const okSearch = !search ||
+        l.license_key.toLowerCase().includes(search.toLowerCase()) ||
+        (l.user_name ?? "").toLowerCase().includes(search.toLowerCase());
+      const okStatus = statusFilter === "all" || computeStatus(l) === statusFilter;
+      return okSearch && okStatus;
+    });
+  }, [licenses.data, search, statusFilter]);
 
   const used = licenses.data?.length ?? 0;
   const max = reseller.data?.max_keys ?? 0;
   const remaining = Math.max(0, max - used);
   const blocked = !reseller.data?.active || remaining <= 0;
+  const pct = max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 0;
 
-  const generate = useMutation({
-    mutationFn: async () => {
-      if (!reseller.data) throw new Error("Revenda não encontrada");
-      // Re-check current count atomically-ish before insert
-      const { count, error: cErr } = await supabase
-        .from("licenses")
-        .select("id", { count: "exact", head: true })
-        .eq("reseller_id", reseller.data.id);
-      if (cErr) throw cErr;
-      if ((count ?? 0) >= reseller.data.max_keys) {
-        throw new Error("Cota esgotada. Contate o administrador.");
-      }
-      if (!reseller.data.active) throw new Error("Revenda inativa.");
-
-      const expires_at = days > 0 ? new Date(Date.now() + days * 86400000).toISOString() : null;
-      const { error } = await supabase.from("licenses").insert({
-        license_key: generateLicenseKey(),
-        user_name: userName || "Cliente",
-        status: "active",
-        expires_at,
-        max_devices: 1,
-        duration_minutes: days > 0 ? days * 24 * 60 : null,
-        reseller_id: reseller.data.id,
-      });
+  const revoke = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("licenses")
+        .update({ status: "revoked", updated_at: new Date().toISOString() })
+        .eq("id", id).eq("reseller_id", reseller.data!.id);
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Key gerada");
-      setUserName("");
+      toast.success("Licença revogada");
+      qc.invalidateQueries({ queryKey: ["reseller-licenses", reseller.data?.id] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("licenses").delete()
+        .eq("id", id).eq("reseller_id", reseller.data!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Licença removida");
       qc.invalidateQueries({ queryKey: ["reseller-licenses", reseller.data?.id] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -86,17 +102,12 @@ function ResellerPublicPage() {
       </div>
     );
   }
-
-  if (!reseller.data) {
-    throw notFound();
-  }
-
-  const pct = max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 0;
+  if (!reseller.data) throw notFound();
 
   return (
     <div className="min-h-dvh bg-background">
       <header className="border-b bg-card">
-        <div className="mx-auto max-w-3xl px-4 py-4 flex items-center justify-between">
+        <div className="mx-auto max-w-5xl px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 font-semibold">
             <KeyRound className="h-5 w-5 text-primary" aria-hidden />
             <span>Painel de Revenda</span>
@@ -109,7 +120,7 @@ function ResellerPublicPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-6 space-y-6">
+      <main className="mx-auto max-w-5xl px-4 py-6 space-y-4">
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">{reseller.data.name}</CardTitle>
@@ -130,77 +141,147 @@ function ResellerPublicPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Gerar nova key</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {blocked ? (
-              <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
-                <ShieldAlert className="h-5 w-5 text-destructive shrink-0" aria-hidden />
-                <div>
-                  <p className="font-medium text-destructive">Geração bloqueada</p>
-                  <p className="text-muted-foreground">
-                    {!reseller.data.active
-                      ? "Esta revenda está inativa. Contate o administrador."
-                      : "Cota esgotada. Solicite mais keys ao administrador."}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <form
-                className="grid gap-3 sm:grid-cols-[1fr_120px_auto]"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  generate.mutate();
-                }}
-              >
-                <div className="space-y-1">
-                  <Label htmlFor="cli">Cliente</Label>
-                  <Input
-                    id="cli"
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    placeholder="Nome do cliente"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="dys">Validade (dias)</Label>
-                  <Input
-                    id="dys"
-                    type="number"
-                    min={0}
-                    value={days}
-                    onChange={(e) => setDays(Number(e.target.value))}
-                  />
-                </div>
-                <div className="flex items-end">
-                  <Button type="submit" disabled={generate.isPending} className="gap-2 w-full">
-                    <Plus className="h-4 w-4" aria-hidden />
-                    {generate.isPending ? "Gerando..." : "Gerar"}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </CardContent>
-        </Card>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-semibold tracking-tight">Licenças</h2>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => qc.invalidateQueries({ queryKey: ["reseller-licenses", reseller.data?.id] })}
+              aria-label="Recarregar"
+            >
+              <RefreshCw className="h-4 w-4" aria-hidden />
+            </Button>
+            <NewResellerLicenseDialog
+              resellerId={reseller.data.id}
+              maxKeys={reseller.data.max_keys}
+              currentCount={used}
+              disabled={blocked}
+            />
+          </div>
+        </div>
+
+        {blocked ? (
+          <div className="flex items-start gap-3 rounded-md border border-destructive/30 bg-destructive/5 p-4 text-sm">
+            <ShieldAlert className="h-5 w-5 text-destructive shrink-0" aria-hidden />
+            <div>
+              <p className="font-medium text-destructive">Geração bloqueada</p>
+              <p className="text-muted-foreground">
+                {!reseller.data.active
+                  ? "Esta revenda está inativa. Contate o administrador."
+                  : "Cota esgotada. Solicite mais keys ao administrador."}
+              </p>
+            </div>
+          </div>
+        ) : null}
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Keys geradas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {licenses.isLoading ? (
-              <p className="text-sm text-muted-foreground">Carregando...</p>
-            ) : (licenses.data?.length ?? 0) === 0 ? (
-              <p className="text-sm text-muted-foreground">Nenhuma key gerada ainda.</p>
-            ) : (
-              <ul className="divide-y">
-                {licenses.data!.map((l) => (
-                  <LicenseRow key={l.id} license={l} />
-                ))}
-              </ul>
-            )}
+          <CardContent className="space-y-4 py-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative flex-1 min-w-[220px]">
+                <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar por chave ou cliente..."
+                  className="pl-8"
+                  aria-label="Buscar"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[160px]" aria-label="Filtrar por status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os status</SelectItem>
+                  <SelectItem value="active">Ativas</SelectItem>
+                  <SelectItem value="trial">Trial</SelectItem>
+                  <SelectItem value="expired">Expiradas</SelectItem>
+                  <SelectItem value="revoked">Revogadas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="overflow-x-auto rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Chave</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Expira em</TableHead>
+                    <TableHead>Dispositivos</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {licenses.isLoading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell colSpan={6}><Skeleton className="h-6 w-full" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : filtered.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
+                        Nenhuma licença encontrada.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filtered.map((l) => (
+                      <TableRow key={l.id}>
+                        <TableCell className="font-mono text-xs">
+                          <div className="flex items-center gap-1">
+                            <span>{l.license_key}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              aria-label="Copiar chave"
+                              onClick={async () => {
+                                try { await navigator.clipboard.writeText(l.license_key); toast.success("Copiado"); }
+                                catch { toast.error("Falha ao copiar"); }
+                              }}
+                            >
+                              <Copy className="h-3 w-3" aria-hidden />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell>{l.user_name ?? "—"}</TableCell>
+                        <TableCell><StatusBadge status={computeStatus(l)} /></TableCell>
+                        <TableCell className="text-sm">{formatDate(l.expires_at)}</TableCell>
+                        <TableCell className="text-sm">{l.max_devices ?? 1}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <EditLicenseDialog license={l} />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={l.status === "revoked" || revoke.isPending}
+                              onClick={() => revoke.mutate(l.id)}
+                              aria-label="Revogar"
+                            >
+                              <Ban className="h-4 w-4" aria-hidden />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled={remove.isPending}
+                              onClick={() => {
+                                if (confirm("Remover esta licença?")) remove.mutate(l.id);
+                              }}
+                              aria-label="Remover"
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" aria-hidden />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </main>
@@ -208,31 +289,122 @@ function ResellerPublicPage() {
   );
 }
 
-function LicenseRow({ license }: { license: License }) {
+function formatDate(iso: string | null) {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+  } catch {
+    return iso;
+  }
+}
+
+function NewResellerLicenseDialog({
+  resellerId, maxKeys, currentCount, disabled,
+}: { resellerId: string; maxKeys: number; currentCount: number; disabled: boolean }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [status, setStatus] = useState<NonNullable<License["status"]>>("active");
+  const [days, setDays] = useState<number>(30);
+  const [maxDevices, setMaxDevices] = useState<number>(1);
+  const [key, setKey] = useState<string>(generateLicenseKey());
+
+  const create = useMutation({
+    mutationFn: async () => {
+      // Re-check quota at insert time
+      const { count, error: cErr } = await supabase
+        .from("licenses")
+        .select("id", { count: "exact", head: true })
+        .eq("reseller_id", resellerId);
+      if (cErr) throw cErr;
+      if ((count ?? 0) >= maxKeys) throw new Error("Cota esgotada.");
+
+      const expires_at = days > 0 ? new Date(Date.now() + days * 86400000).toISOString() : null;
+      const { error } = await supabase.from("licenses").insert({
+        license_key: key,
+        user_name: userName || "Cliente",
+        status,
+        expires_at,
+        max_devices: maxDevices,
+        duration_minutes: days > 0 ? days * 24 * 60 : null,
+        reseller_id: resellerId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Licença criada");
+      qc.invalidateQueries({ queryKey: ["reseller-licenses", resellerId] });
+      setOpen(false);
+      setKey(generateLicenseKey());
+      setUserName("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
-    <li className="flex items-center justify-between gap-3 py-2">
-      <div className="min-w-0">
-        <div className="truncate font-mono text-sm">{license.license_key}</div>
-        <div className="truncate text-xs text-muted-foreground">
-          {license.user_name ?? "—"}
-          {license.expires_at ? ` · expira ${new Date(license.expires_at).toLocaleDateString("pt-BR")}` : ""}
-        </div>
-      </div>
-      <Button
-        variant="ghost"
-        size="sm"
-        aria-label="Copiar"
-        onClick={async () => {
-          try {
-            await navigator.clipboard.writeText(license.license_key);
-            toast.success("Chave copiada");
-          } catch {
-            toast.error("Falha ao copiar");
-          }
-        }}
-      >
-        <Copy className="h-4 w-4" aria-hidden />
-      </Button>
-    </li>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" className="gap-2" disabled={disabled}>
+          <Plus className="h-4 w-4" aria-hidden />
+          Nova licença
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Nova licença</DialogTitle>
+          <DialogDescription>
+            Cota: {currentCount}/{maxKeys}. A chave será vinculada à sua revenda.
+          </DialogDescription>
+        </DialogHeader>
+        <form
+          className="space-y-4"
+          onSubmit={(e) => { e.preventDefault(); create.mutate(); }}
+        >
+          <div className="space-y-2">
+            <Label htmlFor="lkey">Chave</Label>
+            <div className="flex gap-2">
+              <Input
+                id="lkey"
+                value={key}
+                onChange={(e) => setKey(e.target.value.toUpperCase())}
+                className="font-mono"
+                required
+              />
+              <Button type="button" variant="outline" onClick={() => setKey(generateLicenseKey())}>
+                Gerar
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="uname">Cliente</Label>
+            <Input id="uname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do cliente" />
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="lstatus">Status</Label>
+              <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
+                <SelectTrigger id="lstatus"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Ativa</SelectItem>
+                  <SelectItem value="trial">Trial</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ldays">Validade (dias)</Label>
+              <Input id="ldays" type="number" min={0} value={days} onChange={(e) => setDays(Number(e.target.value))} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ldev">Dispositivos</Label>
+              <Input id="ldev" type="number" min={1} value={maxDevices} onChange={(e) => setMaxDevices(Number(e.target.value))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button type="submit" disabled={create.isPending}>{create.isPending ? "Criando..." : "Criar"}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
