@@ -22,12 +22,9 @@ export function computeStatus(l: License): License["status"] {
 }
 
 export function generateLicenseKey(): string {
-  const letters = Array.from({ length: 2 }, () =>
-    String.fromCharCode(65 + Math.floor(Math.random() * 26)),
-  ).join("");
   const digits = Array.from({ length: 8 }, () => Math.floor(Math.random() * 10)).join("");
   const hex = Array.from({ length: 8 }, () =>
     "0123456789ABCDEF"[Math.floor(Math.random() * 16)],
   ).join("");
-  return `${letters}-${digits}-${hex}`;
+  return `LL-${digits}-${hex}`;
 }
