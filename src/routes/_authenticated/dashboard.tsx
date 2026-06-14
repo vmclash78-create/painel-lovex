@@ -28,8 +28,8 @@ function DashboardPage() {
 
   return (
     <section className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+      <header className="space-y-1">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">Visão geral das licenças emitidas.</p>
       </header>
 
@@ -108,15 +108,17 @@ function StatCard({
             ? "text-destructive"
             : "text-foreground";
   return (
-    <Card>
+    <Card className="relative overflow-hidden shadow-soft transition-all hover:shadow-elegant">
       <CardContent className="flex items-center justify-between gap-2 py-5">
-        <div>
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
-          <div className={`mt-1 text-2xl font-semibold ${toneClass}`}>
-            {loading ? <Skeleton className="h-7 w-10" /> : value}
+        <div className="min-w-0">
+          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
+          <div className={`mt-1 text-3xl font-bold tracking-tight ${toneClass}`}>
+            {loading ? <Skeleton className="h-8 w-12" /> : value}
           </div>
         </div>
-        <Icon className={`h-6 w-6 ${toneClass}`} aria-hidden />
+        <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted ${toneClass}`}>
+          <Icon className="h-5 w-5" aria-hidden />
+        </div>
       </CardContent>
     </Card>
   );
