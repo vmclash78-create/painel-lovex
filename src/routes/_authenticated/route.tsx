@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet, Link, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, KeyRound, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, KeyRound, ShieldCheck, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -13,6 +13,7 @@ function AuthedLayout() {
   const nav = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/licenses", label: "Licenças", icon: KeyRound },
+    { to: "/resellers", label: "Revendas", icon: Users },
   ] as const;
 
   return (
