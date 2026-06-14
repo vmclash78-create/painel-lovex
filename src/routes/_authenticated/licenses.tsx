@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, RefreshCw, Ban, Trash2 } from "lucide-react";
+import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Smartphone, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/licenses")({
@@ -150,6 +150,7 @@ function LicensesPage() {
                       <TableCell className="text-sm">{l.max_devices ?? 1}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
+                          <EditLicenseDialog license={l} />
                           <Button
                             variant="ghost"
                             size="sm"
