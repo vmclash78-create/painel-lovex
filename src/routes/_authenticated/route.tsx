@@ -1,6 +1,12 @@
 import { createFileRoute, Outlet, Link, useRouterState } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, KeyRound, ShieldCheck, Users } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { LayoutDashboard, KeyRound, ShieldCheck, Users, Lock, LogOut } from "lucide-react";
+import { isAdminUnlocked, unlockAdmin, lockAdmin } from "@/lib/admin-gate";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -9,6 +15,16 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthedLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [unlocked, setUnlocked] = useState(false);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    setUnlocked(isAdminUnlocked());
+    setChecked(true);
+  }, []);
+
+  if (!checked) return null;
+  if (!unlocked) return <AdminGate onUnlock={() => setUnlocked(true)} />;
 
   const nav = [
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -47,6 +63,16 @@ function AuthedLayout() {
               );
             })}
           </nav>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-2"
+            onClick={() => { lockAdmin(); setUnlocked(false); }}
+            aria-label="Sair"
+          >
+            <LogOut className="h-4 w-4" aria-hidden />
+            <span className="hidden sm:inline">Sair</span>
+          </Button>
         </div>
       </header>
       <main className="flex-1">
@@ -55,5 +81,57 @@ function AuthedLayout() {
         </div>
       </main>
     </div>
+  );
+}
+
+function AdminGate({ onUnlock }: { onUnlock: () => void }) {
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    const ok = unlockAdmin(password);
+    setLoading(false);
+    if (!ok) {
+      toast.error("Senha incorreta");
+      return;
+    }
+    toast.success("Acesso liberado");
+    onUnlock();
+  }
+
+  return (
+    <main className="min-h-dvh grid place-items-center bg-background px-4 py-10">
+      <Card className="w-full max-w-md shadow-elegant">
+        <CardHeader className="space-y-2 text-center">
+          <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-primary/10 text-primary">
+            <Lock className="h-6 w-6" aria-hidden />
+          </div>
+          <CardTitle className="text-2xl">Área restrita</CardTitle>
+          <CardDescription>Informe a senha de administrador para acessar o painel.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={submit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="adm-pwd">Senha</Label>
+              <Input
+                id="adm-pwd"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoFocus
+                autoComplete="current-password"
+                required
+              />
+            </div>
+            <Button type="submit" className="w-full gap-2" disabled={loading}>
+              <ShieldCheck className="h-4 w-4" aria-hidden />
+              {loading ? "Verificando..." : "Entrar"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </main>
   );
 }
