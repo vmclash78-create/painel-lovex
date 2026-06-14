@@ -24,4 +24,14 @@ export type License = {
   created_at: string | null;
   updated_at: string | null;
   duration_minutes: number | null;
+  reseller_id?: string | null;
+};
+
+export type Reseller = {
+  id: string;
+  name: string;
+  token: string;
+  max_keys: number;
+  active: boolean;
+  created_at: string | null;
 };
