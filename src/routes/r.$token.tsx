@@ -307,7 +307,12 @@ function NewResellerLicenseDialog({
   const [status, setStatus] = useState<NonNullable<License["status"]>>("active");
   const [days, setDays] = useState<number>(30);
   const [maxDevices, setMaxDevices] = useState<number>(1);
-  const [key, setKey] = useState<string>(generateLicenseKey());
+  const [key, setKey] = useState<string>("");
+
+  // Generate a fresh key each time the dialog opens (avoids SSR-cached value).
+  useEffect(() => {
+    if (open) setKey(generateLicenseKey());
+  }, [open]);
 
   const create = useMutation({
     mutationFn: async () => {
