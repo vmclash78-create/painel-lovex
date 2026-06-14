@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -42,19 +41,6 @@ function AuthPage() {
     navigate({ to: "/dashboard", replace: true });
   }
 
-  async function signUp(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: `${window.location.origin}/dashboard` },
-    });
-    setLoading(false);
-    if (error) return toast.error(error.message);
-    toast.success("Cadastro criado. Verifique seu e-mail se a confirmação estiver ativada.");
-  }
-
   return (
     <main className="min-h-dvh grid place-items-center bg-muted/30 px-4 py-10">
       <Card className="w-full max-w-md">
@@ -66,30 +52,17 @@ function AuthPage() {
           <CardDescription>Acesso restrito a administradores</CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Criar conta</TabsTrigger>
-            </TabsList>
-            <TabsContent value="signin">
-              <form onSubmit={signIn} className="space-y-4 pt-4">
-                <Field id="email" label="E-mail" type="email" value={email} onChange={setEmail} />
-                <Field id="password" label="Senha" type="password" value={password} onChange={setPassword} />
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Entrando..." : "Entrar"}
-                </Button>
-              </form>
-            </TabsContent>
-            <TabsContent value="signup">
-              <form onSubmit={signUp} className="space-y-4 pt-4">
-                <Field id="email2" label="E-mail" type="email" value={email} onChange={setEmail} />
-                <Field id="password2" label="Senha" type="password" value={password} onChange={setPassword} />
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Criando..." : "Criar conta"}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+          <form onSubmit={signIn} className="space-y-4">
+            <Field id="email" label="E-mail" type="email" value={email} onChange={setEmail} />
+            <Field id="password" label="Senha" type="password" value={password} onChange={setPassword} />
+            <Button type="submit" className="w-full gap-2" disabled={loading}>
+              <Lock className="h-4 w-4" aria-hidden />
+              {loading ? "Entrando..." : "Entrar"}
+            </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              Cadastros novos estão desativados. Solicite acesso ao administrador.
+            </p>
+          </form>
         </CardContent>
       </Card>
     </main>
