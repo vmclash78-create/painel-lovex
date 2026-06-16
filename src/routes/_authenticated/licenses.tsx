@@ -68,6 +68,26 @@ function LicensesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const resetDevice = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("licenses")
+        .update({
+          device_id: null,
+          activated_at: null,
+          session_id: crypto.randomUUID(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Dispositivo reiniciado");
+      qc.invalidateQueries({ queryKey: ["licenses"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <section className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -151,6 +171,19 @@ function LicensesPage() {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <EditLicenseDialog license={l} />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={resetDevice.isPending || !l.device_id}
+                            onClick={() => {
+                              if (confirm("Reiniciar o dispositivo vinculado a esta licença?"))
+                                resetDevice.mutate(l.id);
+                            }}
+                            aria-label="Reiniciar dispositivo"
+                            title="Reiniciar dispositivo"
+                          >
+                            <Smartphone className="h-4 w-4" aria-hidden />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"
