@@ -187,7 +187,3 @@ iframe[src*="lovable"] {
   visibility: hidden !important;
   pointer-events: none !important;
 }
-
-body > div[style*="position: fixed"][style*="z-index"] {
-  display: none !important;
-}
