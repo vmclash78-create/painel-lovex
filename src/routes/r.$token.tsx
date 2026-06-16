@@ -95,7 +95,9 @@ function ResellerPublicPage() {
     });
   }, [licenses.data, search, statusFilter]);
 
-  const used = licenses.data?.length ?? 0;
+  const paidLicenses = (licenses.data ?? []).filter((l) => l.status !== "trial");
+  const trialCount = (licenses.data ?? []).length - paidLicenses.length;
+  const used = paidLicenses.length;
   const max = reseller.data?.max_keys ?? 0;
   const remaining = Math.max(0, max - used);
   const blocked = !reseller.data?.active || remaining <= 0;
@@ -217,6 +219,9 @@ function ResellerPublicPage() {
                 ? `${remaining} key${remaining === 1 ? "" : "s"} restante${remaining === 1 ? "" : "s"}.`
                 : "Você atingiu o limite da sua cota."}
             </p>
+            <p className="text-xs text-muted-foreground">
+              Trials não contam na cota. Trials geradas: {trialCount}.
+            </p>
           </CardContent>
         </Card>
 
@@ -235,7 +240,8 @@ function ResellerPublicPage() {
               resellerId={reseller.data.id}
               maxKeys={reseller.data.max_keys}
               currentCount={used}
-              disabled={blocked}
+              disabled={!reseller.data.active}
+              quotaReached={remaining <= 0}
             />
           </div>
         </div>
@@ -386,8 +392,8 @@ function formatDate(iso: string | null) {
 }
 
 function NewResellerLicenseDialog({
-  resellerId, maxKeys, currentCount, disabled,
-}: { resellerId: string; maxKeys: number; currentCount: number; disabled: boolean }) {
+  resellerId, maxKeys, currentCount, disabled, quotaReached,
+}: { resellerId: string; maxKeys: number; currentCount: number; disabled: boolean; quotaReached: boolean }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState("");
@@ -419,13 +425,16 @@ function NewResellerLicenseDialog({
 
   const create = useMutation({
     mutationFn: async () => {
-      // Re-check quota at insert time
-      const { count, error: cErr } = await supabase
-        .from("licenses")
-        .select("id", { count: "exact", head: true })
-        .eq("reseller_id", resellerId);
-      if (cErr) throw cErr;
-      if ((count ?? 0) >= maxKeys) throw new Error("Cota esgotada.");
+      // Re-check quota at insert time — trials don't count
+      if (status !== "trial") {
+        const { count, error: cErr } = await supabase
+          .from("licenses")
+          .select("id", { count: "exact", head: true })
+          .eq("reseller_id", resellerId)
+          .neq("status", "trial");
+        if (cErr) throw cErr;
+        if ((count ?? 0) >= maxKeys) throw new Error("Cota esgotada.");
+      }
 
       const factor = unit === "minutes" ? 60_000 : unit === "hours" ? 3_600_000 : 86_400_000;
       const minutesTotal =
@@ -540,10 +549,13 @@ function NewResellerLicenseDialog({
               </Select>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">Use 0 para sem expiração. Trial máx. 15 minutos.</p>
+          <p className="text-xs text-muted-foreground">Use 0 para sem expiração. Trial máx. 15 minutos. Trials são gratuitas e não consomem cota.</p>
+          {quotaReached && status !== "trial" ? (
+            <p className="text-xs text-destructive">Cota esgotada — só é possível gerar licenças Trial.</p>
+          ) : null}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button type="submit" disabled={create.isPending}>{create.isPending ? "Criando..." : "Criar"}</Button>
+            <Button type="submit" disabled={create.isPending || (quotaReached && status !== "trial")}>{create.isPending ? "Criando..." : "Criar"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
