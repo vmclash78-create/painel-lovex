@@ -382,9 +382,9 @@ function ResellerPublicPage() {
                             <EditLicenseDialog license={l} />
                             <ResetLicenseDialog
                               license={l}
-                              resellerId={reseller.data.id}
+                              resellerId={reseller.data!.id}
                               invalidateKeys={[
-                                ["reseller-licenses", reseller.data.id],
+                                ["reseller-licenses", reseller.data!.id],
                                 ["licenses"],
                               ]}
                             />
