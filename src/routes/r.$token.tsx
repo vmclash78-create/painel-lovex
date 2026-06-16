@@ -95,7 +95,9 @@ function ResellerPublicPage() {
     });
   }, [licenses.data, search, statusFilter]);
 
-  const used = licenses.data?.length ?? 0;
+  const paidLicenses = (licenses.data ?? []).filter((l) => l.status !== "trial");
+  const trialCount = (licenses.data ?? []).length - paidLicenses.length;
+  const used = paidLicenses.length;
   const max = reseller.data?.max_keys ?? 0;
   const remaining = Math.max(0, max - used);
   const blocked = !reseller.data?.active || remaining <= 0;
@@ -216,6 +218,9 @@ function ResellerPublicPage() {
               {remaining > 0
                 ? `${remaining} key${remaining === 1 ? "" : "s"} restante${remaining === 1 ? "" : "s"}.`
                 : "Você atingiu o limite da sua cota."}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Trials não contam na cota. Trials geradas: {trialCount}.
             </p>
           </CardContent>
         </Card>
