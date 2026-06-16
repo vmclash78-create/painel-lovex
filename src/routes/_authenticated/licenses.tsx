@@ -19,6 +19,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw } from "lucide-react";
+import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/licenses")({
@@ -193,32 +194,10 @@ function LicensesPage() {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <EditLicenseDialog license={l} />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={resetDevice.isPending || !l.device_id}
-                            onClick={() => {
-                              if (confirm("Reiniciar o dispositivo vinculado a esta licença?"))
-                                resetDevice.mutate(l.id);
-                            }}
-                            aria-label="Reiniciar dispositivo"
-                            title="Reiniciar dispositivo"
-                          >
-                            <Monitor className="h-4 w-4" aria-hidden />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled={resetTotal.isPending}
-                            onClick={() => {
-                              if (confirm("Reset TOTAL: limpa dispositivo, sessão e renova a validade. Continuar?"))
-                                resetTotal.mutate(l);
-                            }}
-                            aria-label="Reset total"
-                            title="Reset total (dispositivo + sessão + validade)"
-                          >
-                            <RotateCcw className="h-4 w-4" aria-hidden />
-                          </Button>
+                          <ResetLicenseDialog
+                            license={l}
+                            invalidateKeys={[["licenses"], ["reseller-licenses"]]}
+                          />
                           <Button
                             variant="ghost"
                             size="sm"
