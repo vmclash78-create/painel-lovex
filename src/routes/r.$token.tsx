@@ -240,7 +240,8 @@ function ResellerPublicPage() {
               resellerId={reseller.data.id}
               maxKeys={reseller.data.max_keys}
               currentCount={used}
-              disabled={blocked}
+              disabled={!reseller.data.active}
+              quotaReached={remaining <= 0}
             />
           </div>
         </div>
@@ -391,8 +392,8 @@ function formatDate(iso: string | null) {
 }
 
 function NewResellerLicenseDialog({
-  resellerId, maxKeys, currentCount, disabled,
-}: { resellerId: string; maxKeys: number; currentCount: number; disabled: boolean }) {
+  resellerId, maxKeys, currentCount, disabled, quotaReached,
+}: { resellerId: string; maxKeys: number; currentCount: number; disabled: boolean; quotaReached: boolean }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState("");
