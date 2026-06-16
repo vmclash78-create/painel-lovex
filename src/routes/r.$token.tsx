@@ -424,13 +424,16 @@ function NewResellerLicenseDialog({
 
   const create = useMutation({
     mutationFn: async () => {
-      // Re-check quota at insert time
-      const { count, error: cErr } = await supabase
-        .from("licenses")
-        .select("id", { count: "exact", head: true })
-        .eq("reseller_id", resellerId);
-      if (cErr) throw cErr;
-      if ((count ?? 0) >= maxKeys) throw new Error("Cota esgotada.");
+      // Re-check quota at insert time — trials don't count
+      if (status !== "trial") {
+        const { count, error: cErr } = await supabase
+          .from("licenses")
+          .select("id", { count: "exact", head: true })
+          .eq("reseller_id", resellerId)
+          .neq("status", "trial");
+        if (cErr) throw cErr;
+        if ((count ?? 0) >= maxKeys) throw new Error("Cota esgotada.");
+      }
 
       const factor = unit === "minutes" ? 60_000 : unit === "hours" ? 3_600_000 : 86_400_000;
       const minutesTotal =
