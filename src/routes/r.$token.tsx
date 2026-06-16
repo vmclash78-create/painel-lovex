@@ -549,10 +549,13 @@ function NewResellerLicenseDialog({
               </Select>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">Use 0 para sem expiração. Trial máx. 15 minutos.</p>
+          <p className="text-xs text-muted-foreground">Use 0 para sem expiração. Trial máx. 15 minutos. Trials são gratuitas e não consomem cota.</p>
+          {quotaReached && status !== "trial" ? (
+            <p className="text-xs text-destructive">Cota esgotada — só é possível gerar licenças Trial.</p>
+          ) : null}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button type="submit" disabled={create.isPending}>{create.isPending ? "Criando..." : "Criar"}</Button>
+            <Button type="submit" disabled={create.isPending || (quotaReached && status !== "trial")}>{create.isPending ? "Criando..." : "Criar"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
