@@ -388,6 +388,21 @@ function NewResellerLicenseDialog({
   const [maxDevices, setMaxDevices] = useState<number>(1);
   const [key, setKey] = useState<string>("");
 
+  const updateStatus = (nextStatus: NonNullable<License["status"]>) => {
+    setStatus(nextStatus);
+    if (nextStatus === "trial") {
+      setUnit("minutes");
+      setDays((value) => Math.min(Math.max(value || 15, 1), 15));
+    }
+  };
+
+  const updateUnit = (nextUnit: "minutes" | "hours" | "days") => {
+    setUnit(nextUnit);
+    if (status === "trial") {
+      setDays(15);
+    }
+  };
+
   // Generate a fresh key each time the dialog opens (avoids SSR-cached value).
   useEffect(() => {
     if (open) setKey(generateLicenseKey());
@@ -452,15 +467,15 @@ function NewResellerLicenseDialog({
         >
           <div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" size="sm"
-              onClick={() => { setStatus("trial"); setUnit("minutes"); setDays(5); setMaxDevices(1); }}>
+              onClick={() => { updateStatus("trial"); setDays(5); setMaxDevices(1); }}>
               Trial 5 min
             </Button>
             <Button type="button" variant="outline" size="sm"
-              onClick={() => { setStatus("trial"); setUnit("minutes"); setDays(10); setMaxDevices(1); }}>
+              onClick={() => { updateStatus("trial"); setDays(10); setMaxDevices(1); }}>
               Trial 10 min
             </Button>
             <Button type="button" variant="outline" size="sm"
-              onClick={() => { setStatus("trial"); setUnit("minutes"); setDays(15); setMaxDevices(1); }}>
+              onClick={() => { updateStatus("trial"); setDays(15); setMaxDevices(1); }}>
               Trial 15 min
             </Button>
           </div>
@@ -486,7 +501,7 @@ function NewResellerLicenseDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="lstatus">Status</Label>
-              <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
+              <Select value={status} onValueChange={(v) => updateStatus(v as typeof status)}>
                 <SelectTrigger id="lstatus"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Ativa</SelectItem>
@@ -502,16 +517,16 @@ function NewResellerLicenseDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="ldays">Validade</Label>
-              <Input id="ldays" type="number" min={0} value={days} onChange={(e) => setDays(Number(e.target.value))} />
+              <Input id="ldays" type="number" min={0} max={status === "trial" ? 15 : undefined} value={days} onChange={(e) => setDays(status === "trial" ? Math.min(Number(e.target.value), 15) : Number(e.target.value))} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="lunit">Unidade</Label>
-              <Select value={unit} onValueChange={(v) => setUnit(v as typeof unit)}>
+              <Select value={unit} onValueChange={(v) => updateUnit(v as typeof unit)}>
                 <SelectTrigger id="lunit"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="minutes">Minutos</SelectItem>
-                  <SelectItem value="hours">Horas</SelectItem>
-                  <SelectItem value="days">Dias</SelectItem>
+                  {status !== "trial" ? <SelectItem value="hours">Horas</SelectItem> : null}
+                  {status !== "trial" ? <SelectItem value="days">Dias</SelectItem> : null}
                 </SelectContent>
               </Select>
             </div>
