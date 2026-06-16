@@ -383,6 +383,9 @@ function NewLicenseDialog() {
       const factor = unit === "minutes" ? 60_000 : unit === "hours" ? 3_600_000 : 86_400_000;
       const minutesTotal =
         unit === "minutes" ? days : unit === "hours" ? days * 60 : days * 24 * 60;
+      if (status === "trial" && (minutesTotal <= 0 || minutesTotal > 15)) {
+        throw new Error("Trial: máximo 15 minutos.");
+      }
       const expires_at = days > 0 ? new Date(Date.now() + days * factor).toISOString() : null;
       const { error } = await supabase.from("licenses").insert({
         license_key: key,
@@ -425,44 +428,17 @@ function NewLicenseDialog() {
           }}
         >
           <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setStatus("trial");
-                setUnit("minutes");
-                setDays(30);
-                setMaxDevices(1);
-              }}
-            >
-              Trial 30 min
+            <Button type="button" variant="outline" size="sm"
+              onClick={() => { setStatus("trial"); setUnit("minutes"); setDays(5); setMaxDevices(1); }}>
+              Trial 5 min
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setStatus("trial");
-                setUnit("hours");
-                setDays(2);
-                setMaxDevices(1);
-              }}
-            >
-              Trial 2 h
+            <Button type="button" variant="outline" size="sm"
+              onClick={() => { setStatus("trial"); setUnit("minutes"); setDays(10); setMaxDevices(1); }}>
+              Trial 10 min
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setStatus("trial");
-                setUnit("days");
-                setDays(7);
-                setMaxDevices(1);
-              }}
-            >
-              Trial 7 dias
+            <Button type="button" variant="outline" size="sm"
+              onClick={() => { setStatus("trial"); setUnit("minutes"); setDays(15); setMaxDevices(1); }}>
+              Trial 15 min
             </Button>
           </div>
           <div className="space-y-2">
