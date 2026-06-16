@@ -24,8 +24,8 @@ import {
 } from "@/components/ui/select";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
-  Monitor, RotateCcw,
 } from "lucide-react";
+import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/r/$token")({
@@ -123,53 +123,6 @@ function ResellerPublicPage() {
     },
     onSuccess: () => {
       toast.success("Licença removida");
-      qc.invalidateQueries({ queryKey: ["reseller-licenses", reseller.data?.id] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const resetDevice = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("licenses")
-        .update({
-          device_id: null,
-          activated_at: null,
-          session_id: crypto.randomUUID(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id)
-        .eq("reseller_id", reseller.data!.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Dispositivo reiniciado");
-      qc.invalidateQueries({ queryKey: ["reseller-licenses", reseller.data?.id] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const resetTotal = useMutation({
-    mutationFn: async (l: License) => {
-      const patch: Record<string, unknown> = {
-        device_id: null,
-        activated_at: null,
-        session_id: crypto.randomUUID(),
-        status: "active",
-        updated_at: new Date().toISOString(),
-      };
-      if (l.duration_minutes && l.duration_minutes > 0) {
-        patch.expires_at = new Date(Date.now() + l.duration_minutes * 60_000).toISOString();
-      }
-      const { error } = await supabase
-        .from("licenses")
-        .update(patch)
-        .eq("id", l.id)
-        .eq("reseller_id", reseller.data!.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Licença reiniciada do zero");
       qc.invalidateQueries({ queryKey: ["reseller-licenses", reseller.data?.id] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -380,32 +333,14 @@ function ResellerPublicPage() {
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">
                             <EditLicenseDialog license={l} />
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              disabled={resetDevice.isPending || !l.device_id}
-                              onClick={() => {
-                                if (confirm("Reiniciar o dispositivo vinculado a esta licença?"))
-                                  resetDevice.mutate(l.id);
-                              }}
-                              aria-label="Reiniciar dispositivo"
-                              title="Reiniciar dispositivo"
-                            >
-                              <Monitor className="h-4 w-4" aria-hidden />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              disabled={resetTotal.isPending}
-                              onClick={() => {
-                                if (confirm("Reset TOTAL: limpa dispositivo, sessão e renova a validade. Continuar?"))
-                                  resetTotal.mutate(l);
-                              }}
-                              aria-label="Reset total"
-                              title="Reset total (dispositivo + sessão + validade)"
-                            >
-                              <RotateCcw className="h-4 w-4" aria-hidden />
-                            </Button>
+                            <ResetLicenseDialog
+                              license={l}
+                              resellerId={reseller.data!.id}
+                              invalidateKeys={[
+                                ["reseller-licenses", reseller.data!.id],
+                                ["licenses"],
+                              ]}
+                            />
                             <Button
                               variant="ghost"
                               size="sm"
