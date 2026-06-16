@@ -374,19 +374,23 @@ function NewLicenseDialog() {
   const [userName, setUserName] = useState("");
   const [status, setStatus] = useState<NonNullable<License["status"]>>("active");
   const [days, setDays] = useState<number>(30);
+  const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
   const [maxDevices, setMaxDevices] = useState<number>(1);
   const [key, setKey] = useState<string>(generateLicenseKey());
 
   const create = useMutation({
     mutationFn: async () => {
-      const expires_at = days > 0 ? new Date(Date.now() + days * 86400000).toISOString() : null;
+      const factor = unit === "minutes" ? 60_000 : unit === "hours" ? 3_600_000 : 86_400_000;
+      const minutesTotal =
+        unit === "minutes" ? days : unit === "hours" ? days * 60 : days * 24 * 60;
+      const expires_at = days > 0 ? new Date(Date.now() + days * factor).toISOString() : null;
       const { error } = await supabase.from("licenses").insert({
         license_key: key,
         user_name: userName || "Usuário",
         status,
         expires_at,
         max_devices: maxDevices,
-        duration_minutes: days > 0 ? days * 24 * 60 : null,
+        duration_minutes: days > 0 ? minutesTotal : null,
       });
       if (error) throw error;
     },
@@ -420,6 +424,47 @@ function NewLicenseDialog() {
             create.mutate();
           }}
         >
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setStatus("trial");
+                setUnit("minutes");
+                setDays(30);
+                setMaxDevices(1);
+              }}
+            >
+              Trial 30 min
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setStatus("trial");
+                setUnit("hours");
+                setDays(2);
+                setMaxDevices(1);
+              }}
+            >
+              Trial 2 h
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setStatus("trial");
+                setUnit("days");
+                setDays(7);
+                setMaxDevices(1);
+              }}
+            >
+              Trial 7 dias
+            </Button>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="lkey">Chave</Label>
             <div className="flex gap-2">
@@ -434,7 +479,7 @@ function NewLicenseDialog() {
             <Label htmlFor="uname">Usuário</Label>
             <Input id="uname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do usuário" />
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="lstatus">Status</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
@@ -448,14 +493,28 @@ function NewLicenseDialog() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="ldays">Validade (dias)</Label>
-              <Input id="ldays" type="number" min={0} value={days} onChange={(e) => setDays(Number(e.target.value))} />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="ldev">Dispositivos</Label>
               <Input id="ldev" type="number" min={1} value={maxDevices} onChange={(e) => setMaxDevices(Number(e.target.value))} />
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="ldays">Validade</Label>
+              <Input id="ldays" type="number" min={0} value={days} onChange={(e) => setDays(Number(e.target.value))} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lunit">Unidade</Label>
+              <Select value={unit} onValueChange={(v) => setUnit(v as typeof unit)}>
+                <SelectTrigger id="lunit"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="minutes">Minutos</SelectItem>
+                  <SelectItem value="hours">Horas</SelectItem>
+                  <SelectItem value="days">Dias</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">Use 0 para sem expiração. Trial = chave com tempo limitado.</p>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button type="submit" disabled={create.isPending}>{create.isPending ? "Criando..." : "Criar"}</Button>
