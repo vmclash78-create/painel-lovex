@@ -69,48 +69,6 @@ function LicensesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const resetDevice = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("licenses")
-        .update({
-          device_id: null,
-          activated_at: null,
-          session_id: crypto.randomUUID(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Dispositivo reiniciado");
-      qc.invalidateQueries({ queryKey: ["licenses"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const resetTotal = useMutation({
-    mutationFn: async (l: License) => {
-      const patch: Record<string, unknown> = {
-        device_id: null,
-        activated_at: null,
-        session_id: crypto.randomUUID(),
-        status: "active",
-        updated_at: new Date().toISOString(),
-      };
-      if (l.duration_minutes && l.duration_minutes > 0) {
-        patch.expires_at = new Date(Date.now() + l.duration_minutes * 60_000).toISOString();
-      }
-      const { error } = await supabase.from("licenses").update(patch).eq("id", l.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Licença reiniciada do zero");
-      qc.invalidateQueries({ queryKey: ["licenses"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   return (
     <section className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
