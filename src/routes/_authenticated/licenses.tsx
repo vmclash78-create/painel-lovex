@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Smartphone, RotateCcw } from "lucide-react";
+import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/licenses")({
@@ -83,6 +83,28 @@ function LicensesPage() {
     },
     onSuccess: () => {
       toast.success("Dispositivo reiniciado");
+      qc.invalidateQueries({ queryKey: ["licenses"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const resetTotal = useMutation({
+    mutationFn: async (l: License) => {
+      const patch: Record<string, unknown> = {
+        device_id: null,
+        activated_at: null,
+        session_id: crypto.randomUUID(),
+        status: "active",
+        updated_at: new Date().toISOString(),
+      };
+      if (l.duration_minutes && l.duration_minutes > 0) {
+        patch.expires_at = new Date(Date.now() + l.duration_minutes * 60_000).toISOString();
+      }
+      const { error } = await supabase.from("licenses").update(patch).eq("id", l.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Licença reiniciada do zero");
       qc.invalidateQueries({ queryKey: ["licenses"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -182,7 +204,20 @@ function LicensesPage() {
                             aria-label="Reiniciar dispositivo"
                             title="Reiniciar dispositivo"
                           >
-                            <Smartphone className="h-4 w-4" aria-hidden />
+                            <Monitor className="h-4 w-4" aria-hidden />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={resetTotal.isPending}
+                            onClick={() => {
+                              if (confirm("Reset TOTAL: limpa dispositivo, sessão e renova a validade. Continuar?"))
+                                resetTotal.mutate(l);
+                            }}
+                            aria-label="Reset total"
+                            title="Reset total (dispositivo + sessão + validade)"
+                          >
+                            <RotateCcw className="h-4 w-4" aria-hidden />
                           </Button>
                           <Button
                             variant="ghost"
@@ -357,7 +392,7 @@ export function EditLicenseDialog({ license }: { license: License }) {
                 onClick={() => setClearDevice((v) => !v)}
                 className="gap-2"
               >
-                <Smartphone className="h-4 w-4" aria-hidden />
+                <Monitor className="h-4 w-4" aria-hidden />
                 {clearDevice ? "Vai limpar dispositivo" : "Limpar dispositivo"}
               </Button>
               <Button
