@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
-  Sun, Moon, Sunset, Activity,
+  Sun, Moon, Sunset, Activity, Sparkles, CheckCircle2, XCircle,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
