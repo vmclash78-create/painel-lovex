@@ -1,7 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+// External Supabase project (user-managed). Lovable Cloud env vars are ignored.
+const SUPABASE_URL = "https://iaqnajvrrzfbgmvapoug.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhcW5hanZycnpmYmdtdmFwb3VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3ODc1NTUsImV4cCI6MjA5NzM2MzU1NX0.nCHRJIywf1H2_a9om3xrlvlCZogowld4-K5k1HUTJao";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
