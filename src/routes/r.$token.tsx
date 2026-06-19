@@ -464,6 +464,52 @@ function formatDate(iso: string | null) {
   }
 }
 
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Bom dia";
+  if (h < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
+function GreetingIcon() {
+  const h = new Date().getHours();
+  const cls = "h-4 w-4";
+  if (h < 12) return <Sun className={cls} aria-hidden />;
+  if (h < 18) return <Sunset className={cls} aria-hidden />;
+  return <Moon className={cls} aria-hidden />;
+}
+
+function StatCard({
+  label, value, icon, tone, hint,
+}: {
+  label: string;
+  value: number;
+  icon: React.ReactNode;
+  tone: "primary" | "emerald" | "amber" | "rose";
+  hint?: string;
+}) {
+  const tones: Record<string, string> = {
+    primary: "bg-primary/10 text-primary",
+    emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    rose: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+  };
+  return (
+    <Card className="border-border/60 shadow-soft">
+      <CardContent className="p-4 flex items-start gap-3">
+        <div className={"grid h-9 w-9 place-items-center rounded-lg " + tones[tone]}>
+          {icon}
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground truncate">{label}</p>
+          <p className="text-2xl font-bold tracking-tight leading-tight">{value}</p>
+          {hint ? <p className="text-[10px] text-muted-foreground mt-0.5">{hint}</p> : null}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function NewResellerLicenseDialog({
   resellerId, maxKeys, currentCount, disabled, quotaReached,
 }: { resellerId: string; maxKeys: number; currentCount: number; disabled: boolean; quotaReached: boolean }) {
