@@ -14,13 +14,243 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      licenses: {
+        Row: {
+          activated_at: string | null
+          created_at: string
+          device_id: string | null
+          duration_minutes: number | null
+          expires_at: string | null
+          id: string
+          license_key: string
+          max_devices: number | null
+          reseller_id: string | null
+          session_id: string | null
+          status: string | null
+          updated_at: string
+          user_name: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          created_at?: string
+          device_id?: string | null
+          duration_minutes?: number | null
+          expires_at?: string | null
+          id?: string
+          license_key: string
+          max_devices?: number | null
+          reseller_id?: string | null
+          session_id?: string | null
+          status?: string | null
+          updated_at?: string
+          user_name?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          created_at?: string
+          device_id?: string | null
+          duration_minutes?: number | null
+          expires_at?: string | null
+          id?: string
+          license_key?: string
+          max_devices?: number | null
+          reseller_id?: string | null
+          session_id?: string | null
+          status?: string | null
+          updated_at?: string
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "licenses_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reseller_key_balances: {
+        Row: {
+          balance: number
+          created_at: string
+          id: string
+          reseller_id: string
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          id?: string
+          reseller_id: string
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          id?: string
+          reseller_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reseller_key_balances_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: true
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reseller_key_transactions: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          quantity: number
+          reference_id: string | null
+          reseller_id: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          quantity: number
+          reference_id?: string | null
+          reseller_id: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          quantity?: number
+          reference_id?: string | null
+          reseller_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reseller_key_transactions_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reseller_purchases: {
+        Row: {
+          amount: number
+          created_at: string
+          expires_at: string | null
+          id: string
+          mercadopago_payment_id: string | null
+          package_name: string
+          paid_at: string | null
+          pix_copy_paste: string | null
+          qr_code: string | null
+          qr_code_base64: string | null
+          quantity: number
+          reseller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          mercadopago_payment_id?: string | null
+          package_name: string
+          paid_at?: string | null
+          pix_copy_paste?: string | null
+          qr_code?: string | null
+          qr_code_base64?: string | null
+          quantity: number
+          reseller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          mercadopago_payment_id?: string | null
+          package_name?: string
+          paid_at?: string | null
+          pix_copy_paste?: string | null
+          qr_code?: string | null
+          qr_code_base64?: string | null
+          quantity?: number
+          reseller_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reseller_purchases_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resellers: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          max_keys: number
+          name: string
+          password: string | null
+          token: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          max_keys?: number
+          name: string
+          password?: string | null
+          token: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          max_keys?: number
+          name?: string
+          password?: string | null
+          token?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      consume_reseller_key: {
+        Args: {
+          _description?: string
+          _reference_id?: string
+          _reseller_id: string
+        }
+        Returns: boolean
+      }
+      credit_reseller_keys: {
+        Args: {
+          _description: string
+          _quantity: number
+          _reference_id: string
+          _reseller_id: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
