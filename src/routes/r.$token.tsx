@@ -689,3 +689,303 @@ function NewResellerLicenseDialog({
     </Dialog>
   );
 }
+
+// ====================== BUY KEYS ======================
+function BuyKeysTab({ token, password }: { token: string; password: string }) {
+  const qc = useQueryClient();
+  const createFn = useServerFn(createPixPurchase);
+  const [pending, setPending] = useState<string | null>(null);
+  const [pixOpen, setPixOpen] = useState(false);
+  const [pixPurchase, setPixPurchase] = useState<any>(null);
+
+  const buy = useMutation({
+    mutationFn: async (packageId: string) => {
+      setPending(packageId);
+      return await createFn({ data: { token, password, packageId } });
+    },
+    onSuccess: (p) => {
+      setPixPurchase(p);
+      setPixOpen(true);
+      qc.invalidateQueries({ queryKey: ["reseller-purchases", token] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: () => setPending(null),
+  });
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="text-lg font-semibold tracking-tight">Comprar Keys</h2>
+        <p className="text-sm text-muted-foreground">Selecione um pacote. O pagamento via PIX é confirmado automaticamente.</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {KEY_PACKAGES.map((pkg) => {
+          const unit = pkg.amount / pkg.quantity;
+          const isBest = pkg.id === "p7" || pkg.id === "p8";
+          return (
+            <div
+              key={pkg.id}
+              className={`relative rounded-xl border bg-card p-4 transition hover:border-primary/60 hover:shadow-lg hover:shadow-primary/5 ${isBest ? "border-primary/40" : "border-border/60"}`}
+            >
+              {isBest ? (
+                <Badge className="absolute -top-2 right-3 bg-primary text-primary-foreground">Melhor valor</Badge>
+              ) : null}
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">{pkg.name}</p>
+                <KeyRound className="h-4 w-4 text-primary" aria-hidden />
+              </div>
+              <p className="mt-2 text-3xl font-bold tracking-tight">{pkg.quantity}<span className="text-sm font-medium text-muted-foreground"> keys</span></p>
+              <p className="mt-1 text-2xl font-semibold text-primary">R$ {pkg.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">R$ {unit.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} por key</p>
+              <Button
+                className="mt-4 w-full gap-2"
+                onClick={() => buy.mutate(pkg.id)}
+                disabled={buy.isPending}
+              >
+                {pending === pkg.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
+                Comprar
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+      <PixPaymentDialog
+        open={pixOpen}
+        onOpenChange={setPixOpen}
+        purchase={pixPurchase}
+        token={token}
+        password={password}
+      />
+    </div>
+  );
+}
+
+// ====================== PIX PAYMENT DIALOG ======================
+function PixPaymentDialog({
+  open, onOpenChange, purchase, token, password,
+}: { open: boolean; onOpenChange: (v: boolean) => void; purchase: any; token: string; password: string }) {
+  const qc = useQueryClient();
+  const checkFn = useServerFn(checkPurchaseStatus);
+  const [status, setStatus] = useState<string>("pending");
+
+  useEffect(() => {
+    if (!open || !purchase?.id) return;
+    setStatus(purchase.status ?? "pending");
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const r = await checkFn({ data: { token, password, purchaseId: purchase.id } });
+        if (cancelled) return;
+        setStatus(r.status);
+        if (r.status === "paid") {
+          toast.success("Pagamento confirmado! Keys creditadas.");
+          qc.invalidateQueries({ queryKey: ["reseller-balance", token] });
+          qc.invalidateQueries({ queryKey: ["reseller-purchases", token] });
+          qc.invalidateQueries({ queryKey: ["reseller-tx", token] });
+        }
+      } catch { /* ignore */ }
+    };
+    tick();
+    const interval = setInterval(() => {
+      if (status !== "pending") return;
+      tick();
+    }, 5000);
+    return () => { cancelled = true; clearInterval(interval); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, purchase?.id]);
+
+  if (!purchase) return null;
+  const isPaid = status === "paid";
+  const isFinal = status === "cancelled" || status === "expired";
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {isPaid ? <CheckCircle2 className="h-5 w-5 text-emerald-500" /> : <Clock className="h-5 w-5 text-primary" />}
+            {isPaid ? "Pagamento aprovado" : "Pague via PIX"}
+          </DialogTitle>
+          <DialogDescription>
+            {purchase.package_name} · {purchase.quantity} keys · R$ {Number(purchase.amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+          </DialogDescription>
+        </DialogHeader>
+        {isPaid ? (
+          <div className="py-6 text-center space-y-2">
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-500/15 text-emerald-500">
+              <CheckCircle2 className="h-7 w-7" />
+            </div>
+            <p className="font-medium">+{purchase.quantity} keys creditadas no seu saldo.</p>
+          </div>
+        ) : isFinal ? (
+          <div className="py-6 text-center text-sm text-destructive">Pagamento {status === "expired" ? "expirado" : "cancelado"}.</div>
+        ) : (
+          <div className="space-y-3">
+            {purchase.qr_code_base64 ? (
+              <div className="rounded-lg bg-white p-3 mx-auto w-fit">
+                <img
+                  src={`data:image/png;base64,${purchase.qr_code_base64}`}
+                  alt="QR Code PIX"
+                  className="h-56 w-56"
+                />
+              </div>
+            ) : null}
+            <div className="space-y-1.5">
+              <Label className="text-xs">PIX Copia e Cola</Label>
+              <div className="flex gap-2">
+                <Input
+                  readOnly
+                  value={purchase.pix_copy_paste ?? purchase.qr_code ?? ""}
+                  className="font-mono text-xs"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(purchase.pix_copy_paste ?? purchase.qr_code ?? "");
+                      toast.success("Código copiado");
+                    } catch { toast.error("Falha ao copiar"); }
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              Aguardando confirmação do pagamento…
+            </div>
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Fechar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ====================== PURCHASES HISTORY ======================
+function PurchasesHistoryTab({
+  token, password, rows, loading,
+}: { token: string; password: string; rows: any[]; loading: boolean }) {
+  const [filter, setFilter] = useState<string>("all");
+  const [pixOpen, setPixOpen] = useState(false);
+  const [pixPurchase, setPixPurchase] = useState<any>(null);
+
+  const filtered = rows.filter((r) => filter === "all" || r.status === filter);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">Histórico de Compras</h2>
+          <p className="text-sm text-muted-foreground">Todas as cobranças PIX geradas.</p>
+        </div>
+        <Select value={filter} onValueChange={setFilter}>
+          <SelectTrigger className="w-[160px] h-9"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="paid">Pagos</SelectItem>
+            <SelectItem value="pending">Pendentes</SelectItem>
+            <SelectItem value="cancelled">Cancelados</SelectItem>
+            <SelectItem value="expired">Expirados</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="overflow-x-auto rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs">Data</TableHead>
+              <TableHead className="text-xs">Pacote</TableHead>
+              <TableHead className="text-xs">Qtd</TableHead>
+              <TableHead className="text-xs">Valor</TableHead>
+              <TableHead className="text-xs">Status</TableHead>
+              <TableHead className="text-xs">Transação</TableHead>
+              <TableHead className="text-right text-xs">Ação</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow><TableCell colSpan={7}><Skeleton className="h-5 w-full" /></TableCell></TableRow>
+            ) : filtered.length === 0 ? (
+              <TableRow><TableCell colSpan={7} className="py-6 text-center text-xs text-muted-foreground">Sem compras.</TableCell></TableRow>
+            ) : filtered.map((r) => (
+              <TableRow key={r.id} className="text-sm">
+                <TableCell className="text-xs">{formatDate(r.created_at)}</TableCell>
+                <TableCell>{r.package_name}</TableCell>
+                <TableCell className="tabular-nums">{r.quantity}</TableCell>
+                <TableCell className="tabular-nums">R$ {Number(r.amount).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
+                <TableCell><PurchaseStatusBadge status={r.status} /></TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">{r.mercadopago_payment_id ?? "—"}</TableCell>
+                <TableCell className="text-right">
+                  {r.status === "pending" ? (
+                    <Button size="sm" variant="outline" onClick={() => { setPixPurchase(r); setPixOpen(true); }}>
+                      Ver PIX
+                    </Button>
+                  ) : null}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <PixPaymentDialog
+        open={pixOpen}
+        onOpenChange={setPixOpen}
+        purchase={pixPurchase}
+        token={token}
+        password={password}
+      />
+    </div>
+  );
+}
+
+function PurchaseStatusBadge({ status }: { status: string }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    paid: { label: "Pago", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30" },
+    pending: { label: "Aguardando", cls: "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30" },
+    cancelled: { label: "Cancelado", cls: "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30" },
+    expired: { label: "Expirado", cls: "bg-muted text-muted-foreground border-border" },
+  };
+  const m = map[status] ?? { label: status, cls: "" };
+  return <Badge variant="outline" className={m.cls}>{m.label}</Badge>;
+}
+
+// ====================== EXTRACT ======================
+function ExtractTab({ rows, loading }: { rows: any[]; loading: boolean }) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <h2 className="text-lg font-semibold tracking-tight">Extrato de Keys</h2>
+        <p className="text-sm text-muted-foreground">Todas as movimentações do seu saldo.</p>
+      </div>
+      <div className="rounded-md border divide-y divide-border/60">
+        {loading ? (
+          <div className="p-3"><Skeleton className="h-5 w-full" /></div>
+        ) : rows.length === 0 ? (
+          <div className="p-6 text-center text-xs text-muted-foreground">Sem movimentações.</div>
+        ) : rows.map((r) => {
+          const positive = r.quantity > 0;
+          return (
+            <div key={r.id} className="flex items-center gap-3 px-4 py-2.5">
+              <div className={`grid h-8 w-8 place-items-center rounded-md ${positive ? "bg-emerald-500/15 text-emerald-500" : "bg-rose-500/15 text-rose-500"}`}>
+                {positive ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownRight className="h-4 w-4" />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium truncate">{r.description ?? r.type}</p>
+                <p className="text-xs text-muted-foreground">{formatDate(r.created_at)}</p>
+              </div>
+              <div className={`text-sm font-semibold tabular-nums ${positive ? "text-emerald-500" : "text-rose-500"}`}>
+                {positive ? "+" : ""}{r.quantity} keys
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
