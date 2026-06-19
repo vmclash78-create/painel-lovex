@@ -667,3 +667,283 @@ function NewResellerLicenseDialog({
     </Dialog>
   );
 }
+
+function BuyKeysTab({ token, disabled }: { token: string; disabled: boolean }) {
+  const [openPkg, setOpenPkg] = useState<KeyPackage | null>(null);
+  const [purchase, setPurchase] = useState<any>(null);
+  const [creating, setCreating] = useState(false);
+
+  async function handleBuy(pkg: KeyPackage) {
+    setOpenPkg(pkg);
+    setPurchase(null);
+    setCreating(true);
+    try {
+      const p = await createPixPurchase({ data: { token, packageId: pkg.id } });
+      setPurchase(p);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Falha ao gerar PIX");
+      setOpenPkg(null);
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs">
+        <Wallet className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+        <span className="text-muted-foreground">
+          Pagamento via PIX. Após confirmação, as keys são creditadas automaticamente no seu saldo.
+        </span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {KEY_PACKAGES.map((pkg) => {
+          const unit = pkg.amount / pkg.quantity;
+          return (
+            <div key={pkg.id} className="group rounded-lg border border-border/60 bg-card p-4 flex flex-col gap-2 hover:border-primary/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <span className="text-xs uppercase tracking-wider text-muted-foreground">Pacote</span>
+                <KeyRound className="h-3.5 w-3.5 text-primary" />
+              </div>
+              <div className="text-2xl font-bold tabular-nums">{pkg.quantity} <span className="text-sm font-normal text-muted-foreground">keys</span></div>
+              <div className="text-lg font-semibold text-primary tabular-nums">{formatBRL(pkg.amount)}</div>
+              <div className="text-[11px] text-muted-foreground">{formatBRL(unit)} por key</div>
+              <Button size="sm" className="mt-1 gap-1.5" disabled={disabled} onClick={() => handleBuy(pkg)}>
+                <ShoppingCart className="h-3.5 w-3.5" />
+                Comprar
+              </Button>
+            </div>
+          );
+        })}
+      </div>
+
+      <PixDialog
+        open={!!openPkg}
+        onOpenChange={(v) => { if (!v) { setOpenPkg(null); setPurchase(null); } }}
+        pkg={openPkg}
+        purchase={purchase}
+        creating={creating}
+        token={token}
+      />
+    </div>
+  );
+}
+
+function PixDialog({
+  open, onOpenChange, pkg, purchase, creating, token,
+}: {
+  open: boolean; onOpenChange: (v: boolean) => void;
+  pkg: KeyPackage | null; purchase: any; creating: boolean; token: string;
+}) {
+  const qc = useQueryClient();
+  const [current, setCurrent] = useState<any>(purchase);
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => { setCurrent(purchase); }, [purchase]);
+
+  useEffect(() => {
+    if (!current?.id || current.status !== "pending") return;
+    const t = setInterval(async () => {
+      try {
+        const updated = await checkPurchaseStatus({ data: { token, purchaseId: current.id } });
+        setCurrent(updated);
+        if (updated.status === "paid") {
+          toast.success("Pagamento confirmado! Keys creditadas.");
+          qc.invalidateQueries({ queryKey: ["reseller-balance"] });
+          qc.invalidateQueries({ queryKey: ["reseller-purchases"] });
+          qc.invalidateQueries({ queryKey: ["reseller-transactions"] });
+        }
+      } catch { /* ignore */ }
+    }, 5000);
+    return () => clearInterval(t);
+  }, [current?.id, current?.status, token, qc]);
+
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const expiresMs = current?.expires_at ? new Date(current.expires_at).getTime() - now : 0;
+  const expired = expiresMs <= 0 && current?.status === "pending";
+  const mins = Math.max(0, Math.floor(expiresMs / 60000));
+  const secs = Math.max(0, Math.floor((expiresMs % 60000) / 1000));
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Pagamento PIX — {pkg?.label}</DialogTitle>
+          <DialogDescription>
+            {pkg ? `${formatBRL(pkg.amount)} · ${pkg.quantity} key(s)` : null}
+          </DialogDescription>
+        </DialogHeader>
+
+        {creating ? (
+          <div className="py-10 grid place-items-center">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <p className="text-xs text-muted-foreground mt-2">Gerando PIX...</p>
+          </div>
+        ) : current?.status === "paid" ? (
+          <div className="py-8 text-center space-y-2">
+            <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto" />
+            <p className="font-semibold">Pagamento confirmado!</p>
+            <p className="text-sm text-muted-foreground">{current.quantity} key(s) creditada(s) no seu saldo.</p>
+          </div>
+        ) : current ? (
+          <div className="space-y-3">
+            {current.qr_code_base64 ? (
+              <div className="grid place-items-center bg-white rounded-md p-3">
+                <img
+                  src={`data:image/png;base64,${current.qr_code_base64}`}
+                  alt="QR Code PIX"
+                  className="w-56 h-56"
+                />
+              </div>
+            ) : null}
+            <div className="space-y-1">
+              <Label className="text-xs">Código PIX (copia e cola)</Label>
+              <div className="flex gap-2">
+                <Input value={current.pix_copy_paste ?? ""} readOnly className="font-mono text-xs" />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(current.pix_copy_paste ?? "");
+                      toast.success("Código copiado");
+                    } catch { toast.error("Falha ao copiar"); }
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground rounded-md border px-3 py-2">
+              <span className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" />
+                {expired ? "Expirado" : `Expira em ${String(mins).padStart(2,"0")}:${String(secs).padStart(2,"0")}`}
+              </span>
+              <Badge variant={current.status === "pending" ? "outline" : "secondary"}>
+                {current.status === "pending" ? "Aguardando pagamento" : current.status}
+              </Badge>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Após o pagamento, a confirmação leva poucos segundos. As keys serão creditadas automaticamente.
+            </p>
+          </div>
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function PurchaseHistoryTab({ token }: { token: string }) {
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const q = useQuery({
+    queryKey: ["reseller-purchases", token],
+    queryFn: () => listPurchases({ data: { token } }),
+    refetchInterval: 20_000,
+  });
+  const rows = (q.data ?? []).filter((r) => statusFilter === "all" || r.status === statusFilter);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[180px] h-9"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os status</SelectItem>
+            <SelectItem value="pending">Pendente</SelectItem>
+            <SelectItem value="paid">Pago</SelectItem>
+            <SelectItem value="expired">Expirado</SelectItem>
+            <SelectItem value="cancelled">Cancelado</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button size="sm" variant="outline" onClick={() => q.refetch()} className="h-9 gap-1.5">
+          <RefreshCw className="h-3.5 w-3.5" />Recarregar
+        </Button>
+      </div>
+      <div className="overflow-x-auto rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-xs">Data</TableHead>
+              <TableHead className="text-xs">Pacote</TableHead>
+              <TableHead className="text-xs">Qtd</TableHead>
+              <TableHead className="text-xs">Valor</TableHead>
+              <TableHead className="text-xs">Status</TableHead>
+              <TableHead className="text-xs">ID Transação</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {q.isLoading ? (
+              <TableRow><TableCell colSpan={6}><Skeleton className="h-5 w-full" /></TableCell></TableRow>
+            ) : rows.length === 0 ? (
+              <TableRow><TableCell colSpan={6} className="py-6 text-center text-xs text-muted-foreground">Nenhuma compra encontrada.</TableCell></TableRow>
+            ) : rows.map((r) => (
+              <TableRow key={r.id} className="text-sm">
+                <TableCell className="text-xs">{formatDate(r.created_at)}</TableCell>
+                <TableCell>{r.package_name}</TableCell>
+                <TableCell className="tabular-nums">{r.quantity}</TableCell>
+                <TableCell className="tabular-nums">{formatBRL(Number(r.amount))}</TableCell>
+                <TableCell><PurchaseStatusBadge status={r.status} /></TableCell>
+                <TableCell className="font-mono text-[11px] text-muted-foreground">{r.mercadopago_payment_id ?? "—"}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+function PurchaseStatusBadge({ status }: { status: string }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    pending: { label: "Pendente", cls: "text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950 dark:text-amber-300" },
+    paid: { label: "Pago", cls: "text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-300" },
+    expired: { label: "Expirado", cls: "text-muted-foreground" },
+    cancelled: { label: "Cancelado", cls: "text-destructive border-destructive/30" },
+  };
+  const cfg = map[status] ?? { label: status, cls: "" };
+  return <Badge variant="outline" className={cfg.cls}>{cfg.label}</Badge>;
+}
+
+function TransactionsTab({ token }: { token: string }) {
+  const q = useQuery({
+    queryKey: ["reseller-transactions", token],
+    queryFn: () => listKeyTransactions({ data: { token } }),
+    refetchInterval: 20_000,
+  });
+  const rows = q.data ?? [];
+  return (
+    <div className="overflow-x-auto rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-xs">Data</TableHead>
+            <TableHead className="text-xs">Tipo</TableHead>
+            <TableHead className="text-xs">Qtd</TableHead>
+            <TableHead className="text-xs">Descrição</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {q.isLoading ? (
+            <TableRow><TableCell colSpan={4}><Skeleton className="h-5 w-full" /></TableCell></TableRow>
+          ) : rows.length === 0 ? (
+            <TableRow><TableCell colSpan={4} className="py-6 text-center text-xs text-muted-foreground">Sem movimentações.</TableCell></TableRow>
+          ) : rows.map((r) => (
+            <TableRow key={r.id} className="text-sm">
+              <TableCell className="text-xs">{formatDate(r.created_at)}</TableCell>
+              <TableCell className="text-xs">{r.type}</TableCell>
+              <TableCell className={"font-semibold tabular-nums " + (r.quantity >= 0 ? "text-emerald-600" : "text-destructive")}>
+                {r.quantity > 0 ? `+${r.quantity}` : r.quantity}
+              </TableCell>
+              <TableCell className="text-xs text-muted-foreground">{r.description ?? "—"}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
