@@ -24,10 +24,16 @@ import {
 } from "@/components/ui/select";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
-  Activity,
+  Activity, Wallet, ShoppingCart, Receipt, History, CheckCircle2, Clock,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { KEY_PACKAGES, formatBRL, type KeyPackage } from "@/lib/reseller-packages";
+import {
+  getResellerBalance, listPurchases, listKeyTransactions,
+  createPixPurchase, checkPurchaseStatus,
+} from "@/lib/reseller-billing.functions";
 
 export const Route = createFileRoute("/r/$token")({
   ssr: false,
