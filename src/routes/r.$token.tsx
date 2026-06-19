@@ -107,6 +107,10 @@ function ResellerPublicPage() {
   const blocked = !reseller.data?.active || remaining <= 0;
   const pct = max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 0;
 
+  const activeCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "active").length;
+  const expiredCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "expired").length;
+  const totalCount = (licenses.data ?? []).length;
+
   const revoke = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("licenses")
