@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase, type License } from "@/integrations/supabase/client";
 import { fetchResellerByToken, fetchResellerLicenses } from "@/lib/resellers";
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
+  Sparkles, CheckCircle2, Clock, XCircle, Sun, Moon, Sunset,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
@@ -105,6 +106,10 @@ function ResellerPublicPage() {
   const remaining = Math.max(0, max - used);
   const blocked = !reseller.data?.active || remaining <= 0;
   const pct = max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 0;
+
+  const activeCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "active").length;
+  const expiredCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "expired").length;
+  const totalCount = (licenses.data ?? []).length;
 
   const revoke = useMutation({
     mutationFn: async (id: string) => {
@@ -190,41 +195,106 @@ function ResellerPublicPage() {
 
   return (
     <div className="min-h-dvh bg-background">
-      <header className="border-b bg-card">
-        <div className="mx-auto max-w-5xl px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-semibold">
-            <KeyRound className="h-5 w-5 text-primary" aria-hidden />
-            <span>Painel de Revenda</span>
+      {/* Hero header */}
+      <header className="relative overflow-hidden border-b border-border/50">
+        <div className="absolute inset-0 gradient-primary opacity-90" aria-hidden />
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.25), transparent 40%), radial-gradient(circle at 80% 0%, rgba(255,255,255,0.18), transparent 45%)",
+          }}
+          aria-hidden
+        />
+        <div className="relative mx-auto max-w-6xl px-4 py-8 sm:py-10">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-2 text-primary-foreground/90 text-sm font-medium">
+              <KeyRound className="h-4 w-4" aria-hidden />
+              <span>Painel de Revenda</span>
+            </div>
+            {reseller.data.active ? (
+              <Badge className="bg-white/15 text-primary-foreground border-white/20 backdrop-blur-sm gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 animate-pulse" />
+                Ativa
+              </Badge>
+            ) : (
+              <Badge className="bg-destructive/80 text-destructive-foreground border-destructive/40">Inativa</Badge>
+            )}
           </div>
-          {reseller.data.active ? (
-            <Badge variant="outline" className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/20">Ativa</Badge>
-          ) : (
-            <Badge variant="outline" className="bg-destructive/15 text-destructive border-destructive/20">Inativa</Badge>
-          )}
+          <div className="mt-6 flex items-center gap-3 text-primary-foreground/80">
+            <GreetingIcon />
+            <span className="text-sm sm:text-base">{getGreeting()},</span>
+          </div>
+          <h1 className="mt-1 text-3xl sm:text-4xl font-bold tracking-tight text-primary-foreground">
+            {reseller.data.name}
+          </h1>
+          <p className="mt-2 text-sm text-primary-foreground/80 max-w-xl">
+            Gere, gerencie e acompanhe suas licenças com facilidade.
+          </p>
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6 space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">{reseller.data.name}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Keys geradas</span>
-              <span className={remaining === 0 ? "font-semibold text-destructive" : "font-semibold"}>
-                {used} / {max}
-              </span>
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8 space-y-6">
+        {/* Stat cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <StatCard
+            label="Total de keys"
+            value={totalCount}
+            icon={<KeyRound className="h-4 w-4" />}
+            tone="primary"
+          />
+          <StatCard
+            label="Ativas"
+            value={activeCount}
+            icon={<CheckCircle2 className="h-4 w-4" />}
+            tone="emerald"
+          />
+          <StatCard
+            label="Trials"
+            value={trialCount}
+            icon={<Sparkles className="h-4 w-4" />}
+            tone="amber"
+            hint="Não contam na cota"
+          />
+          <StatCard
+            label="Expiradas"
+            value={expiredCount}
+            icon={<XCircle className="h-4 w-4" />}
+            tone="rose"
+          />
+        </div>
+
+        {/* Quota card */}
+        <Card className="overflow-hidden border-border/60 shadow-soft">
+          <CardContent className="p-5 sm:p-6 space-y-4">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-sm text-muted-foreground">Sua cota</p>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className={"text-3xl font-bold tracking-tight " + (remaining === 0 ? "text-destructive" : "text-foreground")}>
+                    {used}
+                  </span>
+                  <span className="text-lg text-muted-foreground">/ {max}</span>
+                  <span className="text-sm text-muted-foreground">keys</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">Restantes</p>
+                <p className={"text-2xl font-semibold " + (remaining === 0 ? "text-destructive" : "text-primary")}>
+                  {remaining}
+                </p>
+              </div>
             </div>
-            <Progress value={pct} aria-label="Uso da cota" />
-            <p className="text-xs text-muted-foreground">
-              {remaining > 0
-                ? `${remaining} key${remaining === 1 ? "" : "s"} restante${remaining === 1 ? "" : "s"}.`
-                : "Você atingiu o limite da sua cota."}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Trials não contam na cota. Trials geradas: {trialCount}.
-            </p>
+            <div className="relative">
+              <Progress value={pct} aria-label="Uso da cota" className="h-2.5" />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-amber-500" aria-hidden />
+                Trials são gratuitas e não contam na cota.
+              </span>
+              <span>{pct}% utilizado</span>
+            </div>
           </CardContent>
         </Card>
 
@@ -392,6 +462,52 @@ function formatDate(iso: string | null) {
   } catch {
     return iso;
   }
+}
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Bom dia";
+  if (h < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
+function GreetingIcon() {
+  const h = new Date().getHours();
+  const cls = "h-4 w-4";
+  if (h < 12) return <Sun className={cls} aria-hidden />;
+  if (h < 18) return <Sunset className={cls} aria-hidden />;
+  return <Moon className={cls} aria-hidden />;
+}
+
+function StatCard({
+  label, value, icon, tone, hint,
+}: {
+  label: string;
+  value: number;
+  icon: ReactNode;
+  tone: "primary" | "emerald" | "amber" | "rose";
+  hint?: string;
+}) {
+  const tones: Record<string, string> = {
+    primary: "bg-primary/10 text-primary",
+    emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    rose: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+  };
+  return (
+    <Card className="border-border/60 shadow-soft">
+      <CardContent className="p-4 flex items-start gap-3">
+        <div className={"grid h-9 w-9 place-items-center rounded-lg " + tones[tone]}>
+          {icon}
+        </div>
+        <div className="min-w-0">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground truncate">{label}</p>
+          <p className="text-2xl font-bold tracking-tight leading-tight">{value}</p>
+          {hint ? <p className="text-[10px] text-muted-foreground mt-0.5">{hint}</p> : null}
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 function NewResellerLicenseDialog({
