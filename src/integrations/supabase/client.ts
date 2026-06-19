@@ -15,17 +15,18 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
 
 export type License = {
   id: string;
-  license_key: string;
-  user_name: string | null;
-  status: "active" | "trial" | "expired" | "revoked" | null;
+  license_key?: string | null;
+  user_name?: string | null;
+  user_id?: string | null;
+  status: string | null;
   expires_at: string | null;
-  activated_at: string | null;
-  device_id: string | null;
-  session_id: string | null;
-  max_devices: number | null;
+  activated_at?: string | null;
+  device_id?: string | null;
+  session_id?: string | null;
+  max_devices?: number | null;
   created_at: string | null;
-  updated_at: string | null;
-  duration_minutes: number | null;
+  updated_at?: string | null;
+  duration_minutes?: number | null;
   reseller_id?: string | null;
 };
 
