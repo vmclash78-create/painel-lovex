@@ -95,7 +95,10 @@ function ResellerPublicPage() {
     });
   }, [licenses.data, search, statusFilter]);
 
-  const paidLicenses = (licenses.data ?? []).filter((l) => l.status !== "trial");
+  const isTrialLicense = (l: License) =>
+    l.status === "trial" ||
+    (l.duration_minutes != null && l.duration_minutes > 0 && l.duration_minutes <= 15);
+  const paidLicenses = (licenses.data ?? []).filter((l) => !isTrialLicense(l));
   const trialCount = (licenses.data ?? []).length - paidLicenses.length;
   const used = paidLicenses.length;
   const max = reseller.data?.max_keys ?? 0;
@@ -431,7 +434,8 @@ function NewResellerLicenseDialog({
           .from("licenses")
           .select("id", { count: "exact", head: true })
           .eq("reseller_id", resellerId)
-          .neq("status", "trial");
+          .neq("status", "trial")
+          .or("duration_minutes.is.null,duration_minutes.gt.15");
         if (cErr) throw cErr;
         if ((count ?? 0) >= maxKeys) throw new Error("Cota esgotada.");
       }
