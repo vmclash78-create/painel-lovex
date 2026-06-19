@@ -16,6 +16,7 @@ import { Route as RTokenRouteImport } from './routes/r.$token'
 import { Route as AuthenticatedResellersRouteImport } from './routes/_authenticated/resellers'
 import { Route as AuthenticatedLicensesRouteImport } from './routes/_authenticated/licenses'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as ApiPublicMpCreatePaymentRouteImport } from './routes/api/public/mp/create-payment'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -51,6 +52,12 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicMpCreatePaymentRoute =
+  ApiPublicMpCreatePaymentRouteImport.update({
+    id: '/api/public/mp/create-payment',
+    path: '/api/public/mp/create-payment',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/licenses': typeof AuthenticatedLicensesRoute
   '/resellers': typeof AuthenticatedResellersRoute
   '/r/$token': typeof RTokenRoute
+  '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -67,6 +75,7 @@ export interface FileRoutesByTo {
   '/licenses': typeof AuthenticatedLicensesRoute
   '/resellers': typeof AuthenticatedResellersRoute
   '/r/$token': typeof RTokenRoute
+  '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,6 +86,7 @@ export interface FileRoutesById {
   '/_authenticated/licenses': typeof AuthenticatedLicensesRoute
   '/_authenticated/resellers': typeof AuthenticatedResellersRoute
   '/r/$token': typeof RTokenRoute
+  '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -87,8 +97,16 @@ export interface FileRouteTypes {
     | '/licenses'
     | '/resellers'
     | '/r/$token'
+    | '/api/public/mp/create-payment'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/licenses' | '/resellers' | '/r/$token'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/licenses'
+    | '/resellers'
+    | '/r/$token'
+    | '/api/public/mp/create-payment'
   id:
     | '__root__'
     | '/'
@@ -98,6 +116,7 @@ export interface FileRouteTypes {
     | '/_authenticated/licenses'
     | '/_authenticated/resellers'
     | '/r/$token'
+    | '/api/public/mp/create-payment'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -105,6 +124,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   RTokenRoute: typeof RTokenRoute
+  ApiPublicMpCreatePaymentRoute: typeof ApiPublicMpCreatePaymentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -158,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/mp/create-payment': {
+      id: '/api/public/mp/create-payment'
+      path: '/api/public/mp/create-payment'
+      fullPath: '/api/public/mp/create-payment'
+      preLoaderRoute: typeof ApiPublicMpCreatePaymentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -181,6 +208,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   RTokenRoute: RTokenRoute,
+  ApiPublicMpCreatePaymentRoute: ApiPublicMpCreatePaymentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
