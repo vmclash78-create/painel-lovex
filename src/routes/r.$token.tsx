@@ -94,7 +94,7 @@ function ResellerPublicPage() {
     const list = licenses.data ?? [];
     return list.filter((l) => {
       const okSearch = !search ||
-        l.license_key.toLowerCase().includes(search.toLowerCase()) ||
+        (l.license_key ?? "").toLowerCase().includes(search.toLowerCase()) ||
         (l.user_name ?? "").toLowerCase().includes(search.toLowerCase());
       const okStatus = statusFilter === "all" || computeStatus(l) === statusFilter;
       return okSearch && okStatus;
@@ -360,7 +360,7 @@ function ResellerPublicPage() {
                           className="h-6 w-6 p-0"
                           aria-label="Copiar chave"
                           onClick={async () => {
-                            try { await navigator.clipboard.writeText(l.license_key); toast.success("Copiado"); }
+                            try { await navigator.clipboard.writeText(l.license_key ?? ""); toast.success("Copiado"); }
                             catch { toast.error("Falha ao copiar"); }
                           }}
                         >
