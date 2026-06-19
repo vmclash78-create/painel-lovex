@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { supabase, type Reseller } from "@/integrations/supabase/client";
+import { supabase, type Reseller } from "@/integrations/external-supabase/client";
 import {
   resellersQueryOptions,
   generateResellerToken,
