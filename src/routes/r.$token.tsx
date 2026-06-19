@@ -500,9 +500,10 @@ function CompactStat({
 }
 
 function NewResellerLicenseDialog({
-  resellerId, maxKeys, currentCount, disabled, quotaReached,
-}: { resellerId: string; maxKeys: number; currentCount: number; disabled: boolean; quotaReached: boolean }) {
+  resellerId, token, password, balance, disabled, quotaReached,
+}: { resellerId: string; token: string; password: string; balance: number; disabled: boolean; quotaReached: boolean }) {
   const qc = useQueryClient();
+  const consumeFn = useServerFn(consumeKey);
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [status, setStatus] = useState<NonNullable<License["status"]>>("active");
@@ -532,22 +533,15 @@ function NewResellerLicenseDialog({
 
   const create = useMutation({
     mutationFn: async () => {
-      if (status !== "trial") {
-        const { count, error: cErr } = await supabase
-          .from("licenses")
-          .select("id", { count: "exact", head: true })
-          .eq("reseller_id", resellerId)
-          .neq("status", "trial")
-          .or("duration_minutes.is.null,duration_minutes.gt.15");
-        if (cErr) throw cErr;
-        if ((count ?? 0) >= maxKeys) throw new Error("Cota esgotada.");
-      }
-
       const factor = unit === "minutes" ? 60_000 : unit === "hours" ? 3_600_000 : 86_400_000;
       const minutesTotal =
         unit === "minutes" ? days : unit === "hours" ? days * 60 : days * 24 * 60;
       if (status === "trial" && (minutesTotal <= 0 || minutesTotal > 15)) {
         throw new Error("Trial: máximo 15 minutos.");
+      }
+      // Consome 1 key do saldo apenas para licenças normais (não-trial)
+      if (status !== "trial") {
+        await consumeFn({ data: { token, password, description: `Licença ${key}` } });
       }
       const expires_at = days > 0 ? new Date(Date.now() + days * factor).toISOString() : null;
       const { error } = await supabase.from("licenses").insert({
@@ -564,6 +558,8 @@ function NewResellerLicenseDialog({
     onSuccess: () => {
       toast.success("Licença criada");
       qc.invalidateQueries({ queryKey: ["reseller-licenses", resellerId] });
+      qc.invalidateQueries({ queryKey: ["reseller-balance", token] });
+      qc.invalidateQueries({ queryKey: ["reseller-tx", token] });
       setOpen(false);
       setKey(generateLicenseKey());
       setUserName("");
@@ -574,7 +570,7 @@ function NewResellerLicenseDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-2 h-9" disabled={disabled}>
+        <Button size="sm" className="gap-2 h-9" disabled={disabled} title={quotaReached ? "Saldo zerado — compre keys" : undefined}>
           <Plus className="h-4 w-4" aria-hidden />
           Nova licença
         </Button>
@@ -583,7 +579,7 @@ function NewResellerLicenseDialog({
         <DialogHeader>
           <DialogTitle>Nova licença</DialogTitle>
           <DialogDescription>
-            Cota: {currentCount}/{maxKeys}. A chave será vinculada à sua revenda.
+            Saldo disponível: <span className="font-semibold text-primary">{balance} keys</span>. Cada licença normal consome 1 key. Trials não consomem.
           </DialogDescription>
         </DialogHeader>
         <form
