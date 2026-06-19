@@ -117,6 +117,34 @@ function ResellerPublicPage() {
   const expiredCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "expired").length;
   const totalCount = (licenses.data ?? []).length;
 
+  // ====== Billing (saldo de keys, compras, extrato) ======
+  const password = reseller.data?.password ?? "";
+  const billingArgs = { token, password };
+
+  const getBalanceFn = useServerFn(getResellerBalance);
+  const listPurchasesFn = useServerFn(listPurchases);
+  const listTxFn = useServerFn(listKeyTransactions);
+
+  const balanceQ = useQuery({
+    queryKey: ["reseller-balance", token],
+    queryFn: () => getBalanceFn({ data: billingArgs }),
+    enabled: authed && !!reseller.data,
+    refetchInterval: 15_000,
+  });
+  const purchasesQ = useQuery({
+    queryKey: ["reseller-purchases", token],
+    queryFn: () => listPurchasesFn({ data: billingArgs }),
+    enabled: authed && !!reseller.data,
+  });
+  const txQ = useQuery({
+    queryKey: ["reseller-tx", token],
+    queryFn: () => listTxFn({ data: billingArgs }),
+    enabled: authed && !!reseller.data,
+  });
+
+  const balance = balanceQ.data?.balance ?? 0;
+  const noBalance = balance <= 0;
+
   const revoke = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("licenses")
