@@ -108,10 +108,15 @@ function ResellerPublicPage() {
   const paidLicenses = (licenses.data ?? []).filter((l) => !isTrialLicense(l));
   const trialCount = (licenses.data ?? []).length - paidLicenses.length;
   const used = paidLicenses.length;
-  const max = reseller.data?.max_keys ?? 0;
-  const remaining = Math.max(0, max - used);
-  const blocked = !reseller.data?.active || remaining <= 0;
-  const pct = max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 0;
+
+  const balanceQuery = useQuery({
+    queryKey: ["reseller-balance", token],
+    queryFn: () => getResellerBalance({ data: { token } }),
+    enabled: authed && !!reseller.data,
+    refetchInterval: 15_000,
+  });
+  const balance = balanceQuery.data?.balance ?? 0;
+  const blocked = !reseller.data?.active || balance <= 0;
 
   const activeCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "active").length;
   const expiredCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "expired").length;
