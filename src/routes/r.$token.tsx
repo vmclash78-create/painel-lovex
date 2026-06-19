@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
+import { BuyKeysDialog } from "@/components/buy-keys-dialog";
 
 export const Route = createFileRoute("/r/$token")({
   ssr: false,
@@ -287,6 +288,11 @@ function ResellerPublicPage() {
               currentCount={used}
               disabled={!reseller.data.active}
               quotaReached={remaining <= 0}
+            />
+            <BuyKeysDialog
+              resellerId={reseller.data.id}
+              resellerToken={token}
+              disabled={!reseller.data.active}
             />
           </div>
         </div>
