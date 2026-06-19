@@ -258,29 +258,34 @@ function ResellerPublicPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-4 space-y-4">
-        {/* Compact stats row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+        {/* Saldo de Keys + stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+          <div className="col-span-2 lg:col-span-1 rounded-lg border border-primary/30 bg-gradient-to-br from-primary/15 to-primary/5 p-3 flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground">
+              <Wallet className="h-4 w-4" aria-hidden />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-wider text-primary/80">Saldo de Keys</p>
+              <p className="text-xl font-bold tracking-tight leading-tight tabular-nums">
+                {balanceQ.isLoading ? "—" : balance}
+              </p>
+            </div>
+          </div>
           <CompactStat label="Total" value={totalCount} tone="primary" />
           <CompactStat label="Ativas" value={activeCount} tone="emerald" />
           <CompactStat label="Trials" value={trialCount} tone="amber" />
           <CompactStat label="Expiradas" value={expiredCount} tone="rose" />
         </div>
 
-        {/* Inline quota bar */}
-        <div className="flex items-center gap-4 rounded-lg border border-border/50 bg-card px-4 py-2.5">
-          <div className="flex items-center gap-2 text-sm shrink-0">
-            <Activity className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
-            <span className="text-muted-foreground">Cota</span>
-            <span className="font-semibold tabular-nums">{used} / {max}</span>
-          </div>
-          <div className="flex-1 min-w-[120px]">
-            <Progress value={pct} aria-label="Uso da cota" className="h-1.5" />
-          </div>
-          <div className="text-xs text-muted-foreground shrink-0 tabular-nums">
-            {remaining} restantes · {pct}%
-          </div>
-        </div>
+        <Tabs defaultValue="licenses" className="space-y-4">
+          <TabsList className="bg-card border border-border/50">
+            <TabsTrigger value="licenses" className="gap-1.5"><KeyRound className="h-3.5 w-3.5" />Licenças</TabsTrigger>
+            <TabsTrigger value="buy" className="gap-1.5"><ShoppingCart className="h-3.5 w-3.5" />Comprar Keys</TabsTrigger>
+            <TabsTrigger value="purchases" className="gap-1.5"><History className="h-3.5 w-3.5" />Histórico</TabsTrigger>
+            <TabsTrigger value="extract" className="gap-1.5"><Activity className="h-3.5 w-3.5" />Extrato</TabsTrigger>
+          </TabsList>
 
+          <TabsContent value="licenses" className="space-y-4">
         {/* Licenses toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="relative flex-1 min-w-[220px]">
@@ -317,15 +322,16 @@ function ResellerPublicPage() {
             </Button>
             <NewResellerLicenseDialog
               resellerId={reseller.data.id}
-              maxKeys={reseller.data.max_keys}
-              currentCount={used}
+              token={token}
+              password={password}
+              balance={balance}
               disabled={!reseller.data.active}
-              quotaReached={remaining <= 0}
+              quotaReached={noBalance}
             />
           </div>
         </div>
 
-        {blocked ? (
+        {!reseller.data.active || noBalance ? (
           <div className="flex items-start gap-2 rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs">
             <ShieldAlert className="h-4 w-4 text-destructive shrink-0 mt-0.5" aria-hidden />
             <div>
@@ -333,7 +339,7 @@ function ResellerPublicPage() {
               <span className="text-muted-foreground">
                 {!reseller.data.active
                   ? "Revenda inativa. Contate o administrador."
-                  : "Cota esgotada. Solicite mais keys."}
+                  : "Saldo zerado. Compre keys na aba \"Comprar Keys\"."}
               </span>
             </div>
           </div>
@@ -427,6 +433,25 @@ function ResellerPublicPage() {
             </TableBody>
           </Table>
         </div>
+          </TabsContent>
+
+          <TabsContent value="buy">
+            <BuyKeysTab token={token} password={password} />
+          </TabsContent>
+
+          <TabsContent value="purchases">
+            <PurchasesHistoryTab
+              token={token}
+              password={password}
+              rows={purchasesQ.data ?? []}
+              loading={purchasesQ.isLoading}
+            />
+          </TabsContent>
+
+          <TabsContent value="extract">
+            <ExtractTab rows={txQ.data ?? []} loading={txQ.isLoading} />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
