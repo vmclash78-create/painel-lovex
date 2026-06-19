@@ -1,9 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase, type License } from "@/integrations/supabase/client";
 import { fetchResellerByToken, fetchResellerLicenses } from "@/lib/resellers";
 import { computeStatus, generateLicenseKey } from "@/lib/licenses";
+import {
+  getResellerBalance, listPurchases, listKeyTransactions,
+  createPixPurchase, checkPurchaseStatus, consumeKey, KEY_PACKAGES,
+} from "@/lib/reseller-billing.functions";
 import { StatusBadge } from "./_authenticated/dashboard";
 import { EditLicenseDialog } from "./_authenticated/licenses";
 import { Button } from "@/components/ui/button";
@@ -13,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -24,7 +30,7 @@ import {
 } from "@/components/ui/select";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
-  Activity,
+  Activity, Wallet, ShoppingCart, History, ArrowUpRight, ArrowDownRight, CheckCircle2, Clock,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
