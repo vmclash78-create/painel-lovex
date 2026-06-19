@@ -16,9 +16,8 @@ export const licensesQueryOptions = queryOptions({
 });
 
 export function computeStatus(l: License): License["status"] {
-  if (l.status === "revoked" || l.status === "revogado") return "revoked";
+  if (l.status === "revoked") return "revoked";
   if (l.expires_at && new Date(l.expires_at) < new Date()) return "expired";
-  if (l.status === "ativo") return "active";
   return l.status ?? "active";
 }
 

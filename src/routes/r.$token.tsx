@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -23,16 +24,10 @@ import {
 } from "@/components/ui/select";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
-  Wallet, ShoppingCart, Receipt, History, CheckCircle2, Clock,
+  Activity,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { KEY_PACKAGES, formatBRL, type KeyPackage } from "@/lib/reseller-packages";
-import {
-  getResellerBalance, listPurchases, listKeyTransactions,
-  createPixPurchase, checkPurchaseStatus,
-} from "@/lib/reseller-billing.functions";
 
 export const Route = createFileRoute("/r/$token")({
   ssr: false,
@@ -94,7 +89,7 @@ function ResellerPublicPage() {
     const list = licenses.data ?? [];
     return list.filter((l) => {
       const okSearch = !search ||
-        (l.license_key ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        l.license_key.toLowerCase().includes(search.toLowerCase()) ||
         (l.user_name ?? "").toLowerCase().includes(search.toLowerCase());
       const okStatus = statusFilter === "all" || computeStatus(l) === statusFilter;
       return okSearch && okStatus;
@@ -107,15 +102,10 @@ function ResellerPublicPage() {
   const paidLicenses = (licenses.data ?? []).filter((l) => !isTrialLicense(l));
   const trialCount = (licenses.data ?? []).length - paidLicenses.length;
   const used = paidLicenses.length;
-
-  const balanceQuery = useQuery({
-    queryKey: ["reseller-balance", token],
-    queryFn: () => getResellerBalance({ data: { token } }),
-    enabled: authed && !!reseller.data,
-    refetchInterval: 15_000,
-  });
-  const balance = balanceQuery.data?.balance ?? 0;
-  const blocked = !reseller.data?.active || balance <= 0;
+  const max = reseller.data?.max_keys ?? 0;
+  const remaining = Math.max(0, max - used);
+  const blocked = !reseller.data?.active || remaining <= 0;
+  const pct = max > 0 ? Math.min(100, Math.round((used / max) * 100)) : 0;
 
   const activeCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "active").length;
   const expiredCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "expired").length;
@@ -234,39 +224,30 @@ function ResellerPublicPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-4 space-y-4">
-        {/* Balance highlight + stats */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-2">
-          <div className="lg:col-span-2 flex items-center gap-3 rounded-lg border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 px-4 py-3">
-            <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary/15 text-primary">
-              <Wallet className="h-5 w-5" aria-hidden />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Saldo de Keys</p>
-              <p className="text-2xl font-bold tabular-nums leading-tight">
-                {balanceQuery.isLoading ? <Skeleton className="h-7 w-16" /> : balance}
-              </p>
-              <p className="text-[11px] text-muted-foreground">disponíveis para criar licenças</p>
-            </div>
-          </div>
+        {/* Compact stats row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
           <CompactStat label="Total" value={totalCount} tone="primary" />
           <CompactStat label="Ativas" value={activeCount} tone="emerald" />
+          <CompactStat label="Trials" value={trialCount} tone="amber" />
           <CompactStat label="Expiradas" value={expiredCount} tone="rose" />
         </div>
 
-        <Tabs defaultValue="licencas" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
-            <TabsTrigger value="licencas" className="gap-1.5"><KeyRound className="h-3.5 w-3.5" />Licenças</TabsTrigger>
-            <TabsTrigger value="comprar" className="gap-1.5"><ShoppingCart className="h-3.5 w-3.5" />Comprar Keys</TabsTrigger>
-            <TabsTrigger value="historico" className="gap-1.5"><Receipt className="h-3.5 w-3.5" />Histórico</TabsTrigger>
-            <TabsTrigger value="extrato" className="gap-1.5"><History className="h-3.5 w-3.5" />Extrato</TabsTrigger>
-          </TabsList>
+        {/* Inline quota bar */}
+        <div className="flex items-center gap-4 rounded-lg border border-border/50 bg-card px-4 py-2.5">
+          <div className="flex items-center gap-2 text-sm shrink-0">
+            <Activity className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
+            <span className="text-muted-foreground">Cota</span>
+            <span className="font-semibold tabular-nums">{used} / {max}</span>
+          </div>
+          <div className="flex-1 min-w-[120px]">
+            <Progress value={pct} aria-label="Uso da cota" className="h-1.5" />
+          </div>
+          <div className="text-xs text-muted-foreground shrink-0 tabular-nums">
+            {remaining} restantes · {pct}%
+          </div>
+        </div>
 
-          <TabsContent value="licencas" className="space-y-4 mt-4">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>Trials: <strong className="text-foreground">{trialCount}</strong></span>
-              <span>·</span>
-              <span>Pagas em uso: <strong className="text-foreground">{used}</strong></span>
-            </div>
+        {/* Licenses toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="relative flex-1 min-w-[220px]">
             <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" aria-hidden />
@@ -302,9 +283,10 @@ function ResellerPublicPage() {
             </Button>
             <NewResellerLicenseDialog
               resellerId={reseller.data.id}
-              balance={balance}
+              maxKeys={reseller.data.max_keys}
+              currentCount={used}
               disabled={!reseller.data.active}
-              quotaReached={balance <= 0}
+              quotaReached={remaining <= 0}
             />
           </div>
         </div>
@@ -317,7 +299,7 @@ function ResellerPublicPage() {
               <span className="text-muted-foreground">
                 {!reseller.data.active
                   ? "Revenda inativa. Contate o administrador."
-                  : "Saldo zerado. Compre mais keys na aba \"Comprar Keys\"."}
+                  : "Cota esgotada. Solicite mais keys."}
               </span>
             </div>
           </div>
@@ -360,7 +342,7 @@ function ResellerPublicPage() {
                           className="h-6 w-6 p-0"
                           aria-label="Copiar chave"
                           onClick={async () => {
-                            try { await navigator.clipboard.writeText(l.license_key ?? ""); toast.success("Copiado"); }
+                            try { await navigator.clipboard.writeText(l.license_key); toast.success("Copiado"); }
                             catch { toast.error("Falha ao copiar"); }
                           }}
                         >
@@ -411,20 +393,6 @@ function ResellerPublicPage() {
             </TableBody>
           </Table>
         </div>
-          </TabsContent>
-
-          <TabsContent value="comprar" className="mt-4">
-            <BuyKeysTab token={token} disabled={!reseller.data.active} />
-          </TabsContent>
-
-          <TabsContent value="historico" className="mt-4">
-            <PurchaseHistoryTab token={token} />
-          </TabsContent>
-
-          <TabsContent value="extrato" className="mt-4">
-            <TransactionsTab token={token} />
-          </TabsContent>
-        </Tabs>
       </main>
     </div>
   );
@@ -473,8 +441,8 @@ function CompactStat({
 }
 
 function NewResellerLicenseDialog({
-  resellerId, balance, disabled, quotaReached,
-}: { resellerId: string; balance: number; disabled: boolean; quotaReached: boolean }) {
+  resellerId, maxKeys, currentCount, disabled, quotaReached,
+}: { resellerId: string; maxKeys: number; currentCount: number; disabled: boolean; quotaReached: boolean }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState("");
@@ -506,13 +474,14 @@ function NewResellerLicenseDialog({
   const create = useMutation({
     mutationFn: async () => {
       if (status !== "trial") {
-        const { data: ok, error: rpcErr } = await supabase.rpc("consume_reseller_key", {
-          _reseller_id: resellerId,
-          _description: `Licença criada para ${userName || "Cliente"}`,
-          _reference_id: null,
-        });
-        if (rpcErr) throw rpcErr;
-        if (!ok) throw new Error("Saldo de keys insuficiente. Compre mais keys.");
+        const { count, error: cErr } = await supabase
+          .from("licenses")
+          .select("id", { count: "exact", head: true })
+          .eq("reseller_id", resellerId)
+          .neq("status", "trial")
+          .or("duration_minutes.is.null,duration_minutes.gt.15");
+        if (cErr) throw cErr;
+        if ((count ?? 0) >= maxKeys) throw new Error("Cota esgotada.");
       }
 
       const factor = unit === "minutes" ? 60_000 : unit === "hours" ? 3_600_000 : 86_400_000;
@@ -536,7 +505,6 @@ function NewResellerLicenseDialog({
     onSuccess: () => {
       toast.success("Licença criada");
       qc.invalidateQueries({ queryKey: ["reseller-licenses", resellerId] });
-      qc.invalidateQueries({ queryKey: ["reseller-balance"] });
       setOpen(false);
       setKey(generateLicenseKey());
       setUserName("");
@@ -556,7 +524,7 @@ function NewResellerLicenseDialog({
         <DialogHeader>
           <DialogTitle>Nova licença</DialogTitle>
           <DialogDescription>
-            Saldo disponível: <strong>{balance}</strong> key(s). Trials não consomem saldo.
+            Cota: {currentCount}/{maxKeys}. A chave será vinculada à sua revenda.
           </DialogDescription>
         </DialogHeader>
         <form
@@ -664,285 +632,5 @@ function NewResellerLicenseDialog({
         </form>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function BuyKeysTab({ token, disabled }: { token: string; disabled: boolean }) {
-  const [openPkg, setOpenPkg] = useState<KeyPackage | null>(null);
-  const [purchase, setPurchase] = useState<any>(null);
-  const [creating, setCreating] = useState(false);
-
-  async function handleBuy(pkg: KeyPackage) {
-    setOpenPkg(pkg);
-    setPurchase(null);
-    setCreating(true);
-    try {
-      const p = await createPixPurchase({ data: { token, packageId: pkg.id } });
-      setPurchase(p);
-    } catch (e: any) {
-      toast.error(e?.message ?? "Falha ao gerar PIX");
-      setOpenPkg(null);
-    } finally {
-      setCreating(false);
-    }
-  }
-
-  return (
-    <div className="space-y-3">
-      <div className="flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-xs">
-        <Wallet className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-        <span className="text-muted-foreground">
-          Pagamento via PIX. Após confirmação, as keys são creditadas automaticamente no seu saldo.
-        </span>
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        {KEY_PACKAGES.map((pkg) => {
-          const unit = pkg.amount / pkg.quantity;
-          return (
-            <div key={pkg.id} className="group rounded-lg border border-border/60 bg-card p-4 flex flex-col gap-2 hover:border-primary/50 transition-colors">
-              <div className="flex items-center justify-between">
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">Pacote</span>
-                <KeyRound className="h-3.5 w-3.5 text-primary" />
-              </div>
-              <div className="text-2xl font-bold tabular-nums">{pkg.quantity} <span className="text-sm font-normal text-muted-foreground">keys</span></div>
-              <div className="text-lg font-semibold text-primary tabular-nums">{formatBRL(pkg.amount)}</div>
-              <div className="text-[11px] text-muted-foreground">{formatBRL(unit)} por key</div>
-              <Button size="sm" className="mt-1 gap-1.5" disabled={disabled} onClick={() => handleBuy(pkg)}>
-                <ShoppingCart className="h-3.5 w-3.5" />
-                Comprar
-              </Button>
-            </div>
-          );
-        })}
-      </div>
-
-      <PixDialog
-        open={!!openPkg}
-        onOpenChange={(v) => { if (!v) { setOpenPkg(null); setPurchase(null); } }}
-        pkg={openPkg}
-        purchase={purchase}
-        creating={creating}
-        token={token}
-      />
-    </div>
-  );
-}
-
-function PixDialog({
-  open, onOpenChange, pkg, purchase, creating, token,
-}: {
-  open: boolean; onOpenChange: (v: boolean) => void;
-  pkg: KeyPackage | null; purchase: any; creating: boolean; token: string;
-}) {
-  const qc = useQueryClient();
-  const [current, setCurrent] = useState<any>(purchase);
-  const [now, setNow] = useState(Date.now());
-
-  useEffect(() => { setCurrent(purchase); }, [purchase]);
-
-  useEffect(() => {
-    if (!current?.id || current.status !== "pending") return;
-    const t = setInterval(async () => {
-      try {
-        const updated = await checkPurchaseStatus({ data: { token, purchaseId: current.id } });
-        setCurrent(updated);
-        if (updated.status === "paid") {
-          toast.success("Pagamento confirmado! Keys creditadas.");
-          qc.invalidateQueries({ queryKey: ["reseller-balance"] });
-          qc.invalidateQueries({ queryKey: ["reseller-purchases"] });
-          qc.invalidateQueries({ queryKey: ["reseller-transactions"] });
-        }
-      } catch { /* ignore */ }
-    }, 5000);
-    return () => clearInterval(t);
-  }, [current?.id, current?.status, token, qc]);
-
-  useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, []);
-
-  const expiresMs = current?.expires_at ? new Date(current.expires_at).getTime() - now : 0;
-  const expired = expiresMs <= 0 && current?.status === "pending";
-  const mins = Math.max(0, Math.floor(expiresMs / 60000));
-  const secs = Math.max(0, Math.floor((expiresMs % 60000) / 1000));
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Pagamento PIX — {pkg?.label}</DialogTitle>
-          <DialogDescription>
-            {pkg ? `${formatBRL(pkg.amount)} · ${pkg.quantity} key(s)` : null}
-          </DialogDescription>
-        </DialogHeader>
-
-        {creating ? (
-          <div className="py-10 grid place-items-center">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            <p className="text-xs text-muted-foreground mt-2">Gerando PIX...</p>
-          </div>
-        ) : current?.status === "paid" ? (
-          <div className="py-8 text-center space-y-2">
-            <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto" />
-            <p className="font-semibold">Pagamento confirmado!</p>
-            <p className="text-sm text-muted-foreground">{current.quantity} key(s) creditada(s) no seu saldo.</p>
-          </div>
-        ) : current ? (
-          <div className="space-y-3">
-            {current.qr_code_base64 ? (
-              <div className="grid place-items-center bg-white rounded-md p-3">
-                <img
-                  src={`data:image/png;base64,${current.qr_code_base64}`}
-                  alt="QR Code PIX"
-                  className="w-56 h-56"
-                />
-              </div>
-            ) : null}
-            <div className="space-y-1">
-              <Label className="text-xs">Código PIX (copia e cola)</Label>
-              <div className="flex gap-2">
-                <Input value={current.pix_copy_paste ?? ""} readOnly className="font-mono text-xs" />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    try {
-                      await navigator.clipboard.writeText(current.pix_copy_paste ?? "");
-                      toast.success("Código copiado");
-                    } catch { toast.error("Falha ao copiar"); }
-                  }}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="flex items-center justify-between text-xs text-muted-foreground rounded-md border px-3 py-2">
-              <span className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5" />
-                {expired ? "Expirado" : `Expira em ${String(mins).padStart(2,"0")}:${String(secs).padStart(2,"0")}`}
-              </span>
-              <Badge variant={current.status === "pending" ? "outline" : "secondary"}>
-                {current.status === "pending" ? "Aguardando pagamento" : current.status}
-              </Badge>
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              Após o pagamento, a confirmação leva poucos segundos. As keys serão creditadas automaticamente.
-            </p>
-          </div>
-        ) : null}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function PurchaseHistoryTab({ token }: { token: string }) {
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const q = useQuery({
-    queryKey: ["reseller-purchases", token],
-    queryFn: () => listPurchases({ data: { token } }),
-    refetchInterval: 20_000,
-  });
-  const rows = (q.data ?? []).filter((r) => statusFilter === "all" || r.status === statusFilter);
-
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px] h-9"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os status</SelectItem>
-            <SelectItem value="pending">Pendente</SelectItem>
-            <SelectItem value="paid">Pago</SelectItem>
-            <SelectItem value="expired">Expirado</SelectItem>
-            <SelectItem value="cancelled">Cancelado</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button size="sm" variant="outline" onClick={() => q.refetch()} className="h-9 gap-1.5">
-          <RefreshCw className="h-3.5 w-3.5" />Recarregar
-        </Button>
-      </div>
-      <div className="overflow-x-auto rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-xs">Data</TableHead>
-              <TableHead className="text-xs">Pacote</TableHead>
-              <TableHead className="text-xs">Qtd</TableHead>
-              <TableHead className="text-xs">Valor</TableHead>
-              <TableHead className="text-xs">Status</TableHead>
-              <TableHead className="text-xs">ID Transação</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {q.isLoading ? (
-              <TableRow><TableCell colSpan={6}><Skeleton className="h-5 w-full" /></TableCell></TableRow>
-            ) : rows.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="py-6 text-center text-xs text-muted-foreground">Nenhuma compra encontrada.</TableCell></TableRow>
-            ) : rows.map((r) => (
-              <TableRow key={r.id} className="text-sm">
-                <TableCell className="text-xs">{formatDate(r.created_at)}</TableCell>
-                <TableCell>{r.package_name}</TableCell>
-                <TableCell className="tabular-nums">{r.quantity}</TableCell>
-                <TableCell className="tabular-nums">{formatBRL(Number(r.amount))}</TableCell>
-                <TableCell><PurchaseStatusBadge status={r.status} /></TableCell>
-                <TableCell className="font-mono text-[11px] text-muted-foreground">{r.mercadopago_payment_id ?? "—"}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
-  );
-}
-
-function PurchaseStatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    pending: { label: "Pendente", cls: "text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950 dark:text-amber-300" },
-    paid: { label: "Pago", cls: "text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-300" },
-    expired: { label: "Expirado", cls: "text-muted-foreground" },
-    cancelled: { label: "Cancelado", cls: "text-destructive border-destructive/30" },
-  };
-  const cfg = map[status] ?? { label: status, cls: "" };
-  return <Badge variant="outline" className={cfg.cls}>{cfg.label}</Badge>;
-}
-
-function TransactionsTab({ token }: { token: string }) {
-  const q = useQuery({
-    queryKey: ["reseller-transactions", token],
-    queryFn: () => listKeyTransactions({ data: { token } }),
-    refetchInterval: 20_000,
-  });
-  const rows = q.data ?? [];
-  return (
-    <div className="overflow-x-auto rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="text-xs">Data</TableHead>
-            <TableHead className="text-xs">Tipo</TableHead>
-            <TableHead className="text-xs">Qtd</TableHead>
-            <TableHead className="text-xs">Descrição</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {q.isLoading ? (
-            <TableRow><TableCell colSpan={4}><Skeleton className="h-5 w-full" /></TableCell></TableRow>
-          ) : rows.length === 0 ? (
-            <TableRow><TableCell colSpan={4} className="py-6 text-center text-xs text-muted-foreground">Sem movimentações.</TableCell></TableRow>
-          ) : rows.map((r) => (
-            <TableRow key={r.id} className="text-sm">
-              <TableCell className="text-xs">{formatDate(r.created_at)}</TableCell>
-              <TableCell className="text-xs">{r.type}</TableCell>
-              <TableCell className={"font-semibold tabular-nums " + (r.quantity >= 0 ? "text-emerald-600" : "text-destructive")}>
-                {r.quantity > 0 ? `+${r.quantity}` : r.quantity}
-              </TableCell>
-              <TableCell className="text-xs text-muted-foreground">{r.description ?? "—"}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
   );
 }

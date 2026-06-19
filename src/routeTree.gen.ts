@@ -16,7 +16,6 @@ import { Route as RTokenRouteImport } from './routes/r.$token'
 import { Route as AuthenticatedResellersRouteImport } from './routes/_authenticated/resellers'
 import { Route as AuthenticatedLicensesRouteImport } from './routes/_authenticated/licenses'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as ApiPublicMercadopagoWebhookRouteImport } from './routes/api/public/mercadopago-webhook'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -52,12 +51,6 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ApiPublicMercadopagoWebhookRoute =
-  ApiPublicMercadopagoWebhookRouteImport.update({
-    id: '/api/public/mercadopago-webhook',
-    path: '/api/public/mercadopago-webhook',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,7 +59,6 @@ export interface FileRoutesByFullPath {
   '/licenses': typeof AuthenticatedLicensesRoute
   '/resellers': typeof AuthenticatedResellersRoute
   '/r/$token': typeof RTokenRoute
-  '/api/public/mercadopago-webhook': typeof ApiPublicMercadopagoWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -75,7 +67,6 @@ export interface FileRoutesByTo {
   '/licenses': typeof AuthenticatedLicensesRoute
   '/resellers': typeof AuthenticatedResellersRoute
   '/r/$token': typeof RTokenRoute
-  '/api/public/mercadopago-webhook': typeof ApiPublicMercadopagoWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -86,7 +77,6 @@ export interface FileRoutesById {
   '/_authenticated/licenses': typeof AuthenticatedLicensesRoute
   '/_authenticated/resellers': typeof AuthenticatedResellersRoute
   '/r/$token': typeof RTokenRoute
-  '/api/public/mercadopago-webhook': typeof ApiPublicMercadopagoWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,16 +87,8 @@ export interface FileRouteTypes {
     | '/licenses'
     | '/resellers'
     | '/r/$token'
-    | '/api/public/mercadopago-webhook'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/auth'
-    | '/dashboard'
-    | '/licenses'
-    | '/resellers'
-    | '/r/$token'
-    | '/api/public/mercadopago-webhook'
+  to: '/' | '/auth' | '/dashboard' | '/licenses' | '/resellers' | '/r/$token'
   id:
     | '__root__'
     | '/'
@@ -116,7 +98,6 @@ export interface FileRouteTypes {
     | '/_authenticated/licenses'
     | '/_authenticated/resellers'
     | '/r/$token'
-    | '/api/public/mercadopago-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -124,7 +105,6 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   RTokenRoute: typeof RTokenRoute
-  ApiPublicMercadopagoWebhookRoute: typeof ApiPublicMercadopagoWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -178,13 +158,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/mercadopago-webhook': {
-      id: '/api/public/mercadopago-webhook'
-      path: '/api/public/mercadopago-webhook'
-      fullPath: '/api/public/mercadopago-webhook'
-      preLoaderRoute: typeof ApiPublicMercadopagoWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -208,7 +181,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   RTokenRoute: RTokenRoute,
-  ApiPublicMercadopagoWebhookRoute: ApiPublicMercadopagoWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

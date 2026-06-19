@@ -38,7 +38,7 @@ function LicensesPage() {
     return list.filter((l) => {
       const matchSearch =
         !search ||
-        (l.license_key ?? "").toLowerCase().includes(search.toLowerCase()) ||
+        l.license_key.toLowerCase().includes(search.toLowerCase()) ||
         (l.user_name ?? "").toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || computeStatus(l) === statusFilter;
       return matchSearch && matchStatus;
