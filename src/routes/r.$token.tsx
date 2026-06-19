@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase, type License } from "@/integrations/supabase/client";
 import { fetchResellerByToken, fetchResellerLicenses } from "@/lib/resellers";
@@ -484,7 +484,7 @@ function StatCard({
 }: {
   label: string;
   value: number;
-  icon: React.ReactNode;
+  icon: ReactNode;
   tone: "primary" | "emerald" | "amber" | "rose";
   hint?: string;
 }) {
