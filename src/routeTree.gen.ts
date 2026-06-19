@@ -17,6 +17,7 @@ import { Route as AuthenticatedResellersRouteImport } from './routes/_authentica
 import { Route as AuthenticatedLicensesRouteImport } from './routes/_authenticated/licenses'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as ApiPublicMpWebhookRouteImport } from './routes/api/public/mp/webhook'
+import { Route as ApiPublicMpStatusRouteImport } from './routes/api/public/mp/status'
 import { Route as ApiPublicMpCreatePaymentRouteImport } from './routes/api/public/mp/create-payment'
 
 const AuthRoute = AuthRouteImport.update({
@@ -58,6 +59,11 @@ const ApiPublicMpWebhookRoute = ApiPublicMpWebhookRouteImport.update({
   path: '/api/public/mp/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicMpStatusRoute = ApiPublicMpStatusRouteImport.update({
+  id: '/api/public/mp/status',
+  path: '/api/public/mp/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMpCreatePaymentRoute =
   ApiPublicMpCreatePaymentRouteImport.update({
     id: '/api/public/mp/create-payment',
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/resellers': typeof AuthenticatedResellersRoute
   '/r/$token': typeof RTokenRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
+  '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/resellers': typeof AuthenticatedResellersRoute
   '/r/$token': typeof RTokenRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
+  '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
 }
 export interface FileRoutesById {
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/_authenticated/resellers': typeof AuthenticatedResellersRoute
   '/r/$token': typeof RTokenRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
+  '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
 }
 export interface FileRouteTypes {
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/resellers'
     | '/r/$token'
     | '/api/public/mp/create-payment'
+    | '/api/public/mp/status'
     | '/api/public/mp/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/resellers'
     | '/r/$token'
     | '/api/public/mp/create-payment'
+    | '/api/public/mp/status'
     | '/api/public/mp/webhook'
   id:
     | '__root__'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/_authenticated/resellers'
     | '/r/$token'
     | '/api/public/mp/create-payment'
+    | '/api/public/mp/status'
     | '/api/public/mp/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -137,6 +149,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   RTokenRoute: typeof RTokenRoute
   ApiPublicMpCreatePaymentRoute: typeof ApiPublicMpCreatePaymentRoute
+  ApiPublicMpStatusRoute: typeof ApiPublicMpStatusRoute
   ApiPublicMpWebhookRoute: typeof ApiPublicMpWebhookRoute
 }
 
@@ -198,6 +211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMpWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/mp/status': {
+      id: '/api/public/mp/status'
+      path: '/api/public/mp/status'
+      fullPath: '/api/public/mp/status'
+      preLoaderRoute: typeof ApiPublicMpStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/mp/create-payment': {
       id: '/api/public/mp/create-payment'
       path: '/api/public/mp/create-payment'
@@ -229,6 +249,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   RTokenRoute: RTokenRoute,
   ApiPublicMpCreatePaymentRoute: ApiPublicMpCreatePaymentRoute,
+  ApiPublicMpStatusRoute: ApiPublicMpStatusRoute,
   ApiPublicMpWebhookRoute: ApiPublicMpWebhookRoute,
 }
 export const routeTree = rootRouteImport
