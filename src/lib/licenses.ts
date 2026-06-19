@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { supabase, type License } from "@/integrations/supabase/client";
+import { supabase, type License } from "@/integrations/external-supabase/client";
 
 export async function fetchLicenses(): Promise<License[]> {
   const { data, error } = await supabase

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase, type License } from "@/integrations/supabase/client";
+import { supabase, type License } from "@/integrations/external-supabase/client";
 import { fetchResellerByToken, fetchResellerLicenses } from "@/lib/resellers";
 import { computeStatus, generateLicenseKey } from "@/lib/licenses";
 import { StatusBadge } from "./_authenticated/dashboard";

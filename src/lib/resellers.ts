@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { supabase, type Reseller, type License } from "@/integrations/supabase/client";
+import { supabase, type Reseller, type License } from "@/integrations/external-supabase/client";
 
 export async function fetchResellers(): Promise<Reseller[]> {
   const { data, error } = await supabase
