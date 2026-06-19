@@ -192,7 +192,6 @@ export const consumeKey = createServerFn({ method: "POST" })
     const { data: ok, error } = await admin.rpc("consume_reseller_key", {
       _reseller_id: reseller.id,
       _description: data.description ?? "Licença criada",
-      _reference_id: null,
     });
     if (error) throw new Error(error.message);
     if (!ok) throw new Error("Saldo insuficiente. Compre keys para criar licenças.");
