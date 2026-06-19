@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase, type License } from "@/integrations/supabase/client";
 import { fetchResellerByToken, fetchResellerLicenses } from "@/lib/resellers";
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
-  Sun, Moon, Sunset, Activity, Sparkles, CheckCircle2, XCircle,
+  Activity,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
@@ -365,36 +365,34 @@ function ResellerPublicPage() {
                             ["licenses"],
                           ]}
                         />
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              disabled={l.status === "revoked" || revoke.isPending}
-                              onClick={() => revoke.mutate(l.id)}
-                              aria-label="Revogar"
-                            >
-                              <Ban className="h-4 w-4" aria-hidden />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              disabled={remove.isPending}
-                              onClick={() => {
-                                if (confirm("Remover esta licença?")) remove.mutate(l.id);
-                              }}
-                              aria-label="Remover"
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" aria-hidden />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={l.status === "revoked" || revoke.isPending}
+                          onClick={() => revoke.mutate(l.id)}
+                          aria-label="Revogar"
+                        >
+                          <Ban className="h-4 w-4" aria-hidden />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={remove.isPending}
+                          onClick={() => {
+                            if (confirm("Remover esta licença?")) remove.mutate(l.id);
+                          }}
+                          aria-label="Remover"
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" aria-hidden />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </main>
     </div>
   );
@@ -416,22 +414,12 @@ function getGreeting() {
   return "Boa noite";
 }
 
-function GreetingIcon() {
-  const h = new Date().getHours();
-  const cls = "h-4 w-4";
-  if (h < 12) return <Sun className={cls} aria-hidden />;
-  if (h < 18) return <Sunset className={cls} aria-hidden />;
-  return <Moon className={cls} aria-hidden />;
-}
-
-function StatCard({
-  label, value, icon, tone, hint,
+function CompactStat({
+  label, value, tone,
 }: {
   label: string;
   value: number;
-  icon: ReactNode;
   tone: "primary" | "emerald" | "amber" | "rose";
-  hint?: string;
 }) {
   const tones: Record<string, string> = {
     primary: "bg-primary/10 text-primary",
@@ -440,18 +428,15 @@ function StatCard({
     rose: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
   };
   return (
-    <Card className="border-border/60 shadow-soft">
-      <CardContent className="p-4 flex items-start gap-3">
-        <div className={"grid h-9 w-9 place-items-center rounded-lg " + tones[tone]}>
-          {icon}
-        </div>
-        <div className="min-w-0">
-          <p className="text-xs uppercase tracking-wider text-muted-foreground truncate">{label}</p>
-          <p className="text-2xl font-bold tracking-tight leading-tight">{value}</p>
-          {hint ? <p className="text-[10px] text-muted-foreground mt-0.5">{hint}</p> : null}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-card px-3 py-2.5">
+      <div className={"grid h-7 w-7 place-items-center rounded-md text-xs font-bold " + tones[tone]}>
+        {label.charAt(0)}
+      </div>
+      <div className="min-w-0">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">{label}</p>
+        <p className="text-lg font-bold tracking-tight leading-tight">{value}</p>
+      </div>
+    </div>
   );
 }
 
@@ -482,14 +467,12 @@ function NewResellerLicenseDialog({
     }
   };
 
-  // Generate a fresh key each time the dialog opens (avoids SSR-cached value).
   useEffect(() => {
     if (open) setKey(generateLicenseKey());
   }, [open]);
 
   const create = useMutation({
     mutationFn: async () => {
-      // Re-check quota at insert time — trials don't count
       if (status !== "trial") {
         const { count, error: cErr } = await supabase
           .from("licenses")
@@ -532,7 +515,7 @@ function NewResellerLicenseDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-2" disabled={disabled}>
+        <Button size="sm" className="gap-2 h-9" disabled={disabled}>
           <Plus className="h-4 w-4" aria-hidden />
           Nova licença
         </Button>
