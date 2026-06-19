@@ -52,12 +52,13 @@ export const Route = createFileRoute("/api/public/mp/create-payment")({
               description: `${pkg.label} - Revendedor ${reseller.name}`,
               payment_method_id: "pix",
               external_reference: purchase.id,
-              payer: { email: body.payerEmail || `revenda+${reseller.id}@noreply.local` },
+              payer: { email: body.payerEmail || `revenda-${reseller.id.slice(0, 8)}@example.com` },
             }),
           });
 
           const mpJson = await mpRes.json().catch(() => ({}));
           if (!mpRes.ok) {
+            console.error("MP create payment failed", mpRes.status, JSON.stringify(mpJson));
             await admin.from("reseller_purchases")
               .update({ status: "failed", updated_at: new Date().toISOString() })
               .eq("id", purchase.id);
