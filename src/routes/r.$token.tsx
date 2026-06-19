@@ -474,8 +474,8 @@ function CompactStat({
 }
 
 function NewResellerLicenseDialog({
-  resellerId, maxKeys, currentCount, disabled, quotaReached,
-}: { resellerId: string; maxKeys: number; currentCount: number; disabled: boolean; quotaReached: boolean }) {
+  resellerId, balance, disabled, quotaReached,
+}: { resellerId: string; balance: number; disabled: boolean; quotaReached: boolean }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState("");
@@ -507,14 +507,13 @@ function NewResellerLicenseDialog({
   const create = useMutation({
     mutationFn: async () => {
       if (status !== "trial") {
-        const { count, error: cErr } = await supabase
-          .from("licenses")
-          .select("id", { count: "exact", head: true })
-          .eq("reseller_id", resellerId)
-          .neq("status", "trial")
-          .or("duration_minutes.is.null,duration_minutes.gt.15");
-        if (cErr) throw cErr;
-        if ((count ?? 0) >= maxKeys) throw new Error("Cota esgotada.");
+        const { data: ok, error: rpcErr } = await supabase.rpc("consume_reseller_key", {
+          _reseller_id: resellerId,
+          _description: `Licença criada para ${userName || "Cliente"}`,
+          _reference_id: null,
+        });
+        if (rpcErr) throw rpcErr;
+        if (!ok) throw new Error("Saldo de keys insuficiente. Compre mais keys.");
       }
 
       const factor = unit === "minutes" ? 60_000 : unit === "hours" ? 3_600_000 : 86_400_000;
@@ -538,6 +537,7 @@ function NewResellerLicenseDialog({
     onSuccess: () => {
       toast.success("Licença criada");
       qc.invalidateQueries({ queryKey: ["reseller-licenses", resellerId] });
+      qc.invalidateQueries({ queryKey: ["reseller-balance"] });
       setOpen(false);
       setKey(generateLicenseKey());
       setUserName("");
@@ -557,7 +557,7 @@ function NewResellerLicenseDialog({
         <DialogHeader>
           <DialogTitle>Nova licença</DialogTitle>
           <DialogDescription>
-            Cota: {currentCount}/{maxKeys}. A chave será vinculada à sua revenda.
+            Saldo disponível: <strong>{balance}</strong> key(s). Trials não consomem saldo.
           </DialogDescription>
         </DialogHeader>
         <form
