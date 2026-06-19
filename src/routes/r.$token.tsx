@@ -531,20 +531,44 @@ function NewResellerLicenseDialog({
           className="space-y-4"
           onSubmit={(e) => { e.preventDefault(); create.mutate(); }}
         >
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" size="sm"
-              onClick={() => { updateStatus("trial"); setDays(5); setMaxDevices(1); }}>
-              Trial 5 min
-            </Button>
-            <Button type="button" variant="outline" size="sm"
-              onClick={() => { updateStatus("trial"); setDays(10); setMaxDevices(1); }}>
-              Trial 10 min
-            </Button>
-            <Button type="button" variant="outline" size="sm"
-              onClick={() => { updateStatus("trial"); setDays(15); setMaxDevices(1); }}>
-              Trial 15 min
-            </Button>
+          <div className="space-y-2">
+            <Label>Tipo de licença</Label>
+            <div className="grid grid-cols-2 gap-2 p-1 rounded-md bg-muted/50">
+              <Button
+                type="button"
+                size="sm"
+                variant={status === "active" ? "default" : "ghost"}
+                disabled={quotaReached}
+                onClick={() => { updateStatus("active"); setUnit("days"); setDays(30); }}
+              >
+                Normal
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={status === "trial" ? "default" : "ghost"}
+                onClick={() => { updateStatus("trial"); setUnit("minutes"); setDays(15); setMaxDevices(1); }}
+              >
+                Trial (grátis)
+              </Button>
+            </div>
           </div>
+          {status === "trial" ? (
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" variant="outline" size="sm"
+                onClick={() => { updateStatus("trial"); setUnit("minutes"); setDays(5); setMaxDevices(1); }}>
+                Trial 5 min
+              </Button>
+              <Button type="button" variant="outline" size="sm"
+                onClick={() => { updateStatus("trial"); setUnit("minutes"); setDays(10); setMaxDevices(1); }}>
+                Trial 10 min
+              </Button>
+              <Button type="button" variant="outline" size="sm"
+                onClick={() => { updateStatus("trial"); setUnit("minutes"); setDays(15); setMaxDevices(1); }}>
+                Trial 15 min
+              </Button>
+            </div>
+          ) : null}
           <div className="space-y-2">
             <Label htmlFor="lkey">Chave</Label>
             <div className="flex gap-2">
