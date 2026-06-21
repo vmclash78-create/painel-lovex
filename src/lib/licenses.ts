@@ -26,5 +26,5 @@ export function generateLicenseKey(): string {
   const hex = Array.from({ length: 8 }, () =>
     "0123456789ABCDEF"[Math.floor(Math.random() * 16)],
   ).join("");
-  return `LL-${digits}-${hex}`;
+  return `LX-${digits}-${hex}`;
 }
