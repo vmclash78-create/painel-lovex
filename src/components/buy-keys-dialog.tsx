@@ -80,9 +80,9 @@ export function BuyKeysDialog({ resellerId, resellerToken, disabled }: Props) {
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       <DialogTrigger asChild>
-        <Button size="sm" className="h-9 gap-1.5" disabled={disabled}>
+        <Button size="sm" className="h-9 w-full gap-1.5 px-2 text-xs sm:w-auto sm:px-3 sm:text-sm" disabled={disabled}>
           <ShoppingCart className="h-4 w-4" aria-hidden />
-          Comprar Keys
+          <span className="truncate">Comprar Keys</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
