@@ -105,7 +105,7 @@ function DashboardPage() {
       ) : null}
 
       {/* Métricas */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
         <StatCard label="Total" value={stats.total} icon={KeyRound} loading={isLoading} />
         <StatCard label="Ativas" value={stats.active} icon={CheckCircle2} tone="success" loading={isLoading} />
         <StatCard label="Trial" value={stats.trial} icon={Clock} tone="info" loading={isLoading} />
@@ -470,17 +470,17 @@ function StatCard({
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/40 to-transparent opacity-60"
       />
-      <CardContent className="flex items-center justify-between gap-3 py-5">
+      <CardContent className="flex items-center justify-between gap-2 p-3 sm:gap-3 sm:py-5 sm:px-6">
         <div className="min-w-0">
-          <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
-          <div className={`mt-1 text-3xl font-bold tracking-tight tabular-nums ${toneText}`}>
-            {loading ? <Skeleton className="h-8 w-12" /> : value}
+          <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground sm:text-[11px]">{label}</div>
+          <div className={`mt-0.5 text-xl font-bold tracking-tight tabular-nums sm:mt-1 sm:text-3xl ${toneText}`}>
+            {loading ? <Skeleton className="h-6 w-10 sm:h-8 sm:w-12" /> : value}
           </div>
         </div>
         <div
-          className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl transition-transform group-hover:scale-110 ${tonePill}`}
+          className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-transform group-hover:scale-110 sm:h-11 sm:w-11 sm:rounded-xl ${tonePill}`}
         >
-          <Icon className="h-5 w-5" aria-hidden />
+          <Icon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
         </div>
       </CardContent>
     </Card>
