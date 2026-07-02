@@ -208,33 +208,32 @@ function ResellerPublicPage() {
         className="pointer-events-none fixed inset-0 opacity-[0.35] [background-image:radial-gradient(color-mix(in_oklab,var(--foreground)_8%,transparent)_1px,transparent_1px)] [background-size:22px_22px]"
       />
       {/* Hero */}
-      <header className="relative overflow-hidden border-b border-border/50 bg-[radial-gradient(ellipse_at_top_left,color-mix(in_oklab,var(--primary)_22%,transparent),transparent_65%)]">
-        <div className="pointer-events-none absolute -top-32 right-0 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
-        <div className="relative mx-auto max-w-6xl px-5 py-7 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/40 text-primary-foreground shadow-[0_10px_30px_-10px_color-mix(in_oklab,var(--primary)_60%,transparent)]">
-              <KeyRound className="h-5 w-5" aria-hidden />
+      <header className="relative border-b border-border/50">
+        <div className="relative mx-auto max-w-6xl px-5 py-5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border/60 bg-card text-primary">
+              <KeyRound className="h-4.5 w-4.5" aria-hidden />
             </div>
-            <div className="min-w-0">
-              <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight leading-tight">
-                <span className="text-muted-foreground font-medium">{getGreeting()},</span>
-                <span className="truncate">{reseller.data.name}</span>
-                <span aria-hidden className="text-xl">👋</span>
-              </h1>
-              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground mt-1">
+            <div className="min-w-0 leading-tight">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                 Painel de Revenda
               </p>
+              <h1 className="mt-1 flex items-center gap-2 text-lg font-semibold tracking-tight">
+                <span className="text-muted-foreground font-normal">{getGreeting()},</span>
+                <span className="truncate text-foreground">{reseller.data.name}</span>
+              </h1>
             </div>
           </div>
           {reseller.data.active ? (
-            <Badge variant="outline" className="gap-1.5 h-8 px-3 rounded-full text-emerald-600 border-emerald-500/30 bg-emerald-500/10 dark:text-emerald-300">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_var(--color-emerald-500,#10b981)] animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[11px] font-medium text-emerald-600 dark:text-emerald-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               Ativa
-            </Badge>
+            </span>
           ) : (
-            <Badge variant="outline" className="h-8 px-3 rounded-full text-destructive border-destructive/30 bg-destructive/5">
+            <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full border border-destructive/30 bg-destructive/5 text-[11px] font-medium text-destructive">
+              <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
               Inativa
-            </Badge>
+            </span>
           )}
         </div>
       </header>
