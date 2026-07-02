@@ -580,24 +580,24 @@ function GradientStatCard({
   };
   const p = palette[tone];
   return (
-    <div className={`group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-4 transition-all hover:border-border ${p.glow}`}>
+    <div className={`group relative overflow-hidden rounded-xl border border-border/60 bg-card p-3 transition-all hover:border-border sm:rounded-2xl sm:p-4 ${p.glow}`}>
       <div className={`pointer-events-none absolute -right-14 -top-14 h-40 w-40 rounded-full bg-gradient-to-br ${p.ring} blur-2xl`} />
       <div className="relative flex items-start justify-between gap-2">
-        <div className={`grid h-9 w-9 place-items-center rounded-xl border ${p.chip}`}>
+        <div className={`grid h-7 w-7 place-items-center rounded-lg border sm:h-9 sm:w-9 sm:rounded-xl ${p.chip}`}>
           {icon}
         </div>
         {typeof percent === "number" ? (
-          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold tabular-nums ${p.chip}`}>
+          <span className={`rounded-full border px-1.5 py-0.5 text-[9px] font-semibold tabular-nums sm:px-2 sm:text-[10px] ${p.chip}`}>
             {percent}%
           </span>
         ) : null}
       </div>
-      <div className="relative mt-3">
-        <p className="text-[13px] font-medium text-foreground/90">{label}</p>
-        <p className="mt-0.5 text-3xl font-bold tracking-tight tabular-nums leading-none">{value}</p>
-        <p className="mt-2 text-[11px] text-muted-foreground truncate">{description}</p>
+      <div className="relative mt-2 sm:mt-3">
+        <p className="text-[11px] font-medium text-foreground/90 sm:text-[13px]">{label}</p>
+        <p className="mt-0.5 text-xl font-bold tracking-tight tabular-nums leading-none sm:text-3xl">{value}</p>
+        <p className="mt-1 text-[10px] text-muted-foreground truncate sm:mt-2 sm:text-[11px]">{description}</p>
       </div>
-      <Sparkline className={`relative mt-3 h-8 w-full ${p.stroke}`} seed={label.length + value} />
+      <Sparkline className={`relative mt-2 h-6 w-full sm:mt-3 sm:h-8 ${p.stroke}`} seed={label.length + value} />
     </div>
   );
 }
