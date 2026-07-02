@@ -255,11 +255,11 @@ function ResellerPublicPage() {
               <TabsList className="grid w-full max-w-md grid-cols-2">
                 <TabsTrigger value="main" className="gap-1.5">
                   <Package className="h-3.5 w-3.5" aria-hidden />
-                  Main ({r.max_keys})
+                  LoveX ({r.max_keys})
                 </TabsTrigger>
                 <TabsTrigger value="lp" className="gap-1.5">
                   <Package className="h-3.5 w-3.5" aria-hidden />
-                  LP ({r.max_keys_lp ?? 0})
+                  Lovpro ({r.max_keys_lp ?? 0})
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="lp" className="space-y-4 mt-0">
