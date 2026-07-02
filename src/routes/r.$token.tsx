@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase, type License } from "@/integrations/external-supabase/client";
 import { fetchResellerByToken, fetchResellerLicenses } from "@/lib/resellers";
-import { computeStatus, generateLicenseKey } from "@/lib/licenses";
+import { computeStatus, generateLicenseKey, isTrialLicense, rankSellers } from "@/lib/licenses";
 import { StatusBadge } from "./_authenticated/dashboard";
 import { EditLicenseDialog } from "./_authenticated/licenses";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
-  Activity,
+  Activity, Trophy, UserRound, Medal,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
@@ -97,9 +97,6 @@ function ResellerPublicPage() {
     });
   }, [licenses.data, search, statusFilter]);
 
-  const isTrialLicense = (l: License) =>
-    l.status === "trial" ||
-    (l.duration_minutes != null && l.duration_minutes > 0 && l.duration_minutes <= 15);
   const paidLicenses = (licenses.data ?? []).filter((l) => !isTrialLicense(l));
   const trialCount = (licenses.data ?? []).length - paidLicenses.length;
   const used = paidLicenses.length;
@@ -111,6 +108,10 @@ function ResellerPublicPage() {
   const activeCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "active").length;
   const expiredCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "expired").length;
   const totalCount = (licenses.data ?? []).length;
+  const sellerRanking = useMemo(
+    () => rankSellers(licenses.data ?? []).slice(0, 5),
+    [licenses.data],
+  );
 
   const revoke = useMutation({
     mutationFn: async (id: string) => {
@@ -248,6 +249,9 @@ function ResellerPublicPage() {
           </div>
         </div>
 
+        {/* Ranking de vendedores */}
+        <SellerRankingCard rows={sellerRanking} />
+
         {/* Licenses toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="relative flex-1 min-w-[220px]">
@@ -317,6 +321,7 @@ function ResellerPublicPage() {
               <TableRow>
                 <TableHead className="text-xs">Chave</TableHead>
                 <TableHead className="text-xs">Cliente</TableHead>
+                <TableHead className="text-xs">Vendedor</TableHead>
                 <TableHead className="text-xs">Status</TableHead>
                 <TableHead className="text-xs">Expira em</TableHead>
                 <TableHead className="text-xs">Disp.</TableHead>
@@ -327,12 +332,12 @@ function ResellerPublicPage() {
               {licenses.isLoading ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell colSpan={6}><Skeleton className="h-5 w-full" /></TableCell>
+                    <TableCell colSpan={7}><Skeleton className="h-5 w-full" /></TableCell>
                   </TableRow>
                 ))
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-6 text-center text-xs text-muted-foreground">
+                  <TableCell colSpan={7} className="py-6 text-center text-xs text-muted-foreground">
                     Nenhuma licença encontrada.
                   </TableCell>
                 </TableRow>
@@ -357,6 +362,16 @@ function ResellerPublicPage() {
                       </div>
                     </TableCell>
                     <TableCell>{l.user_name ?? "—"}</TableCell>
+                    <TableCell className="text-xs">
+                      {l.sold_by ? (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-primary">
+                          <UserRound className="h-3 w-3" aria-hidden />
+                          {l.sold_by}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
                     <TableCell><StatusBadge status={computeStatus(l)} /></TableCell>
                     <TableCell className="text-xs">{formatDate(l.expires_at)}</TableCell>
                     <TableCell className="text-xs">{l.max_devices ?? 1}</TableCell>
