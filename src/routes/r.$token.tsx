@@ -209,7 +209,7 @@ function ResellerPublicPage() {
       />
       {/* Hero */}
       <header className="relative border-b border-border/50">
-        <div className="relative mx-auto max-w-6xl px-4 py-4 flex items-center justify-between gap-3 sm:px-5 sm:py-5 sm:gap-4">
+        <div className="relative mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:flex sm:justify-between sm:px-5 sm:py-5 sm:gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border/60 bg-card text-primary">
               <KeyRound className="h-4.5 w-4.5" aria-hidden />
@@ -257,10 +257,10 @@ function ResellerPublicPage() {
           }
           return (
             <Tabs defaultValue="main" className="space-y-5">
-              <TabsList className="inline-flex h-11 items-center gap-1 rounded-full border border-border/60 bg-card/60 p-1 backdrop-blur">
+              <TabsList className="grid h-11 w-full grid-cols-2 items-center gap-1 rounded-full border border-border/60 bg-card/60 p-1 backdrop-blur sm:inline-flex sm:w-auto">
                 <TabsTrigger
                   value="main"
-                  className="gap-2 h-9 rounded-full px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
+                  className="h-9 min-w-0 gap-1.5 rounded-full px-2 text-xs sm:gap-2 sm:px-4 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
                 >
                   <Package className="h-3.5 w-3.5" aria-hidden />
                   LoveX
@@ -270,7 +270,7 @@ function ResellerPublicPage() {
                 </TabsTrigger>
                 <TabsTrigger
                   value="lp"
-                  className="gap-2 h-9 rounded-full px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
+                  className="h-9 min-w-0 gap-1.5 rounded-full px-2 text-xs sm:gap-2 sm:px-4 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
                 >
                   <Package className="h-3.5 w-3.5" aria-hidden />
                   Lovpro
@@ -306,7 +306,7 @@ function ResellerPublicPage() {
     return (
       <>
         {/* Compact stats row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
           <GradientStatCard
             label="Total de Licenças"
             description="Todas as licenças geradas"
@@ -344,8 +344,8 @@ function ResellerPublicPage() {
         <QuotaBar used={used} max={max} pct={pct} remaining={remaining} />
 
         {/* Licenses toolbar */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="relative flex-1 min-w-[220px]">
+        <div className="grid gap-2.5 sm:flex sm:items-center sm:gap-3">
+          <div className="relative min-w-0 sm:flex-1 sm:min-w-[220px]">
             <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" aria-hidden />
             <Input
               value={search}
@@ -355,9 +355,9 @@ function ResellerPublicPage() {
               aria-label="Buscar"
             />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 sm:flex sm:w-auto sm:items-center">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px] h-9" aria-label="Filtrar por status">
+              <SelectTrigger className="h-9 w-full sm:w-[150px]" aria-label="Filtrar por status">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -377,18 +377,20 @@ function ResellerPublicPage() {
             >
               <RefreshCw className="h-4 w-4" aria-hidden />
             </Button>
-            <NewResellerLicenseDialog
-              resellerId={r.id}
-              maxKeys={r.max_keys}
-              currentCount={used}
-              disabled={!r.active}
-              quotaReached={remaining <= 0}
-            />
-            <BuyKeysDialog
-              resellerId={r.id}
-              resellerToken={token}
-              disabled={!r.active}
-            />
+            <div className="col-span-2 grid grid-cols-2 gap-2 sm:contents">
+              <NewResellerLicenseDialog
+                resellerId={r.id}
+                maxKeys={r.max_keys}
+                currentCount={used}
+                disabled={!r.active}
+                quotaReached={remaining <= 0}
+              />
+              <BuyKeysDialog
+                resellerId={r.id}
+                resellerToken={token}
+                disabled={!r.active}
+              />
+            </div>
           </div>
         </div>
 
@@ -406,7 +408,73 @@ function ResellerPublicPage() {
           </div>
         ) : null}
 
-        <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card">
+        <div className="space-y-2 sm:hidden">
+          {licenses.isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-xl" />)
+          ) : filtered.length === 0 ? (
+            <MobileEmptyState title="Nenhuma licença encontrada" description="Crie sua primeira licença em Nova licença." />
+          ) : (
+            filtered.map((l) => (
+              <article key={l.id} className="rounded-xl border border-border/60 bg-card p-3">
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                  <div className="min-w-0 space-y-1">
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <KeyRound className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+                      <span className="truncate font-mono text-xs font-semibold">{l.license_key}</span>
+                    </div>
+                    <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
+                      <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-[10px] font-bold text-primary uppercase">
+                        {(l.user_name ?? "?").slice(0, 1)}
+                      </div>
+                      <span className="truncate">{l.user_name ?? "—"}</span>
+                    </div>
+                  </div>
+                  <StatusBadge status={computeStatus(l)} />
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                  <div className="min-w-0 truncate">Vendedor: <span className="text-foreground/80">{l.sold_by ?? "—"}</span></div>
+                  <div className="text-right tabular-nums">Disp.: <span className="text-foreground/80">{l.max_devices ?? 1}</span></div>
+                  <div className="col-span-2 tabular-nums">Expira: <span className="text-foreground/80">{formatDate(l.expires_at)}</span></div>
+                </div>
+                <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 justify-start gap-1.5 truncate px-2 text-xs"
+                    onClick={async () => {
+                      try { await navigator.clipboard.writeText(l.license_key); toast.success("Copiado"); }
+                      catch { toast.error("Falha ao copiar"); }
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    Copiar
+                  </Button>
+                  <EditLicenseDialog license={l} />
+                  <ResetLicenseDialog
+                    license={l}
+                    resellerId={reseller.data!.id}
+                    invalidateKeys={[
+                      ["reseller-licenses", reseller.data!.id],
+                      ["licenses"],
+                    ]}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    disabled={l.status === "revoked" || revoke.isPending}
+                    onClick={() => revoke.mutate(l.id)}
+                    aria-label="Revogar"
+                  >
+                    <Ban className="h-4 w-4" aria-hidden />
+                  </Button>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+
+        <div className="hidden overflow-x-auto rounded-2xl border border-border/60 bg-card sm:block">
           <Table>
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
@@ -580,10 +648,10 @@ function GradientStatCard({
   };
   const p = palette[tone];
   return (
-    <div className={`group relative overflow-hidden rounded-xl border border-border/60 bg-card p-3 transition-all hover:border-border sm:rounded-2xl sm:p-4 ${p.glow}`}>
+    <div className={`group relative min-w-0 overflow-hidden rounded-xl border border-border/60 bg-card p-3 transition-all hover:border-border sm:rounded-2xl sm:p-4 ${p.glow}`}>
       <div className={`pointer-events-none absolute -right-14 -top-14 h-40 w-40 rounded-full bg-gradient-to-br ${p.ring} blur-2xl`} />
       <div className="relative flex items-start justify-between gap-2">
-        <div className={`grid h-7 w-7 place-items-center rounded-lg border sm:h-9 sm:w-9 sm:rounded-xl ${p.chip}`}>
+        <div className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg border sm:h-9 sm:w-9 sm:rounded-xl ${p.chip}`}>
           {icon}
         </div>
         {typeof percent === "number" ? (
@@ -593,7 +661,7 @@ function GradientStatCard({
         ) : null}
       </div>
       <div className="relative mt-2 sm:mt-3">
-        <p className="text-[11px] font-medium text-foreground/90 sm:text-[13px]">{label}</p>
+        <p className="truncate text-[11px] font-medium text-foreground/90 sm:text-[13px]">{label}</p>
         <p className="mt-0.5 text-xl font-bold tracking-tight tabular-nums leading-none sm:text-3xl">{value}</p>
         <p className="mt-1 text-[10px] text-muted-foreground truncate sm:mt-2 sm:text-[11px]">{description}</p>
       </div>
@@ -635,22 +703,22 @@ function QuotaBar({
   used, max, pct, remaining,
 }: { used: number; max: number; pct: number; remaining: number }) {
   return (
-    <div className="rounded-2xl border border-border/60 bg-card p-4">
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 shrink-0">
+    <div className="rounded-xl border border-border/60 bg-card p-3 sm:rounded-2xl sm:p-4">
+      <div className="grid gap-2.5 sm:flex sm:items-center sm:gap-4">
+        <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:shrink-0">
           <div className="grid h-7 w-7 place-items-center rounded-lg bg-primary/15 text-primary">
             <Activity className="h-3.5 w-3.5" aria-hidden />
           </div>
-          <span className="text-sm font-medium text-foreground/90">Cota de licenças</span>
-          <span className="font-bold text-lg tabular-nums">{used}<span className="text-muted-foreground text-base font-medium"> / {max}</span></span>
+          <span className="truncate text-sm font-medium text-foreground/90">Cota de licenças</span>
+          <span className="font-bold tabular-nums text-base sm:text-lg">{used}<span className="text-sm font-medium text-muted-foreground sm:text-base"> / {max}</span></span>
         </div>
-        <div className="flex-1 min-w-[120px] relative h-2 rounded-full bg-muted/60 overflow-hidden">
+        <div className="relative h-2 min-w-0 rounded-full bg-muted/60 overflow-hidden sm:flex-1 sm:min-w-[120px]">
           <div
             className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-primary/70 shadow-[0_0_12px_color-mix(in_oklab,var(--primary)_60%,transparent)] transition-[width]"
             style={{ width: `${pct}%` }}
           />
         </div>
-        <div className="text-xs text-muted-foreground shrink-0 tabular-nums">
+        <div className="text-[11px] text-muted-foreground tabular-nums sm:shrink-0 sm:text-xs">
           <span className="font-semibold text-foreground/80">{remaining}</span> restantes · {pct}% utilizado
         </div>
       </div>
@@ -724,9 +792,9 @@ function NewResellerLicenseDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-2 h-9" disabled={disabled}>
+        <Button size="sm" className="h-9 w-full gap-1.5 px-2 text-xs sm:w-auto sm:gap-2 sm:px-3 sm:text-sm" disabled={disabled}>
           <Plus className="h-4 w-4" aria-hidden />
-          Nova licença
+          <span className="truncate">Nova licença</span>
         </Button>
       </DialogTrigger>
       <DialogContent>
