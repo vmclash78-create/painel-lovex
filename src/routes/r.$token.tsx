@@ -204,34 +204,37 @@ function ResellerPublicPage() {
   return (
     <div className="min-h-dvh bg-background">
       {/* Compact top bar */}
-      <header className="border-b border-border/50 bg-card">
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary/10 text-primary shrink-0">
-              <KeyRound className="h-4 w-4" aria-hidden />
+      <header className="relative overflow-hidden border-b border-border/50 bg-[radial-gradient(ellipse_at_top_left,color-mix(in_oklab,var(--primary)_18%,transparent),transparent_60%)]">
+        <div className="mx-auto max-w-6xl px-5 py-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/40 text-primary-foreground shadow-[0_10px_30px_-10px_color-mix(in_oklab,var(--primary)_60%,transparent)]">
+              <KeyRound className="h-5 w-5" aria-hidden />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 text-sm font-medium truncate">
-                <span className="text-muted-foreground">{getGreeting()},</span>
+              <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight leading-tight">
+                <span className="text-muted-foreground font-medium">{getGreeting()},</span>
                 <span className="truncate">{reseller.data.name}</span>
-              </div>
-              <div className="text-xs text-muted-foreground">Painel de Revenda</div>
+                <span aria-hidden className="text-xl">👋</span>
+              </h1>
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground mt-1">
+                Painel de Revenda
+              </p>
             </div>
           </div>
           {reseller.data.active ? (
-            <Badge variant="outline" className="gap-1 text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-900">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <Badge variant="outline" className="gap-1.5 h-8 px-3 rounded-full text-emerald-600 border-emerald-500/30 bg-emerald-500/10 dark:text-emerald-300">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_var(--color-emerald-500,#10b981)] animate-pulse" />
               Ativa
             </Badge>
           ) : (
-            <Badge variant="outline" className="text-destructive border-destructive/30 bg-destructive/5">
+            <Badge variant="outline" className="h-8 px-3 rounded-full text-destructive border-destructive/30 bg-destructive/5">
               Inativa
             </Badge>
           )}
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-4 space-y-4">
+      <main className="mx-auto max-w-6xl px-5 py-6 space-y-5">
         {(() => {
           const r = reseller.data!;
           const both = r.sells_main && r.sells_lp;
@@ -278,6 +281,8 @@ function ResellerPublicPage() {
             <MainPanelBody />
           ) : null
         )}
+
+        <ReassuranceStrip />
       </main>
     </div>
   );
