@@ -72,9 +72,9 @@ function LicensesPage() {
   return (
     <section className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Licenças</h1>
-          <p className="text-sm text-muted-foreground">Gerencie chaves, validade e dispositivos.</p>
+        <div className="min-w-0">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Licenças</h1>
+          <p className="text-xs text-muted-foreground sm:text-sm">Gerencie chaves, validade e dispositivos.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
