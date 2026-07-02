@@ -1002,16 +1002,16 @@ function LpPanel({
         </div>
       ) : null}
 
-      <div className="overflow-x-auto rounded-md border">
+      <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="text-xs">Chave Lovpro</TableHead>
-              <TableHead className="text-xs">Cliente</TableHead>
-              <TableHead className="text-xs">Vendedor</TableHead>
-              <TableHead className="text-xs">Status</TableHead>
-              <TableHead className="text-xs">Expira em</TableHead>
-              <TableHead className="text-right text-xs">Ações</TableHead>
+            <TableRow className="border-border/50 hover:bg-transparent">
+              <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Chave Lovpro</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Cliente</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Vendedor</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Status</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Expira em</TableHead>
+              <TableHead className="text-right text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1023,15 +1023,22 @@ function LpPanel({
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-6 text-center text-xs text-muted-foreground">
-                  Nenhuma licença Lovpro encontrada.
+                <TableCell colSpan={6} className="py-14 text-center">
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <div className="grid h-12 w-12 place-items-center rounded-2xl border border-dashed border-border/60 bg-muted/40">
+                      <KeyRound className="h-5 w-5 opacity-60" aria-hidden />
+                    </div>
+                    <p className="text-sm font-medium">Nenhuma licença Lovpro encontrada</p>
+                    <p className="text-xs">Crie sua primeira licença Lovpro clicando em "Nova licença Lovpro".</p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
               filtered.map((l) => (
-                <TableRow key={l.id} className="text-sm">
-                  <TableCell className="font-mono text-xs">
-                    <div className="flex items-center gap-1">
+                <TableRow key={l.id} className="text-sm border-border/40 transition-colors hover:bg-muted/40">
+                  <TableCell className="py-3">
+                    <div className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/40 pl-2 pr-1 py-1 font-mono text-[11px]">
+                      <KeyRound className="h-3 w-3 text-primary" aria-hidden />
                       <span>{l.license_key}</span>
                       <Button
                         variant="ghost"
@@ -1047,7 +1054,14 @@ function LpPanel({
                       </Button>
                     </div>
                   </TableCell>
-                  <TableCell>{l.user_name ?? "—"}</TableCell>
+                  <TableCell className="text-sm font-medium">
+                    <div className="flex items-center gap-2">
+                      <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-[10px] font-bold text-primary uppercase">
+                        {(l.user_name ?? "?").slice(0, 1)}
+                      </div>
+                      <span className="truncate">{l.user_name ?? "—"}</span>
+                    </div>
+                  </TableCell>
                   <TableCell className="text-xs">
                     {l.sold_by ? (
                       <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-primary">
@@ -1059,12 +1073,13 @@ function LpPanel({
                     )}
                   </TableCell>
                   <TableCell><StatusBadge status={(l.status ?? "active") as "active" | "trial" | "expired" | "revoked"} /></TableCell>
-                  <TableCell className="text-xs">{formatDate(l.expires_at)}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground tabular-nums">{formatDate(l.expires_at)}</TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
+                    <div className="inline-flex items-center rounded-lg border border-border/60 bg-background/60 p-0.5">
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="h-8 w-8 p-0"
                         disabled={l.status === "revoked" || revoke.isPending}
                         onClick={() => revoke.mutate(l.id)}
                         aria-label="Revogar"
@@ -1074,6 +1089,7 @@ function LpPanel({
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="h-8 w-8 p-0"
                         disabled={remove.isPending}
                         onClick={() => {
                           if (confirm("Remover esta licença Lovpro?")) remove.mutate(l.id);
