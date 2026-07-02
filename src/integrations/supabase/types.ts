@@ -205,8 +205,11 @@ export type Database = {
           created_at: string
           id: string
           max_keys: number
+          max_keys_lp: number
           name: string
           password: string | null
+          sells_lp: boolean
+          sells_main: boolean
           token: string
         }
         Insert: {
@@ -214,8 +217,11 @@ export type Database = {
           created_at?: string
           id?: string
           max_keys?: number
+          max_keys_lp?: number
           name: string
           password?: string | null
+          sells_lp?: boolean
+          sells_main?: boolean
           token: string
         }
         Update: {
@@ -223,8 +229,11 @@ export type Database = {
           created_at?: string
           id?: string
           max_keys?: number
+          max_keys_lp?: number
           name?: string
           password?: string | null
+          sells_lp?: boolean
+          sells_main?: boolean
           token?: string
         }
         Relationships: []
