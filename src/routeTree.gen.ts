@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RTokenRouteImport } from './routes/r.$token'
+import { Route as AuthenticatedSecondPanelRouteImport } from './routes/_authenticated/second-panel'
 import { Route as AuthenticatedResellersRouteImport } from './routes/_authenticated/resellers'
 import { Route as AuthenticatedLicensesRouteImport } from './routes/_authenticated/licenses'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -39,6 +40,12 @@ const RTokenRoute = RTokenRouteImport.update({
   path: '/r/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSecondPanelRoute =
+  AuthenticatedSecondPanelRouteImport.update({
+    id: '/second-panel',
+    path: '/second-panel',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedResellersRoute = AuthenticatedResellersRouteImport.update({
   id: '/resellers',
   path: '/resellers',
@@ -77,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/licenses': typeof AuthenticatedLicensesRoute
   '/resellers': typeof AuthenticatedResellersRoute
+  '/second-panel': typeof AuthenticatedSecondPanelRoute
   '/r/$token': typeof RTokenRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
@@ -88,6 +96,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/licenses': typeof AuthenticatedLicensesRoute
   '/resellers': typeof AuthenticatedResellersRoute
+  '/second-panel': typeof AuthenticatedSecondPanelRoute
   '/r/$token': typeof RTokenRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
@@ -101,6 +110,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/licenses': typeof AuthenticatedLicensesRoute
   '/_authenticated/resellers': typeof AuthenticatedResellersRoute
+  '/_authenticated/second-panel': typeof AuthenticatedSecondPanelRoute
   '/r/$token': typeof RTokenRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/licenses'
     | '/resellers'
+    | '/second-panel'
     | '/r/$token'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/licenses'
     | '/resellers'
+    | '/second-panel'
     | '/r/$token'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
@@ -137,6 +149,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/licenses'
     | '/_authenticated/resellers'
+    | '/_authenticated/second-panel'
     | '/r/$token'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
@@ -182,6 +195,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/r/$token'
       preLoaderRoute: typeof RTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/second-panel': {
+      id: '/_authenticated/second-panel'
+      path: '/second-panel'
+      fullPath: '/second-panel'
+      preLoaderRoute: typeof AuthenticatedSecondPanelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/resellers': {
       id: '/_authenticated/resellers'
@@ -232,12 +252,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedLicensesRoute: typeof AuthenticatedLicensesRoute
   AuthenticatedResellersRoute: typeof AuthenticatedResellersRoute
+  AuthenticatedSecondPanelRoute: typeof AuthenticatedSecondPanelRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedLicensesRoute: AuthenticatedLicensesRoute,
   AuthenticatedResellersRoute: AuthenticatedResellersRoute,
+  AuthenticatedSecondPanelRoute: AuthenticatedSecondPanelRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

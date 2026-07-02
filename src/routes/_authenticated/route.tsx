@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LayoutDashboard, KeyRound, ShieldCheck, Users, Lock, LogOut } from "lucide-react";
+import { LayoutDashboard, KeyRound, ShieldCheck, Users, Lock, LogOut, Database } from "lucide-react";
 import { isAdminUnlocked, unlockAdmin, lockAdmin } from "@/lib/admin-gate";
 import { toast } from "sonner";
 
@@ -30,6 +30,7 @@ function AuthedLayout() {
     { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { to: "/licenses", label: "Licenças", icon: KeyRound },
     { to: "/resellers", label: "Revendas", icon: Users },
+    { to: "/second-panel", label: "Painel LP", icon: Database },
   ] as const;
 
   return (
