@@ -826,7 +826,6 @@ function LpPanel({
   });
 
   const blocked = disabled || remaining <= 0;
-  const sellerRanking = useMemo(() => rankLpSellers(list).slice(0, 5), [list]);
 
   return (
     <>
@@ -850,8 +849,6 @@ function LpPanel({
           {remaining} restantes · {pct}%
         </div>
       </div>
-
-      <SellerRankingCard rows={sellerRanking} />
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="relative flex-1 min-w-[220px]">
