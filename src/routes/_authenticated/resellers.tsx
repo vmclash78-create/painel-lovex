@@ -7,6 +7,7 @@ import {
   generateResellerToken,
   countResellerLicenses,
 } from "@/lib/resellers";
+import { licensesQueryOptions, rankSellers } from "@/lib/licenses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,7 +21,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Copy, Trash2, Pencil, ExternalLink, RefreshCw } from "lucide-react";
+import { Plus, Copy, Trash2, Pencil, ExternalLink, RefreshCw, Trophy, Medal, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/resellers")({
@@ -31,6 +32,8 @@ export const Route = createFileRoute("/_authenticated/resellers")({
 function ResellersPage() {
   const qc = useQueryClient();
   const { data, isLoading } = useQuery(resellersQueryOptions);
+  const licenses = useQuery(licensesQueryOptions);
+  const topSellers = (licenses.data ? rankSellers(licenses.data) : []).slice(0, 8);
 
   const counts = useQueries({
     queries: (data ?? []).map((r) => ({
@@ -57,7 +60,7 @@ function ResellersPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Revendas</h1>
           <p className="text-sm text-muted-foreground">
-            Crie links com cota de geração de keys para cada revendedor.
+            Crie links com cota de keys pagas. Trials não contam para a cota.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -72,6 +75,8 @@ function ResellersPage() {
           <ResellerDialog mode="create" />
         </div>
       </header>
+
+      <GlobalSellersRanking rows={topSellers} />
 
       <Card>
         <CardContent className="py-4">
@@ -171,6 +176,58 @@ function ResellersPage() {
 function buildResellerLink(token: string) {
   if (typeof window === "undefined") return `/r/${token}`;
   return `${window.location.origin}/r/${token}`;
+}
+
+function GlobalSellersRanking({
+  rows,
+}: {
+  rows: Array<{ seller: string; total: number; paid: number; trial: number }>;
+}) {
+  return (
+    <Card className="overflow-hidden">
+      <div className="flex items-center justify-between gap-3 px-5 py-3 border-b bg-[var(--gradient-surface)]">
+        <div className="flex items-center gap-2">
+          <Trophy className="h-4 w-4 text-primary" aria-hidden />
+          <h2 className="text-sm font-semibold">Top vendedores (todas as revendas)</h2>
+        </div>
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          Chaves vendidas
+        </span>
+      </div>
+      <CardContent className="py-3">
+        {rows.length === 0 ? (
+          <p className="text-xs text-muted-foreground py-2 flex items-center gap-2">
+            <UserRound className="h-3.5 w-3.5" aria-hidden />
+            Nenhum vendedor registrado. Preencha o campo &quot;Vendedor&quot; ao criar chaves para começar o ranking.
+          </p>
+        ) : (
+          <ul className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-4">
+            {rows.map((r, i) => {
+              const tone =
+                i === 0 ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                : i === 1 ? "bg-slate-400/15 text-slate-500 border-slate-400/30"
+                : i === 2 ? "bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30"
+                : "bg-muted text-muted-foreground border-transparent";
+              return (
+                <li key={r.seller} className="flex items-center gap-2.5 rounded-lg border border-border/50 bg-card px-3 py-2">
+                  <span className={`grid h-7 w-7 place-items-center rounded-full border text-xs font-bold ${tone}`}>
+                    {i < 3 ? <Medal className="h-3.5 w-3.5" aria-hidden /> : i + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{r.seller}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {r.paid} pagas · {r.trial} trials
+                    </p>
+                  </div>
+                  <span className="text-sm font-bold tabular-nums">{r.total}</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </CardContent>
+    </Card>
+  );
 }
 
 async function copyToClipboard(text: string) {

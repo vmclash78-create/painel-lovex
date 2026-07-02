@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw } from "lucide-react";
+import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
 
@@ -122,6 +122,7 @@ function LicensesPage() {
                 <TableRow>
                   <TableHead>Chave</TableHead>
                   <TableHead>Usuário</TableHead>
+                <TableHead>Vendedor</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Expira em</TableHead>
                   <TableHead>Dispositivos</TableHead>
@@ -132,12 +133,12 @@ function LicensesPage() {
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell colSpan={6}><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell colSpan={7}><Skeleton className="h-6 w-full" /></TableCell>
                     </TableRow>
                   ))
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
+                    <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
                       Nenhuma licença encontrada.
                     </TableCell>
                   </TableRow>
@@ -146,6 +147,16 @@ function LicensesPage() {
                     <TableRow key={l.id}>
                       <TableCell className="font-mono text-xs">{l.license_key}</TableCell>
                       <TableCell>{l.user_name ?? "—"}</TableCell>
+                      <TableCell className="text-xs">
+                        {l.sold_by ? (
+                          <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-primary">
+                            <UserRound className="h-3 w-3" aria-hidden />
+                            {l.sold_by}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell><StatusBadge status={computeStatus(l)} /></TableCell>
                       <TableCell className="text-sm">{formatDate(l.expires_at)}</TableCell>
                       <TableCell className="text-sm">{l.max_devices ?? 1}</TableCell>

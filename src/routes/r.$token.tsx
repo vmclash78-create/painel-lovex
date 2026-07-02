@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase, type License } from "@/integrations/external-supabase/client";
 import { fetchResellerByToken, fetchResellerLicenses } from "@/lib/resellers";
-import { computeStatus, generateLicenseKey } from "@/lib/licenses";
+import { computeStatus, generateLicenseKey, isTrialLicense, rankSellers } from "@/lib/licenses";
 import { StatusBadge } from "./_authenticated/dashboard";
 import { EditLicenseDialog } from "./_authenticated/licenses";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
-  Activity,
+  Activity, Trophy, UserRound, Medal,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
@@ -97,9 +97,6 @@ function ResellerPublicPage() {
     });
   }, [licenses.data, search, statusFilter]);
 
-  const isTrialLicense = (l: License) =>
-    l.status === "trial" ||
-    (l.duration_minutes != null && l.duration_minutes > 0 && l.duration_minutes <= 15);
   const paidLicenses = (licenses.data ?? []).filter((l) => !isTrialLicense(l));
   const trialCount = (licenses.data ?? []).length - paidLicenses.length;
   const used = paidLicenses.length;
@@ -111,6 +108,10 @@ function ResellerPublicPage() {
   const activeCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "active").length;
   const expiredCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "expired").length;
   const totalCount = (licenses.data ?? []).length;
+  const sellerRanking = useMemo(
+    () => rankSellers(licenses.data ?? []).slice(0, 5),
+    [licenses.data],
+  );
 
   const revoke = useMutation({
     mutationFn: async (id: string) => {
@@ -248,6 +249,9 @@ function ResellerPublicPage() {
           </div>
         </div>
 
+        {/* Ranking de vendedores */}
+        <SellerRankingCard rows={sellerRanking} />
+
         {/* Licenses toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="relative flex-1 min-w-[220px]">
@@ -317,6 +321,7 @@ function ResellerPublicPage() {
               <TableRow>
                 <TableHead className="text-xs">Chave</TableHead>
                 <TableHead className="text-xs">Cliente</TableHead>
+                <TableHead className="text-xs">Vendedor</TableHead>
                 <TableHead className="text-xs">Status</TableHead>
                 <TableHead className="text-xs">Expira em</TableHead>
                 <TableHead className="text-xs">Disp.</TableHead>
@@ -327,12 +332,12 @@ function ResellerPublicPage() {
               {licenses.isLoading ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell colSpan={6}><Skeleton className="h-5 w-full" /></TableCell>
+                    <TableCell colSpan={7}><Skeleton className="h-5 w-full" /></TableCell>
                   </TableRow>
                 ))
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-6 text-center text-xs text-muted-foreground">
+                  <TableCell colSpan={7} className="py-6 text-center text-xs text-muted-foreground">
                     Nenhuma licença encontrada.
                   </TableCell>
                 </TableRow>
@@ -357,6 +362,16 @@ function ResellerPublicPage() {
                       </div>
                     </TableCell>
                     <TableCell>{l.user_name ?? "—"}</TableCell>
+                    <TableCell className="text-xs">
+                      {l.sold_by ? (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-primary">
+                          <UserRound className="h-3 w-3" aria-hidden />
+                          {l.sold_by}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
                     <TableCell><StatusBadge status={computeStatus(l)} /></TableCell>
                     <TableCell className="text-xs">{formatDate(l.expires_at)}</TableCell>
                     <TableCell className="text-xs">{l.max_devices ?? 1}</TableCell>
@@ -452,25 +467,21 @@ function NewResellerLicenseDialog({
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState("");
+  const [soldBy, setSoldBy] = useState("");
   const [status, setStatus] = useState<NonNullable<License["status"]>>("active");
   const [days, setDays] = useState<number>(30);
   const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
   const [maxDevices, setMaxDevices] = useState<number>(1);
   const [key, setKey] = useState<string>("");
 
-  const updateStatus = (nextStatus: NonNullable<License["status"]>) => {
+  const applyPreset = (
+    nextStatus: NonNullable<License["status"]>,
+    value: number,
+    u: "minutes" | "hours" | "days",
+  ) => {
     setStatus(nextStatus);
-    if (nextStatus === "trial") {
-      setUnit("minutes");
-      setDays((value) => Math.min(Math.max(value || 15, 1), 15));
-    }
-  };
-
-  const updateUnit = (nextUnit: "minutes" | "hours" | "days") => {
-    setUnit(nextUnit);
-    if (status === "trial") {
-      setDays(15);
-    }
+    setUnit(u);
+    setDays(value);
   };
 
   useEffect(() => {
@@ -484,8 +495,7 @@ function NewResellerLicenseDialog({
           .from("licenses")
           .select("id", { count: "exact", head: true })
           .eq("reseller_id", resellerId)
-          .neq("status", "trial")
-          .or("duration_minutes.is.null,duration_minutes.gt.15");
+          .neq("status", "trial");
         if (cErr) throw cErr;
         if ((count ?? 0) >= maxKeys) throw new Error("Cota esgotada.");
       }
@@ -493,9 +503,6 @@ function NewResellerLicenseDialog({
       const factor = unit === "minutes" ? 60_000 : unit === "hours" ? 3_600_000 : 86_400_000;
       const minutesTotal =
         unit === "minutes" ? days : unit === "hours" ? days * 60 : days * 24 * 60;
-      if (status === "trial" && (minutesTotal <= 0 || minutesTotal > 15)) {
-        throw new Error("Trial: máximo 15 minutos.");
-      }
       const expires_at = days > 0 ? new Date(Date.now() + days * factor).toISOString() : null;
       const { error } = await supabase.from("licenses").insert({
         license_key: key,
@@ -505,6 +512,7 @@ function NewResellerLicenseDialog({
         max_devices: maxDevices,
         duration_minutes: days > 0 ? minutesTotal : null,
         reseller_id: resellerId,
+        sold_by: soldBy.trim() || null,
       });
       if (error) throw error;
     },
@@ -530,7 +538,7 @@ function NewResellerLicenseDialog({
         <DialogHeader>
           <DialogTitle>Nova licença</DialogTitle>
           <DialogDescription>
-            Cota: {currentCount}/{maxKeys}. A chave será vinculada à sua revenda.
+            Cota: {currentCount}/{maxKeys}. Trials são grátis e não consomem cota.
           </DialogDescription>
         </DialogHeader>
         <form
@@ -545,7 +553,7 @@ function NewResellerLicenseDialog({
                 size="sm"
                 variant={status === "active" ? "default" : "ghost"}
                 disabled={quotaReached}
-                onClick={() => { updateStatus("active"); setUnit("days"); setDays(30); }}
+                onClick={() => applyPreset("active", 30, "days")}
               >
                 Normal
               </Button>
@@ -553,26 +561,39 @@ function NewResellerLicenseDialog({
                 type="button"
                 size="sm"
                 variant={status === "trial" ? "default" : "ghost"}
-                onClick={() => { updateStatus("trial"); setUnit("minutes"); setDays(15); setMaxDevices(1); }}
+                onClick={() => applyPreset("trial", 15, "minutes")}
               >
                 Trial (grátis)
               </Button>
             </div>
           </div>
           {status === "trial" ? (
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" size="sm"
-                onClick={() => { updateStatus("trial"); setUnit("minutes"); setDays(5); setMaxDevices(1); }}>
-                Trial 5 min
-              </Button>
-              <Button type="button" variant="outline" size="sm"
-                onClick={() => { updateStatus("trial"); setUnit("minutes"); setDays(10); setMaxDevices(1); }}>
-                Trial 10 min
-              </Button>
-              <Button type="button" variant="outline" size="sm"
-                onClick={() => { updateStatus("trial"); setUnit("minutes"); setDays(15); setMaxDevices(1); }}>
-                Trial 15 min
-              </Button>
+            <div className="rounded-md border border-primary/20 bg-primary/5 p-2">
+              <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-primary">
+                Presets de teste
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {([
+                  ["5 min", 5, "minutes"],
+                  ["15 min", 15, "minutes"],
+                  ["30 min", 30, "minutes"],
+                  ["1 h", 1, "hours"],
+                  ["6 h", 6, "hours"],
+                  ["24 h", 24, "hours"],
+                  ["7 dias", 7, "days"],
+                ] as const).map(([label, v, u]) => (
+                  <Button
+                    key={label}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => applyPreset("trial", v, u)}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
             </div>
           ) : null}
           <div className="space-y-2">
@@ -590,14 +611,23 @@ function NewResellerLicenseDialog({
               </Button>
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="uname">Cliente</Label>
-            <Input id="uname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do cliente" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="uname">Cliente</Label>
+              <Input id="uname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do cliente" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="useller" className="flex items-center gap-1">
+                <UserRound className="h-3.5 w-3.5 text-primary" aria-hidden />
+                Vendedor
+              </Label>
+              <Input id="useller" value={soldBy} onChange={(e) => setSoldBy(e.target.value)} placeholder="Quem vendeu" maxLength={60} />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="lstatus">Status</Label>
-              <Select value={status} onValueChange={(v) => updateStatus(v as typeof status)}>
+              <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
                 <SelectTrigger id="lstatus"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Ativa</SelectItem>
@@ -613,21 +643,21 @@ function NewResellerLicenseDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="ldays">Validade</Label>
-              <Input id="ldays" type="number" min={0} max={status === "trial" ? 15 : undefined} value={days} onChange={(e) => setDays(status === "trial" ? Math.min(Number(e.target.value), 15) : Number(e.target.value))} />
+              <Input id="ldays" type="number" min={0} value={days} onChange={(e) => setDays(Number(e.target.value))} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="lunit">Unidade</Label>
-              <Select value={unit} onValueChange={(v) => updateUnit(v as typeof unit)}>
+              <Select value={unit} onValueChange={(v) => setUnit(v as typeof unit)}>
                 <SelectTrigger id="lunit"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="minutes">Minutos</SelectItem>
-                  {status !== "trial" ? <SelectItem value="hours">Horas</SelectItem> : null}
-                  {status !== "trial" ? <SelectItem value="days">Dias</SelectItem> : null}
+                  <SelectItem value="hours">Horas</SelectItem>
+                  <SelectItem value="days">Dias</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">Use 0 para sem expiração. Trial máx. 15 minutos. Trials são gratuitas e não consomem cota.</p>
+          <p className="text-xs text-muted-foreground">Use 0 para sem expiração. Trials podem ter qualquer duração e não consomem cota.</p>
           {quotaReached && status !== "trial" ? (
             <p className="text-xs text-destructive">Cota esgotada — só é possível gerar licenças Trial.</p>
           ) : null}
@@ -638,5 +668,54 @@ function NewResellerLicenseDialog({
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function SellerRankingCard({
+  rows,
+}: {
+  rows: Array<{ seller: string; total: number; paid: number; trial: number }>;
+}) {
+  if (!rows.length) {
+    return (
+      <div className="rounded-lg border border-dashed border-border/60 bg-card/50 px-4 py-3 text-xs text-muted-foreground flex items-center gap-2">
+        <Trophy className="h-4 w-4 text-muted-foreground" aria-hidden />
+        Ranking de vendedores aparece aqui ao preencher o campo &quot;Vendedor&quot; nas próximas chaves.
+      </div>
+    );
+  }
+  const medalTone = (i: number) =>
+    i === 0 ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
+    : i === 1 ? "bg-slate-400/15 text-slate-500 border-slate-400/30"
+    : i === 2 ? "bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30"
+    : "bg-muted text-muted-foreground border-transparent";
+  return (
+    <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-border/50 bg-[var(--gradient-surface)]">
+        <div className="flex items-center gap-2">
+          <Trophy className="h-4 w-4 text-primary" aria-hidden />
+          <span className="text-sm font-semibold">Top vendedores</span>
+        </div>
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          Chaves vendidas
+        </span>
+      </div>
+      <ul className="divide-y divide-border/40">
+        {rows.map((r, i) => (
+          <li key={r.seller} className="flex items-center gap-3 px-4 py-2.5">
+            <span className={`grid h-7 w-7 place-items-center rounded-full border text-xs font-bold ${medalTone(i)}`}>
+              {i < 3 ? <Medal className="h-3.5 w-3.5" aria-hidden /> : i + 1}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium truncate">{r.seller}</p>
+              <p className="text-[11px] text-muted-foreground">
+                {r.paid} paga{r.paid === 1 ? "" : "s"} · {r.trial} trial{r.trial === 1 ? "" : "s"}
+              </p>
+            </div>
+            <span className="text-sm font-bold tabular-nums">{r.total}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

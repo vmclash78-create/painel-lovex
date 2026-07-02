@@ -33,6 +33,7 @@ export type License = {
   updated_at: string | null;
   duration_minutes: number | null;
   reseller_id?: string | null;
+  sold_by?: string | null;
 };
 
 export type Reseller = {

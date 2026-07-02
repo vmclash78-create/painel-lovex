@@ -2,14 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { licensesQueryOptions, computeStatus } from "@/lib/licenses";
+import { licensesQueryOptions, computeStatus, rankSellers } from "@/lib/licenses";
 import { resellersQueryOptions } from "@/lib/resellers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   KeyRound, CheckCircle2, Clock, XCircle, AlertTriangle, Store,
-  TrendingUp, Activity, ArrowUpRight, Sparkles,
+  TrendingUp, Activity, ArrowUpRight, Sparkles, Trophy, Medal,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -47,6 +47,10 @@ function DashboardPage() {
   ].filter((d) => d.value > 0), [stats]);
 
   const activeRate = stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0;
+  const topSellers = useMemo(
+    () => (data ? rankSellers(data).slice(0, 6) : []),
+    [data],
+  );
 
   return (
     <section className="space-y-6">
@@ -342,6 +346,50 @@ function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Ranking de vendedores */}
+      <Card className="shadow-soft">
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <div className="flex items-center gap-2">
+            <Trophy className="h-4 w-4 text-primary" aria-hidden />
+            <CardTitle className="text-base">Top vendedores</CardTitle>
+          </div>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Chaves vendidas
+          </span>
+        </CardHeader>
+        <CardContent>
+          {topSellers.length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              Ainda não há vendedores registrados. O ranking aparece após preencher &quot;Vendedor&quot; nas chaves.
+            </p>
+          ) : (
+            <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {topSellers.map((r, i) => {
+                const tone =
+                  i === 0 ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                  : i === 1 ? "bg-slate-400/15 text-slate-500 border-slate-400/30"
+                  : i === 2 ? "bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30"
+                  : "bg-muted text-muted-foreground border-transparent";
+                return (
+                  <li key={r.seller} className="flex items-center gap-3 rounded-lg border border-border/60 bg-card px-3 py-2.5">
+                    <span className={`grid h-8 w-8 place-items-center rounded-full border text-xs font-bold ${tone}`}>
+                      {i < 3 ? <Medal className="h-4 w-4" aria-hidden /> : i + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold truncate">{r.seller}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {r.paid} pagas · {r.trial} trials
+                      </p>
+                    </div>
+                    <span className="text-lg font-bold tabular-nums">{r.total}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
     </section>
   );
 }
