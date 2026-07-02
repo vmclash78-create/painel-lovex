@@ -57,9 +57,9 @@ function ResellersPage() {
   return (
     <section className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Revendas</h1>
-          <p className="text-sm text-muted-foreground">
+        <div className="min-w-0">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Revendas</h1>
+          <p className="text-xs text-muted-foreground sm:text-sm">
             Crie links com cota de keys pagas. Trials não contam para a cota.
           </p>
         </div>
@@ -185,12 +185,12 @@ function GlobalSellersRanking({
 }) {
   return (
     <Card className="overflow-hidden">
-      <div className="flex items-center justify-between gap-3 px-5 py-3 border-b bg-[var(--gradient-surface)]">
-        <div className="flex items-center gap-2">
-          <Trophy className="h-4 w-4 text-primary" aria-hidden />
-          <h2 className="text-sm font-semibold">Top vendedores (todas as revendas)</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 border-b bg-[var(--gradient-surface)] sm:px-5">
+        <div className="flex min-w-0 items-center gap-2">
+          <Trophy className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+          <h2 className="truncate text-sm font-semibold">Top vendedores</h2>
         </div>
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+        <span className="shrink-0 text-[10px] uppercase tracking-wider text-muted-foreground">
           Chaves vendidas
         </span>
       </div>
