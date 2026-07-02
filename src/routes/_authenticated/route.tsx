@@ -36,16 +36,16 @@ function AuthedLayout() {
   return (
     <div className="min-h-dvh flex flex-col bg-background">
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <Link to="/dashboard" className="flex items-center gap-2.5 font-semibold">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-6">
+          <Link to="/dashboard" className="flex min-w-0 items-center gap-2 font-semibold sm:gap-2.5">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl gradient-primary text-primary-foreground shadow-elegant">
               <ShieldCheck className="h-5 w-5" aria-hidden />
             </span>
-            <span className="text-base tracking-tight">
+            <span className="hidden truncate text-sm tracking-tight sm:inline sm:text-base">
               Painel de <span className="text-gradient-primary">Licenças</span>
             </span>
           </Link>
-          <nav aria-label="Principal" className="flex items-center gap-1">
+          <nav aria-label="Principal" className="flex items-center gap-0.5 sm:gap-1">
             {nav.map((item) => {
               const active = pathname === item.to;
               return (
