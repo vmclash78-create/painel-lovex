@@ -292,27 +292,42 @@ function ResellerPublicPage() {
     return (
       <>
         {/* Compact stats row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-          <CompactStat label="Total" value={totalCount} tone="primary" />
-          <CompactStat label="Ativas" value={activeCount} tone="emerald" />
-          <CompactStat label="Trials" value={trialCount} tone="amber" />
-          <CompactStat label="Expiradas" value={expiredCount} tone="rose" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <GradientStatCard
+            label="Total de Licenças"
+            description="Todas as licenças geradas"
+            value={totalCount}
+            tone="primary"
+            icon={<FileText className="h-4 w-4" aria-hidden />}
+          />
+          <GradientStatCard
+            label="Ativas"
+            description="Licenças ativas"
+            value={activeCount}
+            tone="emerald"
+            percent={totalCount > 0 ? Math.round((activeCount / totalCount) * 100) : 0}
+            icon={<CheckCircle2 className="h-4 w-4" aria-hidden />}
+          />
+          <GradientStatCard
+            label="Trials"
+            description="Licenças em período de teste"
+            value={trialCount}
+            tone="amber"
+            percent={totalCount > 0 ? Math.round((trialCount / totalCount) * 100) : 0}
+            icon={<FlaskConical className="h-4 w-4" aria-hidden />}
+          />
+          <GradientStatCard
+            label="Expiradas"
+            description="Licenças expiradas"
+            value={expiredCount}
+            tone="rose"
+            percent={totalCount > 0 ? Math.round((expiredCount / totalCount) * 100) : 0}
+            icon={<XCircle className="h-4 w-4" aria-hidden />}
+          />
         </div>
 
-        {/* Inline quota bar */}
-        <div className="flex items-center gap-4 rounded-lg border border-border/50 bg-card px-4 py-2.5">
-          <div className="flex items-center gap-2 text-sm shrink-0">
-            <Activity className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
-            <span className="text-muted-foreground">Cota</span>
-            <span className="font-semibold tabular-nums">{used} / {max}</span>
-          </div>
-          <div className="flex-1 min-w-[120px]">
-            <Progress value={pct} aria-label="Uso da cota" className="h-1.5" />
-          </div>
-          <div className="text-xs text-muted-foreground shrink-0 tabular-nums">
-            {remaining} restantes · {pct}%
-          </div>
-        </div>
+        {/* Quota bar — premium */}
+        <QuotaBar used={used} max={max} pct={pct} remaining={remaining} />
 
         {/* Licenses toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
