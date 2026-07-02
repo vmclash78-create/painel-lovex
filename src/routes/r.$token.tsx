@@ -24,7 +24,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
-  Activity, UserRound, Package, ShieldCheck, Zap, Headphones, FileText,
+  Activity, UserRound, Package, FileText,
   CheckCircle2, FlaskConical, XCircle,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
@@ -620,31 +620,6 @@ function QuotaBar({
         <div className="text-xs text-muted-foreground shrink-0 tabular-nums">
           <span className="font-semibold text-foreground/80">{remaining}</span> restantes · {pct}% utilizado
         </div>
-      </div>
-    </div>
-  );
-}
-
-function ReassuranceStrip() {
-  const items = [
-    { icon: <ShieldCheck className="h-5 w-5" aria-hidden />, title: "Segurança", desc: "Suas licenças estão seguras", tone: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" },
-    { icon: <Zap className="h-5 w-5" aria-hidden />, title: "Entrega automática", desc: "Keys entregues instantaneamente", tone: "text-amber-500 bg-amber-500/10 border-amber-500/20" },
-    { icon: <Headphones className="h-5 w-5" aria-hidden />, title: "Suporte 24/7", desc: "Estamos sempre aqui para ajudar", tone: "text-primary bg-primary/10 border-primary/20" },
-  ];
-  return (
-    <div className="rounded-2xl border border-border/60 bg-card p-4">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {items.map((it) => (
-          <div key={it.title} className="flex items-center gap-3 min-w-0">
-            <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border ${it.tone}`}>
-              {it.icon}
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold truncate">{it.title}</p>
-              <p className="text-xs text-muted-foreground truncate">{it.desc}</p>
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );
