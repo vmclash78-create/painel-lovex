@@ -201,10 +201,16 @@ function ResellerPublicPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-background">
-      {/* Compact top bar */}
-      <header className="relative overflow-hidden border-b border-border/50 bg-[radial-gradient(ellipse_at_top_left,color-mix(in_oklab,var(--primary)_18%,transparent),transparent_60%)]">
-        <div className="mx-auto max-w-6xl px-5 py-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+    <div className="min-h-dvh bg-background relative">
+      {/* Subtle dot grid background */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 opacity-[0.35] [background-image:radial-gradient(color-mix(in_oklab,var(--foreground)_8%,transparent)_1px,transparent_1px)] [background-size:22px_22px]"
+      />
+      {/* Hero */}
+      <header className="relative overflow-hidden border-b border-border/50 bg-[radial-gradient(ellipse_at_top_left,color-mix(in_oklab,var(--primary)_22%,transparent),transparent_65%)]">
+        <div className="pointer-events-none absolute -top-32 right-0 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
+        <div className="relative mx-auto max-w-6xl px-5 py-7 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/40 text-primary-foreground shadow-[0_10px_30px_-10px_color-mix(in_oklab,var(--primary)_60%,transparent)]">
               <KeyRound className="h-5 w-5" aria-hidden />
@@ -233,7 +239,7 @@ function ResellerPublicPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-5 py-6 space-y-5">
+      <main className="relative mx-auto max-w-6xl px-5 py-6 space-y-5">
         {(() => {
           const r = reseller.data!;
           const both = r.sells_main && r.sells_lp;
@@ -251,15 +257,27 @@ function ResellerPublicPage() {
             return null;
           }
           return (
-            <Tabs defaultValue="main" className="space-y-4">
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="main" className="gap-1.5">
+            <Tabs defaultValue="main" className="space-y-5">
+              <TabsList className="inline-flex h-11 items-center gap-1 rounded-full border border-border/60 bg-card/60 p-1 backdrop-blur">
+                <TabsTrigger
+                  value="main"
+                  className="gap-2 h-9 rounded-full px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
+                >
                   <Package className="h-3.5 w-3.5" aria-hidden />
-                  LoveX ({r.max_keys})
+                  LoveX
+                  <span className="ml-1 rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
+                    {r.max_keys}
+                  </span>
                 </TabsTrigger>
-                <TabsTrigger value="lp" className="gap-1.5">
+                <TabsTrigger
+                  value="lp"
+                  className="gap-2 h-9 rounded-full px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
+                >
                   <Package className="h-3.5 w-3.5" aria-hidden />
-                  Lovpro ({r.max_keys_lp ?? 0})
+                  Lovpro
+                  <span className="ml-1 rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
+                    {r.max_keys_lp ?? 0}
+                  </span>
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="lp" className="space-y-4 mt-0">
