@@ -280,8 +280,6 @@ function ResellerPublicPage() {
             <MainPanelBody />
           ) : null
         )}
-
-        <ReassuranceStrip />
       </main>
     </div>
   );
