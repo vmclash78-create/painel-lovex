@@ -39,7 +39,8 @@ export async function countResellerLicenses(resellerId: string): Promise<number>
   const { count, error } = await supabase
     .from("licenses")
     .select("id", { count: "exact", head: true })
-    .eq("reseller_id", resellerId);
+    .eq("reseller_id", resellerId)
+    .neq("status", "trial");
   if (error) throw error;
   return count ?? 0;
 }
