@@ -652,32 +652,6 @@ function ReassuranceStrip() {
   );
 }
 
-function CompactStat({
-  label, value, tone,
-}: {
-  label: string;
-  value: number;
-  tone: "primary" | "emerald" | "amber" | "rose";
-}) {
-  const tones: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
-    emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-    rose: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
-  };
-  return (
-    <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-card px-3 py-2.5">
-      <div className={"grid h-7 w-7 place-items-center rounded-md text-xs font-bold " + tones[tone]}>
-        {label.charAt(0)}
-      </div>
-      <div className="min-w-0">
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">{label}</p>
-        <p className="text-lg font-bold tracking-tight leading-tight">{value}</p>
-      </div>
-    </div>
-  );
-}
-
 function NewResellerLicenseDialog({
   resellerId, maxKeys, currentCount, disabled, quotaReached,
 }: { resellerId: string; maxKeys: number; currentCount: number; disabled: boolean; quotaReached: boolean }) {
