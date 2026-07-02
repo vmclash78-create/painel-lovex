@@ -287,6 +287,7 @@ function ResellerPublicPage() {
   );
 
   function MainPanelBody() {
+    const r = reseller.data!;
     return (
       <>
         {/* Compact stats row */}
