@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase, type License } from "@/integrations/external-supabase/client";
 import { fetchResellerByToken, fetchResellerLicenses } from "@/lib/resellers";
-import { computeStatus, generateLicenseKey, isTrialLicense, rankSellers } from "@/lib/licenses";
+import { computeStatus, generateLicenseKey, isTrialLicense } from "@/lib/licenses";
 import { StatusBadge } from "./_authenticated/dashboard";
 import { EditLicenseDialog } from "./_authenticated/licenses";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
-  Activity, Trophy, UserRound, Medal, Package,
+  Activity, UserRound, Package,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
@@ -118,11 +118,6 @@ function ResellerPublicPage() {
   const activeCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "active").length;
   const expiredCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "expired").length;
   const totalCount = (licenses.data ?? []).length;
-  const sellerRanking = useMemo(
-    () => rankSellers(licenses.data ?? []).slice(0, 5),
-    [licenses.data],
-  );
-
   const revoke = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("licenses")
@@ -312,9 +307,6 @@ function ResellerPublicPage() {
             {remaining} restantes · {pct}%
           </div>
         </div>
-
-        {/* Ranking de vendedores */}
-        <SellerRankingCard rows={sellerRanking} />
 
         {/* Licenses toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -724,54 +716,6 @@ function NewResellerLicenseDialog({
   );
 }
 
-function SellerRankingCard({
-  rows,
-}: {
-  rows: Array<{ seller: string; total: number; paid: number; trial: number }>;
-}) {
-  if (!rows.length) {
-    return (
-      <div className="rounded-lg border border-dashed border-border/60 bg-card/50 px-4 py-3 text-xs text-muted-foreground flex items-center gap-2">
-        <Trophy className="h-4 w-4 text-muted-foreground" aria-hidden />
-        Ranking de vendedores aparece aqui ao preencher o campo &quot;Vendedor&quot; nas próximas chaves.
-      </div>
-    );
-  }
-  const medalTone = (i: number) =>
-    i === 0 ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
-    : i === 1 ? "bg-slate-400/15 text-slate-500 border-slate-400/30"
-    : i === 2 ? "bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30"
-    : "bg-muted text-muted-foreground border-transparent";
-  return (
-    <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
-      <div className="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-border/50 bg-[var(--gradient-surface)]">
-        <div className="flex items-center gap-2">
-          <Trophy className="h-4 w-4 text-primary" aria-hidden />
-          <span className="text-sm font-semibold">Top vendedores</span>
-        </div>
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-          Chaves vendidas
-        </span>
-      </div>
-      <ul className="divide-y divide-border/40">
-        {rows.map((r, i) => (
-          <li key={r.seller} className="flex items-center gap-3 px-4 py-2.5">
-            <span className={`grid h-7 w-7 place-items-center rounded-full border text-xs font-bold ${medalTone(i)}`}>
-              {i < 3 ? <Medal className="h-3.5 w-3.5" aria-hidden /> : i + 1}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate">{r.seller}</p>
-              <p className="text-[11px] text-muted-foreground">
-                {r.paid} paga{r.paid === 1 ? "" : "s"} · {r.trial} trial{r.trial === 1 ? "" : "s"}
-              </p>
-            </div>
-            <span className="text-sm font-bold tabular-nums">{r.total}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
 
 // ============================================================================
 // LP Panel — chaves da segunda extensão (LP)
@@ -834,7 +778,6 @@ function LpPanel({
   });
 
   const blocked = disabled || remaining <= 0;
-  const sellerRanking = useMemo(() => rankLpSellers(list).slice(0, 5), [list]);
 
   return (
     <>
@@ -858,8 +801,6 @@ function LpPanel({
           {remaining} restantes · {pct}%
         </div>
       </div>
-
-      <SellerRankingCard rows={sellerRanking} />
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="relative flex-1 min-w-[220px]">
@@ -994,20 +935,6 @@ function LpPanel({
       </div>
     </>
   );
-}
-
-function rankLpSellers(list: SecondLicense[]) {
-  const map = new Map<string, { seller: string; total: number; paid: number; trial: number }>();
-  for (const l of list) {
-    const name = (l.sold_by ?? "").trim();
-    if (!name) continue;
-    const key = name.toLowerCase();
-    const cur = map.get(key) ?? { seller: name, total: 0, paid: 0, trial: 0 };
-    cur.total += 1;
-    if (l.status === "trial") cur.trial += 1; else cur.paid += 1;
-    map.set(key, cur);
-  }
-  return Array.from(map.values()).sort((a, b) => b.total - a.total);
 }
 
 function NewLpLicenseDialog({
