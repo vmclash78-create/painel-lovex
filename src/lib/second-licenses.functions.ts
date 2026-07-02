@@ -80,20 +80,30 @@ export const updateSecondLicense = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z.object({
       id: z.string().uuid(),
+      license_key: z.string().min(3).optional(),
       status: z.enum(["active", "trial", "expired", "revoked", "paused", "inactive"]).optional(),
       expires_at: z.string().nullable().optional(),
       user_name: z.string().optional(),
       max_devices: z.number().int().min(1).optional(),
+      device_id: z.string().nullable().optional(),
+      activated_at: z.string().nullable().optional(),
+      session_id: z.string().nullable().optional(),
+      is_active: z.boolean().optional(),
     }).parse(input),
   )
   .handler(async ({ data }) => {
     const { getSecondAdmin } = await import("./second-supabase.server");
     const supabase = getSecondAdmin();
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (data.license_key !== undefined) patch.license_key = data.license_key;
     if (data.status !== undefined) patch.status = data.status;
     if (data.expires_at !== undefined) patch.expires_at = data.expires_at;
     if (data.user_name !== undefined) patch.user_name = data.user_name;
     if (data.max_devices !== undefined) patch.max_devices = data.max_devices;
+    if (data.device_id !== undefined) patch.device_id = data.device_id;
+    if (data.activated_at !== undefined) patch.activated_at = data.activated_at;
+    if (data.session_id !== undefined) patch.session_id = data.session_id;
+    if (data.is_active !== undefined) patch.is_active = data.is_active;
     const { error } = await supabase.from("licenses").update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };

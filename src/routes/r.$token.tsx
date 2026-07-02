@@ -24,7 +24,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
-  Activity, UserRound, Package, FileText,
+  Activity, UserRound, Package, FileText, Pencil, RotateCcw,
   CheckCircle2, FlaskConical, XCircle,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
@@ -34,6 +34,7 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   listSecondLicensesByReseller,
   createSecondLicense,
+  updateSecondLicense,
   revokeSecondLicense,
   deleteSecondLicense,
   generateSecondLicenseKey,
@@ -1104,7 +1105,7 @@ function LpPanel({
           <MobileEmptyState title="Nenhuma licença Lovpro encontrada" description="Crie sua primeira licença Lovpro em Nova licença Lovpro." />
         ) : (
           filtered.map((l) => (
-            <article key={l.id} className="rounded-xl border border-border/60 bg-card p-3">
+            <article key={l.id} className="rounded-xl border border-border/60 bg-card p-2.5">
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                 <div className="min-w-0 space-y-1">
                   <div className="flex min-w-0 items-center gap-1.5">
@@ -1124,11 +1125,11 @@ function LpPanel({
                 <div className="min-w-0 truncate">Vendedor: <span className="text-foreground/80">{l.sold_by ?? "—"}</span></div>
                 <div className="col-span-2 tabular-nums">Expira: <span className="text-foreground/80">{formatDate(l.expires_at)}</span></div>
               </div>
-              <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-1.5">
+              <div className="mt-3 grid grid-cols-2 gap-1.5">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 justify-start gap-1.5 truncate px-2 text-xs"
+                  className="h-8 justify-center gap-1.5 px-2 text-xs"
                   onClick={async () => {
                     try { await navigator.clipboard.writeText(l.license_key); toast.success("Copiado"); }
                     catch { toast.error("Falha ao copiar"); }
@@ -1137,20 +1138,23 @@ function LpPanel({
                   <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
                   Copiar
                 </Button>
+                <EditSecondLicenseDialog license={l} />
+                <ResetSecondLicenseDialog license={l} />
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="h-8 justify-center gap-1.5 px-2 text-xs"
                   disabled={l.status === "revoked" || revoke.isPending}
                   onClick={() => revoke.mutate(l.id)}
                   aria-label="Revogar"
                 >
                   <Ban className="h-4 w-4" aria-hidden />
+                  Bloquear
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="h-8 justify-center gap-1.5 px-2 text-xs text-destructive"
                   disabled={remove.isPending}
                   onClick={() => {
                     if (confirm("Remover esta licença Lovpro?")) remove.mutate(l.id);
@@ -1158,6 +1162,7 @@ function LpPanel({
                   aria-label="Remover"
                 >
                   <Trash2 className="h-4 w-4 text-destructive" aria-hidden />
+                  Remover
                 </Button>
               </div>
             </article>
@@ -1239,6 +1244,8 @@ function LpPanel({
                   <TableCell className="text-xs text-muted-foreground tabular-nums">{formatDate(l.expires_at)}</TableCell>
                   <TableCell className="text-right">
                     <div className="inline-flex items-center rounded-lg border border-border/60 bg-background/60 p-0.5">
+                      <EditSecondLicenseDialog license={l} iconOnly />
+                      <ResetSecondLicenseDialog license={l} iconOnly />
                       <Button
                         variant="ghost"
                         size="sm"
@@ -1270,6 +1277,196 @@ function LpPanel({
         </Table>
       </div>
     </>
+  );
+}
+
+function EditSecondLicenseDialog({ license, iconOnly = false }: { license: SecondLicense; iconOnly?: boolean }) {
+  const qc = useQueryClient();
+  const updateFn = useServerFn(updateSecondLicense);
+  const [open, setOpen] = useState(false);
+  const [licenseKey, setLicenseKey] = useState(license.license_key);
+  const [userName, setUserName] = useState(license.user_name ?? "");
+  const [status, setStatus] = useState<"active" | "trial" | "expired" | "revoked" | "paused" | "inactive">(
+    (license.status ?? "active") as "active" | "trial" | "expired" | "revoked" | "paused" | "inactive",
+  );
+  const [maxDevices, setMaxDevices] = useState<number>(license.max_devices ?? 1);
+  const [expiresAt, setExpiresAt] = useState<string>(license.expires_at ? toLocalInput(license.expires_at) : "");
+
+  const save = useMutation({
+    mutationFn: () => updateFn({
+      data: {
+        id: license.id,
+        license_key: licenseKey.trim().toUpperCase(),
+        user_name: userName || "Cliente",
+        status,
+        max_devices: maxDevices,
+        expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+        is_active: status !== "revoked" && status !== "inactive" && status !== "paused",
+      },
+    }),
+    onSuccess: () => {
+      toast.success("Licença Lovpro atualizada");
+      qc.invalidateQueries({ queryKey: ["reseller-lp-licenses"] });
+      setOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o);
+        if (o) {
+          setLicenseKey(license.license_key);
+          setUserName(license.user_name ?? "");
+          setStatus((license.status ?? "active") as "active" | "trial" | "expired" | "revoked" | "paused" | "inactive");
+          setMaxDevices(license.max_devices ?? 1);
+          setExpiresAt(license.expires_at ? toLocalInput(license.expires_at) : "");
+        }
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" aria-label="Editar" className={iconOnly ? "h-8 w-8 p-0" : "h-8 justify-center gap-1.5 px-2 text-xs"}>
+          <Pencil className="h-4 w-4" aria-hidden />
+          {iconOnly ? null : "Editar"}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Editar licença Lovpro</DialogTitle>
+          <DialogDescription className="font-mono text-xs break-all">{license.license_key}</DialogDescription>
+        </DialogHeader>
+        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
+          <div className="space-y-2">
+            <Label htmlFor="lp-edit-key">Key</Label>
+            <div className="flex gap-2">
+              <Input id="lp-edit-key" value={licenseKey} onChange={(e) => setLicenseKey(e.target.value.toUpperCase())} className="font-mono" required />
+              <Button type="button" variant="outline" size="sm" onClick={() => setLicenseKey(generateSecondLicenseKey())}>Gerar</Button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lp-edit-user">Cliente</Label>
+            <Input id="lp-edit-user" value={userName} onChange={(e) => setUserName(e.target.value)} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="lp-edit-status">Status</Label>
+              <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
+                <SelectTrigger id="lp-edit-status"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Ativa</SelectItem>
+                  <SelectItem value="trial">Trial</SelectItem>
+                  <SelectItem value="expired">Expirada</SelectItem>
+                  <SelectItem value="revoked">Revogada</SelectItem>
+                  <SelectItem value="paused">Pausada</SelectItem>
+                  <SelectItem value="inactive">Inativa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lp-edit-devices">Dispositivos</Label>
+              <Input id="lp-edit-devices" type="number" min={1} value={maxDevices} onChange={(e) => setMaxDevices(Number(e.target.value))} />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lp-edit-expiry">Expira em</Label>
+            <div className="flex gap-2">
+              <Input id="lp-edit-expiry" type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
+              <Button type="button" variant="outline" size="sm" onClick={() => setExpiresAt("")}>Sem validade</Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button type="submit" disabled={save.isPending}>{save.isPending ? "Salvando..." : "Salvar"}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ResetSecondLicenseDialog({ license, iconOnly = false }: { license: SecondLicense; iconOnly?: boolean }) {
+  const qc = useQueryClient();
+  const updateFn = useServerFn(updateSecondLicense);
+  const [open, setOpen] = useState(false);
+  const [clearDevice, setClearDevice] = useState(true);
+  const [resetSession, setResetSession] = useState(true);
+  const [renewExpiry, setRenewExpiry] = useState(false);
+  const [reactivate, setReactivate] = useState(false);
+  const canRenew = !!license.duration_minutes && license.duration_minutes > 0;
+  const nothingSelected = !clearDevice && !resetSession && !renewExpiry && !reactivate;
+
+  const reset = useMutation({
+    mutationFn: () => {
+      const data: {
+        id: string;
+        device_id?: string | null;
+        activated_at?: string | null;
+        session_id?: string | null;
+        status?: "active";
+        is_active?: boolean;
+        expires_at?: string;
+      } = { id: license.id };
+      if (clearDevice) {
+        data.device_id = null;
+        data.activated_at = null;
+      }
+      if (resetSession) data.session_id = crypto.randomUUID();
+      if (reactivate) {
+        data.status = "active";
+        data.is_active = true;
+      }
+      if (renewExpiry && canRenew) {
+        data.expires_at = new Date(Date.now() + (license.duration_minutes ?? 0) * 60_000).toISOString();
+      }
+      return updateFn({ data });
+    },
+    onSuccess: () => {
+      toast.success("Licença Lovpro resetada");
+      qc.invalidateQueries({ queryKey: ["reseller-lp-licenses"] });
+      setOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" aria-label="Resetar" className={iconOnly ? "h-8 w-8 p-0" : "h-8 justify-center gap-1.5 px-2 text-xs"}>
+          <RotateCcw className="h-4 w-4" aria-hidden />
+          {iconOnly ? null : "Resetar"}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Resetar licença Lovpro</DialogTitle>
+          <DialogDescription className="font-mono text-xs break-all">{license.license_key}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3">
+            <input type="checkbox" checked={clearDevice} onChange={(e) => setClearDevice(e.target.checked)} className="mt-1" />
+            <span className="text-sm">Limpar dispositivo vinculado</span>
+          </label>
+          <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3">
+            <input type="checkbox" checked={resetSession} onChange={(e) => setResetSession(e.target.checked)} className="mt-1" />
+            <span className="text-sm">Zerar sessão</span>
+          </label>
+          <label className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 ${canRenew ? "" : "opacity-50"}`}>
+            <input type="checkbox" checked={renewExpiry && canRenew} disabled={!canRenew} onChange={(e) => setRenewExpiry(e.target.checked)} className="mt-1" />
+            <span className="text-sm">Renovar validade</span>
+          </label>
+          <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3">
+            <input type="checkbox" checked={reactivate} onChange={(e) => setReactivate(e.target.checked)} className="mt-1" />
+            <span className="text-sm">Reativar status</span>
+          </label>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button onClick={() => reset.mutate()} disabled={reset.isPending || nothingSelected}>{reset.isPending ? "Resetando..." : "Resetar"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
