@@ -943,26 +943,41 @@ function LpPanel({
 
   return (
     <>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-        <CompactStat label="Total LP" value={list.length} tone="primary" />
-        <CompactStat label="Ativas" value={active} tone="emerald" />
-        <CompactStat label="Trials" value={trials} tone="amber" />
-        <CompactStat label="Expiradas" value={expired} tone="rose" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <GradientStatCard
+          label="Total LP"
+          description="Todas as licenças LP"
+          value={list.length}
+          tone="primary"
+          icon={<FileText className="h-4 w-4" aria-hidden />}
+        />
+        <GradientStatCard
+          label="Ativas"
+          description="Licenças LP ativas"
+          value={active}
+          tone="emerald"
+          percent={list.length > 0 ? Math.round((active / list.length) * 100) : 0}
+          icon={<CheckCircle2 className="h-4 w-4" aria-hidden />}
+        />
+        <GradientStatCard
+          label="Trials"
+          description="LP em período de teste"
+          value={trials}
+          tone="amber"
+          percent={list.length > 0 ? Math.round((trials / list.length) * 100) : 0}
+          icon={<FlaskConical className="h-4 w-4" aria-hidden />}
+        />
+        <GradientStatCard
+          label="Expiradas"
+          description="Licenças LP expiradas"
+          value={expired}
+          tone="rose"
+          percent={list.length > 0 ? Math.round((expired / list.length) * 100) : 0}
+          icon={<XCircle className="h-4 w-4" aria-hidden />}
+        />
       </div>
 
-      <div className="flex items-center gap-4 rounded-lg border border-border/50 bg-card px-4 py-2.5">
-        <div className="flex items-center gap-2 text-sm shrink-0">
-          <Activity className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
-          <span className="text-muted-foreground">Cota LP</span>
-          <span className="font-semibold tabular-nums">{used} / {maxKeys}</span>
-        </div>
-        <div className="flex-1 min-w-[120px]">
-          <Progress value={pct} aria-label="Uso da cota LP" className="h-1.5" />
-        </div>
-        <div className="text-xs text-muted-foreground shrink-0 tabular-nums">
-          {remaining} restantes · {pct}%
-        </div>
-      </div>
+      <QuotaBar used={used} max={maxKeys} pct={pct} remaining={remaining} />
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="relative flex-1 min-w-[220px]">
