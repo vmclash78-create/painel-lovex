@@ -236,6 +236,59 @@ function ResellerPublicPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-4 space-y-4">
+        {(() => {
+          const r = reseller.data!;
+          const both = r.sells_main && r.sells_lp;
+          if (!both && r.sells_lp && !r.sells_main) {
+            return (
+              <LpPanel
+                resellerId={r.id}
+                maxKeys={r.max_keys_lp ?? 0}
+                disabled={!r.active}
+              />
+            );
+          }
+          if (!both) {
+            // sells_main only — fall through to original UI below
+            return null;
+          }
+          return (
+            <Tabs defaultValue="main" className="space-y-4">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="main" className="gap-1.5">
+                  <Package className="h-3.5 w-3.5" aria-hidden />
+                  Main ({r.max_keys})
+                </TabsTrigger>
+                <TabsTrigger value="lp" className="gap-1.5">
+                  <Package className="h-3.5 w-3.5" aria-hidden />
+                  LP ({r.max_keys_lp ?? 0})
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="lp" className="space-y-4 mt-0">
+                <LpPanel
+                  resellerId={r.id}
+                  maxKeys={r.max_keys_lp ?? 0}
+                  disabled={!r.active}
+                />
+              </TabsContent>
+              <TabsContent value="main" className="space-y-4 mt-0">
+                <MainPanelBody />
+              </TabsContent>
+            </Tabs>
+          );
+        })()}
+        {(!reseller.data!.sells_main && reseller.data!.sells_lp) ? null : (
+          reseller.data!.sells_main && !reseller.data!.sells_lp ? (
+            <MainPanelBody />
+          ) : null
+        )}
+      </main>
+    </div>
+  );
+
+  function MainPanelBody() {
+    return (
+      <>
         {/* Compact stats row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
           <CompactStat label="Total" value={totalCount} tone="primary" />
@@ -424,9 +477,9 @@ function ResellerPublicPage() {
             </TableBody>
           </Table>
         </div>
-      </main>
-    </div>
-  );
+      </>
+    );
+  }
 }
 
 function formatDate(iso: string | null) {
