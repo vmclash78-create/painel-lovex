@@ -81,12 +81,12 @@ function SecondPanelPage() {
   return (
     <section className="space-y-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
-            <Database className="h-6 w-6 text-primary" aria-hidden />
+        <div className="min-w-0">
+          <h1 className="text-xl font-semibold tracking-tight flex items-center gap-2 sm:text-2xl">
+            <Database className="h-5 w-5 shrink-0 text-primary sm:h-6 sm:w-6" aria-hidden />
             Painel LP
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground sm:text-sm">
             Chaves com prefixo <span className="font-mono">LP-</span> no banco secundário.
           </p>
         </div>

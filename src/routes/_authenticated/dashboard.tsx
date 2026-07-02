@@ -55,7 +55,7 @@ function DashboardPage() {
   return (
     <section className="space-y-6">
       {/* Hero header */}
-      <header className="relative overflow-hidden rounded-3xl border border-border/60 bg-[var(--gradient-surface)] p-6 shadow-soft sm:p-8">
+      <header className="relative overflow-hidden rounded-2xl border border-border/60 bg-[var(--gradient-surface)] p-4 shadow-soft sm:rounded-3xl sm:p-8">
         <div
           aria-hidden
           className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full opacity-40 blur-3xl"
@@ -72,10 +72,10 @@ function DashboardPage() {
               <Sparkles className="h-3.5 w-3.5" aria-hidden />
               Visão geral em tempo real
             </div>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">
               Dashboard de <span className="text-gradient-primary">Licenças</span>
             </h1>
-            <p className="max-w-xl text-sm text-muted-foreground">
+            <p className="max-w-xl text-xs text-muted-foreground sm:text-sm">
               Monitore chaves ativas, revendas e a saúde do seu ecossistema em uma única tela.
             </p>
           </div>
@@ -117,21 +117,21 @@ function DashboardPage() {
       {/* Charts row */}
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2 shadow-soft">
-          <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
-            <div>
-              <CardTitle className="text-base">Licenças criadas — últimos 14 dias</CardTitle>
+          <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
+            <div className="min-w-0">
+              <CardTitle className="text-sm sm:text-base">Licenças criadas — últimos 14 dias</CardTitle>
               <p className="text-xs text-muted-foreground mt-1">Novas chaves emitidas por dia</p>
             </div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+            <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
               <TrendingUp className="h-3.5 w-3.5" aria-hidden />
               {trend.reduce((a, b) => a + b.value, 0)} total
             </div>
           </CardHeader>
           <CardContent className="pt-2">
             {isLoading ? (
-              <Skeleton className="h-[220px] w-full" />
+              <Skeleton className="h-[160px] w-full sm:h-[220px]" />
             ) : (
-              <div className="h-[220px] w-full">
+              <div className="h-[160px] w-full sm:h-[220px]">
                 <ResponsiveContainer>
                   <AreaChart data={trend} margin={{ top: 10, right: 8, left: -20, bottom: 0 }}>
                     <defs>
@@ -185,13 +185,13 @@ function DashboardPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <Skeleton className="h-[220px] w-full" />
+              <Skeleton className="h-[160px] w-full sm:h-[220px]" />
             ) : distribution.length === 0 ? (
-              <div className="flex h-[220px] items-center justify-center text-sm text-muted-foreground">
+              <div className="flex h-[160px] items-center justify-center text-sm text-muted-foreground sm:h-[220px]">
                 Sem dados
               </div>
             ) : (
-              <div className="relative h-[220px]">
+              <div className="relative h-[160px] sm:h-[220px]">
                 <ResponsiveContainer>
                   <PieChart>
                     <Pie
