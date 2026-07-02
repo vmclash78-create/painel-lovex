@@ -201,10 +201,16 @@ function ResellerPublicPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-background">
-      {/* Compact top bar */}
-      <header className="relative overflow-hidden border-b border-border/50 bg-[radial-gradient(ellipse_at_top_left,color-mix(in_oklab,var(--primary)_18%,transparent),transparent_60%)]">
-        <div className="mx-auto max-w-6xl px-5 py-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+    <div className="min-h-dvh bg-background relative">
+      {/* Subtle dot grid background */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 opacity-[0.35] [background-image:radial-gradient(color-mix(in_oklab,var(--foreground)_8%,transparent)_1px,transparent_1px)] [background-size:22px_22px]"
+      />
+      {/* Hero */}
+      <header className="relative overflow-hidden border-b border-border/50 bg-[radial-gradient(ellipse_at_top_left,color-mix(in_oklab,var(--primary)_22%,transparent),transparent_65%)]">
+        <div className="pointer-events-none absolute -top-32 right-0 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
+        <div className="relative mx-auto max-w-6xl px-5 py-7 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
           <div className="flex items-center gap-4 min-w-0">
             <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/40 text-primary-foreground shadow-[0_10px_30px_-10px_color-mix(in_oklab,var(--primary)_60%,transparent)]">
               <KeyRound className="h-5 w-5" aria-hidden />
@@ -233,7 +239,7 @@ function ResellerPublicPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-5 py-6 space-y-5">
+      <main className="relative mx-auto max-w-6xl px-5 py-6 space-y-5">
         {(() => {
           const r = reseller.data!;
           const both = r.sells_main && r.sells_lp;
@@ -251,15 +257,27 @@ function ResellerPublicPage() {
             return null;
           }
           return (
-            <Tabs defaultValue="main" className="space-y-4">
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="main" className="gap-1.5">
+            <Tabs defaultValue="main" className="space-y-5">
+              <TabsList className="inline-flex h-11 items-center gap-1 rounded-full border border-border/60 bg-card/60 p-1 backdrop-blur">
+                <TabsTrigger
+                  value="main"
+                  className="gap-2 h-9 rounded-full px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
+                >
                   <Package className="h-3.5 w-3.5" aria-hidden />
-                  LoveX ({r.max_keys})
+                  LoveX
+                  <span className="ml-1 rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
+                    {r.max_keys}
+                  </span>
                 </TabsTrigger>
-                <TabsTrigger value="lp" className="gap-1.5">
+                <TabsTrigger
+                  value="lp"
+                  className="gap-2 h-9 rounded-full px-4 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
+                >
                   <Package className="h-3.5 w-3.5" aria-hidden />
-                  Lovpro ({r.max_keys_lp ?? 0})
+                  Lovpro
+                  <span className="ml-1 rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
+                    {r.max_keys_lp ?? 0}
+                  </span>
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="lp" className="space-y-4 mt-0">
@@ -389,17 +407,17 @@ function ResellerPublicPage() {
           </div>
         ) : null}
 
-        <div className="overflow-x-auto rounded-md border">
+        <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="text-xs">Chave</TableHead>
-                <TableHead className="text-xs">Cliente</TableHead>
-                <TableHead className="text-xs">Vendedor</TableHead>
-                <TableHead className="text-xs">Status</TableHead>
-                <TableHead className="text-xs">Expira em</TableHead>
-                <TableHead className="text-xs">Disp.</TableHead>
-                <TableHead className="text-right text-xs">Ações</TableHead>
+              <TableRow className="border-border/50 hover:bg-transparent">
+                <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Chave</TableHead>
+                <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Cliente</TableHead>
+                <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Vendedor</TableHead>
+                <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Status</TableHead>
+                <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Expira em</TableHead>
+                <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Disp.</TableHead>
+                <TableHead className="text-right text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -411,15 +429,22 @@ function ResellerPublicPage() {
                 ))
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-6 text-center text-xs text-muted-foreground">
-                    Nenhuma licença encontrada.
+                  <TableCell colSpan={7} className="py-14 text-center">
+                    <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                      <div className="grid h-12 w-12 place-items-center rounded-2xl border border-dashed border-border/60 bg-muted/40">
+                        <KeyRound className="h-5 w-5 opacity-60" aria-hidden />
+                      </div>
+                      <p className="text-sm font-medium">Nenhuma licença encontrada</p>
+                      <p className="text-xs">Crie sua primeira licença clicando em "Nova licença".</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
                 filtered.map((l) => (
-                  <TableRow key={l.id} className="text-sm">
-                    <TableCell className="font-mono text-xs">
-                      <div className="flex items-center gap-1">
+                  <TableRow key={l.id} className="text-sm border-border/40 transition-colors hover:bg-muted/40">
+                    <TableCell className="py-3">
+                      <div className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/40 pl-2 pr-1 py-1 font-mono text-[11px]">
+                        <KeyRound className="h-3 w-3 text-primary" aria-hidden />
                         <span>{l.license_key}</span>
                         <Button
                           variant="ghost"
@@ -435,7 +460,14 @@ function ResellerPublicPage() {
                         </Button>
                       </div>
                     </TableCell>
-                    <TableCell>{l.user_name ?? "—"}</TableCell>
+                    <TableCell className="text-sm font-medium">
+                      <div className="flex items-center gap-2">
+                        <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-[10px] font-bold text-primary uppercase">
+                          {(l.user_name ?? "?").slice(0, 1)}
+                        </div>
+                        <span className="truncate">{l.user_name ?? "—"}</span>
+                      </div>
+                    </TableCell>
                     <TableCell className="text-xs">
                       {l.sold_by ? (
                         <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-primary">
@@ -447,10 +479,10 @@ function ResellerPublicPage() {
                       )}
                     </TableCell>
                     <TableCell><StatusBadge status={computeStatus(l)} /></TableCell>
-                    <TableCell className="text-xs">{formatDate(l.expires_at)}</TableCell>
-                    <TableCell className="text-xs">{l.max_devices ?? 1}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground tabular-nums">{formatDate(l.expires_at)}</TableCell>
+                    <TableCell className="text-xs tabular-nums">{l.max_devices ?? 1}</TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
+                      <div className="inline-flex items-center rounded-lg border border-border/60 bg-background/60 p-0.5">
                         <EditLicenseDialog license={l} />
                         <ResetLicenseDialog
                           license={l}
@@ -463,6 +495,7 @@ function ResellerPublicPage() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="h-8 w-8 p-0"
                           disabled={l.status === "revoked" || revoke.isPending}
                           onClick={() => revoke.mutate(l.id)}
                           aria-label="Revogar"
@@ -472,6 +505,7 @@ function ResellerPublicPage() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="h-8 w-8 p-0"
                           disabled={remove.isPending}
                           onClick={() => {
                             if (confirm("Remover esta licença?")) remove.mutate(l.id);
@@ -968,16 +1002,16 @@ function LpPanel({
         </div>
       ) : null}
 
-      <div className="overflow-x-auto rounded-md border">
+      <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="text-xs">Chave Lovpro</TableHead>
-              <TableHead className="text-xs">Cliente</TableHead>
-              <TableHead className="text-xs">Vendedor</TableHead>
-              <TableHead className="text-xs">Status</TableHead>
-              <TableHead className="text-xs">Expira em</TableHead>
-              <TableHead className="text-right text-xs">Ações</TableHead>
+            <TableRow className="border-border/50 hover:bg-transparent">
+              <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Chave Lovpro</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Cliente</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Vendedor</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Status</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Expira em</TableHead>
+              <TableHead className="text-right text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -989,15 +1023,22 @@ function LpPanel({
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-6 text-center text-xs text-muted-foreground">
-                  Nenhuma licença Lovpro encontrada.
+                <TableCell colSpan={6} className="py-14 text-center">
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <div className="grid h-12 w-12 place-items-center rounded-2xl border border-dashed border-border/60 bg-muted/40">
+                      <KeyRound className="h-5 w-5 opacity-60" aria-hidden />
+                    </div>
+                    <p className="text-sm font-medium">Nenhuma licença Lovpro encontrada</p>
+                    <p className="text-xs">Crie sua primeira licença Lovpro clicando em "Nova licença Lovpro".</p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
               filtered.map((l) => (
-                <TableRow key={l.id} className="text-sm">
-                  <TableCell className="font-mono text-xs">
-                    <div className="flex items-center gap-1">
+                <TableRow key={l.id} className="text-sm border-border/40 transition-colors hover:bg-muted/40">
+                  <TableCell className="py-3">
+                    <div className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/40 pl-2 pr-1 py-1 font-mono text-[11px]">
+                      <KeyRound className="h-3 w-3 text-primary" aria-hidden />
                       <span>{l.license_key}</span>
                       <Button
                         variant="ghost"
@@ -1013,7 +1054,14 @@ function LpPanel({
                       </Button>
                     </div>
                   </TableCell>
-                  <TableCell>{l.user_name ?? "—"}</TableCell>
+                  <TableCell className="text-sm font-medium">
+                    <div className="flex items-center gap-2">
+                      <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-[10px] font-bold text-primary uppercase">
+                        {(l.user_name ?? "?").slice(0, 1)}
+                      </div>
+                      <span className="truncate">{l.user_name ?? "—"}</span>
+                    </div>
+                  </TableCell>
                   <TableCell className="text-xs">
                     {l.sold_by ? (
                       <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-primary">
@@ -1025,12 +1073,13 @@ function LpPanel({
                     )}
                   </TableCell>
                   <TableCell><StatusBadge status={(l.status ?? "active") as "active" | "trial" | "expired" | "revoked"} /></TableCell>
-                  <TableCell className="text-xs">{formatDate(l.expires_at)}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground tabular-nums">{formatDate(l.expires_at)}</TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
+                    <div className="inline-flex items-center rounded-lg border border-border/60 bg-background/60 p-0.5">
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="h-8 w-8 p-0"
                         disabled={l.status === "revoked" || revoke.isPending}
                         onClick={() => revoke.mutate(l.id)}
                         aria-label="Revogar"
@@ -1040,6 +1089,7 @@ function LpPanel({
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="h-8 w-8 p-0"
                         disabled={remove.isPending}
                         onClick={() => {
                           if (confirm("Remover esta licença Lovpro?")) remove.mutate(l.id);
