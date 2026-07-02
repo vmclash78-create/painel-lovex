@@ -512,6 +512,147 @@ function getGreeting() {
   return "Boa noite";
 }
 
+function GradientStatCard({
+  label, description, value, tone, percent, icon,
+}: {
+  label: string;
+  description: string;
+  value: number;
+  tone: "primary" | "emerald" | "amber" | "rose";
+  percent?: number;
+  icon: React.ReactNode;
+}) {
+  const palette: Record<string, { chip: string; ring: string; stroke: string; glow: string }> = {
+    primary: {
+      chip: "bg-primary/15 text-primary border-primary/25",
+      ring: "from-primary/25 via-primary/10 to-transparent",
+      stroke: "stroke-primary",
+      glow: "shadow-[0_20px_60px_-30px_color-mix(in_oklab,var(--primary)_70%,transparent)]",
+    },
+    emerald: {
+      chip: "bg-emerald-500/15 text-emerald-500 border-emerald-500/25 dark:text-emerald-300",
+      ring: "from-emerald-500/25 via-emerald-500/10 to-transparent",
+      stroke: "stroke-emerald-500",
+      glow: "shadow-[0_20px_60px_-30px_rgba(16,185,129,0.55)]",
+    },
+    amber: {
+      chip: "bg-amber-500/15 text-amber-500 border-amber-500/25 dark:text-amber-300",
+      ring: "from-amber-500/25 via-amber-500/10 to-transparent",
+      stroke: "stroke-amber-500",
+      glow: "shadow-[0_20px_60px_-30px_rgba(245,158,11,0.55)]",
+    },
+    rose: {
+      chip: "bg-rose-500/15 text-rose-500 border-rose-500/25 dark:text-rose-300",
+      ring: "from-rose-500/25 via-rose-500/10 to-transparent",
+      stroke: "stroke-rose-500",
+      glow: "shadow-[0_20px_60px_-30px_rgba(244,63,94,0.55)]",
+    },
+  };
+  const p = palette[tone];
+  return (
+    <div className={`group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-4 transition-all hover:border-border ${p.glow}`}>
+      <div className={`pointer-events-none absolute -right-14 -top-14 h-40 w-40 rounded-full bg-gradient-to-br ${p.ring} blur-2xl`} />
+      <div className="relative flex items-start justify-between gap-2">
+        <div className={`grid h-9 w-9 place-items-center rounded-xl border ${p.chip}`}>
+          {icon}
+        </div>
+        {typeof percent === "number" ? (
+          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold tabular-nums ${p.chip}`}>
+            {percent}%
+          </span>
+        ) : null}
+      </div>
+      <div className="relative mt-3">
+        <p className="text-[13px] font-medium text-foreground/90">{label}</p>
+        <p className="mt-0.5 text-3xl font-bold tracking-tight tabular-nums leading-none">{value}</p>
+        <p className="mt-2 text-[11px] text-muted-foreground truncate">{description}</p>
+      </div>
+      <Sparkline className={`relative mt-3 h-8 w-full ${p.stroke}`} seed={label.length + value} />
+    </div>
+  );
+}
+
+function Sparkline({ className, seed }: { className?: string; seed: number }) {
+  // Deterministic pseudo-random smooth path
+  const points = Array.from({ length: 14 }, (_, i) => {
+    const n = Math.sin((seed + 1) * (i + 1) * 1.7) * 0.5 + 0.5;
+    const jitter = Math.sin((seed + 3) * (i + 2) * 0.9) * 0.15;
+    return Math.max(0.05, Math.min(0.95, n * 0.7 + 0.15 + jitter));
+  });
+  const w = 200;
+  const h = 40;
+  const step = w / (points.length - 1);
+  const d = points
+    .map((y, i) => {
+      const x = i * step;
+      const cy = h - y * h;
+      if (i === 0) return `M ${x} ${cy}`;
+      const prevX = (i - 1) * step;
+      const prevY = h - points[i - 1] * h;
+      const cx1 = prevX + step / 2;
+      const cx2 = x - step / 2;
+      return `C ${cx1} ${prevY}, ${cx2} ${cy}, ${x} ${cy}`;
+    })
+    .join(" ");
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className={className} aria-hidden>
+      <path d={d} fill="none" strokeWidth={2} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function QuotaBar({
+  used, max, pct, remaining,
+}: { used: number; max: number; pct: number; remaining: number }) {
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-4">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="grid h-7 w-7 place-items-center rounded-lg bg-primary/15 text-primary">
+            <Activity className="h-3.5 w-3.5" aria-hidden />
+          </div>
+          <span className="text-sm font-medium text-foreground/90">Cota de licenças</span>
+          <span className="font-bold text-lg tabular-nums">{used}<span className="text-muted-foreground text-base font-medium"> / {max}</span></span>
+        </div>
+        <div className="flex-1 min-w-[120px] relative h-2 rounded-full bg-muted/60 overflow-hidden">
+          <div
+            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-primary/70 shadow-[0_0_12px_color-mix(in_oklab,var(--primary)_60%,transparent)] transition-[width]"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <div className="text-xs text-muted-foreground shrink-0 tabular-nums">
+          <span className="font-semibold text-foreground/80">{remaining}</span> restantes · {pct}% utilizado
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReassuranceStrip() {
+  const items = [
+    { icon: <ShieldCheck className="h-5 w-5" aria-hidden />, title: "Segurança", desc: "Suas licenças estão seguras", tone: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" },
+    { icon: <Zap className="h-5 w-5" aria-hidden />, title: "Entrega automática", desc: "Keys entregues instantaneamente", tone: "text-amber-500 bg-amber-500/10 border-amber-500/20" },
+    { icon: <Headphones className="h-5 w-5" aria-hidden />, title: "Suporte 24/7", desc: "Estamos sempre aqui para ajudar", tone: "text-primary bg-primary/10 border-primary/20" },
+  ];
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {items.map((it) => (
+          <div key={it.title} className="flex items-center gap-3 min-w-0">
+            <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border ${it.tone}`}>
+              {it.icon}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold truncate">{it.title}</p>
+              <p className="text-xs text-muted-foreground truncate">{it.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function CompactStat({
   label, value, tone,
 }: {
