@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -25,7 +24,8 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
-  Activity, UserRound, Package,
+  Activity, UserRound, Package, ShieldCheck, Zap, Headphones, FileText,
+  CheckCircle2, FlaskConical, XCircle,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
@@ -203,34 +203,37 @@ function ResellerPublicPage() {
   return (
     <div className="min-h-dvh bg-background">
       {/* Compact top bar */}
-      <header className="border-b border-border/50 bg-card">
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary/10 text-primary shrink-0">
-              <KeyRound className="h-4 w-4" aria-hidden />
+      <header className="relative overflow-hidden border-b border-border/50 bg-[radial-gradient(ellipse_at_top_left,color-mix(in_oklab,var(--primary)_18%,transparent),transparent_60%)]">
+        <div className="mx-auto max-w-6xl px-5 py-6 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/40 text-primary-foreground shadow-[0_10px_30px_-10px_color-mix(in_oklab,var(--primary)_60%,transparent)]">
+              <KeyRound className="h-5 w-5" aria-hidden />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 text-sm font-medium truncate">
-                <span className="text-muted-foreground">{getGreeting()},</span>
+              <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight leading-tight">
+                <span className="text-muted-foreground font-medium">{getGreeting()},</span>
                 <span className="truncate">{reseller.data.name}</span>
-              </div>
-              <div className="text-xs text-muted-foreground">Painel de Revenda</div>
+                <span aria-hidden className="text-xl">👋</span>
+              </h1>
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground mt-1">
+                Painel de Revenda
+              </p>
             </div>
           </div>
           {reseller.data.active ? (
-            <Badge variant="outline" className="gap-1 text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-900">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <Badge variant="outline" className="gap-1.5 h-8 px-3 rounded-full text-emerald-600 border-emerald-500/30 bg-emerald-500/10 dark:text-emerald-300">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_var(--color-emerald-500,#10b981)] animate-pulse" />
               Ativa
             </Badge>
           ) : (
-            <Badge variant="outline" className="text-destructive border-destructive/30 bg-destructive/5">
+            <Badge variant="outline" className="h-8 px-3 rounded-full text-destructive border-destructive/30 bg-destructive/5">
               Inativa
             </Badge>
           )}
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-4 space-y-4">
+      <main className="mx-auto max-w-6xl px-5 py-6 space-y-5">
         {(() => {
           const r = reseller.data!;
           const both = r.sells_main && r.sells_lp;
@@ -277,6 +280,8 @@ function ResellerPublicPage() {
             <MainPanelBody />
           ) : null
         )}
+
+        <ReassuranceStrip />
       </main>
     </div>
   );
@@ -286,27 +291,42 @@ function ResellerPublicPage() {
     return (
       <>
         {/* Compact stats row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-          <CompactStat label="Total" value={totalCount} tone="primary" />
-          <CompactStat label="Ativas" value={activeCount} tone="emerald" />
-          <CompactStat label="Trials" value={trialCount} tone="amber" />
-          <CompactStat label="Expiradas" value={expiredCount} tone="rose" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <GradientStatCard
+            label="Total de Licenças"
+            description="Todas as licenças geradas"
+            value={totalCount}
+            tone="primary"
+            icon={<FileText className="h-4 w-4" aria-hidden />}
+          />
+          <GradientStatCard
+            label="Ativas"
+            description="Licenças ativas"
+            value={activeCount}
+            tone="emerald"
+            percent={totalCount > 0 ? Math.round((activeCount / totalCount) * 100) : 0}
+            icon={<CheckCircle2 className="h-4 w-4" aria-hidden />}
+          />
+          <GradientStatCard
+            label="Trials"
+            description="Licenças em período de teste"
+            value={trialCount}
+            tone="amber"
+            percent={totalCount > 0 ? Math.round((trialCount / totalCount) * 100) : 0}
+            icon={<FlaskConical className="h-4 w-4" aria-hidden />}
+          />
+          <GradientStatCard
+            label="Expiradas"
+            description="Licenças expiradas"
+            value={expiredCount}
+            tone="rose"
+            percent={totalCount > 0 ? Math.round((expiredCount / totalCount) * 100) : 0}
+            icon={<XCircle className="h-4 w-4" aria-hidden />}
+          />
         </div>
 
-        {/* Inline quota bar */}
-        <div className="flex items-center gap-4 rounded-lg border border-border/50 bg-card px-4 py-2.5">
-          <div className="flex items-center gap-2 text-sm shrink-0">
-            <Activity className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
-            <span className="text-muted-foreground">Cota</span>
-            <span className="font-semibold tabular-nums">{used} / {max}</span>
-          </div>
-          <div className="flex-1 min-w-[120px]">
-            <Progress value={pct} aria-label="Uso da cota" className="h-1.5" />
-          </div>
-          <div className="text-xs text-muted-foreground shrink-0 tabular-nums">
-            {remaining} restantes · {pct}%
-          </div>
-        </div>
+        {/* Quota bar — premium */}
+        <QuotaBar used={used} max={max} pct={pct} remaining={remaining} />
 
         {/* Licenses toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -491,27 +511,142 @@ function getGreeting() {
   return "Boa noite";
 }
 
-function CompactStat({
-  label, value, tone,
+function GradientStatCard({
+  label, description, value, tone, percent, icon,
 }: {
   label: string;
+  description: string;
   value: number;
   tone: "primary" | "emerald" | "amber" | "rose";
+  percent?: number;
+  icon: React.ReactNode;
 }) {
-  const tones: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
-    emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    amber: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-    rose: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+  const palette: Record<string, { chip: string; ring: string; stroke: string; glow: string }> = {
+    primary: {
+      chip: "bg-primary/15 text-primary border-primary/25",
+      ring: "from-primary/25 via-primary/10 to-transparent",
+      stroke: "stroke-primary",
+      glow: "shadow-[0_20px_60px_-30px_color-mix(in_oklab,var(--primary)_70%,transparent)]",
+    },
+    emerald: {
+      chip: "bg-emerald-500/15 text-emerald-500 border-emerald-500/25 dark:text-emerald-300",
+      ring: "from-emerald-500/25 via-emerald-500/10 to-transparent",
+      stroke: "stroke-emerald-500",
+      glow: "shadow-[0_20px_60px_-30px_rgba(16,185,129,0.55)]",
+    },
+    amber: {
+      chip: "bg-amber-500/15 text-amber-500 border-amber-500/25 dark:text-amber-300",
+      ring: "from-amber-500/25 via-amber-500/10 to-transparent",
+      stroke: "stroke-amber-500",
+      glow: "shadow-[0_20px_60px_-30px_rgba(245,158,11,0.55)]",
+    },
+    rose: {
+      chip: "bg-rose-500/15 text-rose-500 border-rose-500/25 dark:text-rose-300",
+      ring: "from-rose-500/25 via-rose-500/10 to-transparent",
+      stroke: "stroke-rose-500",
+      glow: "shadow-[0_20px_60px_-30px_rgba(244,63,94,0.55)]",
+    },
   };
+  const p = palette[tone];
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-card px-3 py-2.5">
-      <div className={"grid h-7 w-7 place-items-center rounded-md text-xs font-bold " + tones[tone]}>
-        {label.charAt(0)}
+    <div className={`group relative overflow-hidden rounded-2xl border border-border/60 bg-card p-4 transition-all hover:border-border ${p.glow}`}>
+      <div className={`pointer-events-none absolute -right-14 -top-14 h-40 w-40 rounded-full bg-gradient-to-br ${p.ring} blur-2xl`} />
+      <div className="relative flex items-start justify-between gap-2">
+        <div className={`grid h-9 w-9 place-items-center rounded-xl border ${p.chip}`}>
+          {icon}
+        </div>
+        {typeof percent === "number" ? (
+          <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold tabular-nums ${p.chip}`}>
+            {percent}%
+          </span>
+        ) : null}
       </div>
-      <div className="min-w-0">
-        <p className="text-[10px] uppercase tracking-wider text-muted-foreground truncate">{label}</p>
-        <p className="text-lg font-bold tracking-tight leading-tight">{value}</p>
+      <div className="relative mt-3">
+        <p className="text-[13px] font-medium text-foreground/90">{label}</p>
+        <p className="mt-0.5 text-3xl font-bold tracking-tight tabular-nums leading-none">{value}</p>
+        <p className="mt-2 text-[11px] text-muted-foreground truncate">{description}</p>
+      </div>
+      <Sparkline className={`relative mt-3 h-8 w-full ${p.stroke}`} seed={label.length + value} />
+    </div>
+  );
+}
+
+function Sparkline({ className, seed }: { className?: string; seed: number }) {
+  // Deterministic pseudo-random smooth path
+  const points = Array.from({ length: 14 }, (_, i) => {
+    const n = Math.sin((seed + 1) * (i + 1) * 1.7) * 0.5 + 0.5;
+    const jitter = Math.sin((seed + 3) * (i + 2) * 0.9) * 0.15;
+    return Math.max(0.05, Math.min(0.95, n * 0.7 + 0.15 + jitter));
+  });
+  const w = 200;
+  const h = 40;
+  const step = w / (points.length - 1);
+  const d = points
+    .map((y, i) => {
+      const x = i * step;
+      const cy = h - y * h;
+      if (i === 0) return `M ${x} ${cy}`;
+      const prevX = (i - 1) * step;
+      const prevY = h - points[i - 1] * h;
+      const cx1 = prevX + step / 2;
+      const cx2 = x - step / 2;
+      return `C ${cx1} ${prevY}, ${cx2} ${cy}, ${x} ${cy}`;
+    })
+    .join(" ");
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className={className} aria-hidden>
+      <path d={d} fill="none" strokeWidth={2} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function QuotaBar({
+  used, max, pct, remaining,
+}: { used: number; max: number; pct: number; remaining: number }) {
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-4">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="grid h-7 w-7 place-items-center rounded-lg bg-primary/15 text-primary">
+            <Activity className="h-3.5 w-3.5" aria-hidden />
+          </div>
+          <span className="text-sm font-medium text-foreground/90">Cota de licenças</span>
+          <span className="font-bold text-lg tabular-nums">{used}<span className="text-muted-foreground text-base font-medium"> / {max}</span></span>
+        </div>
+        <div className="flex-1 min-w-[120px] relative h-2 rounded-full bg-muted/60 overflow-hidden">
+          <div
+            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary to-primary/70 shadow-[0_0_12px_color-mix(in_oklab,var(--primary)_60%,transparent)] transition-[width]"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <div className="text-xs text-muted-foreground shrink-0 tabular-nums">
+          <span className="font-semibold text-foreground/80">{remaining}</span> restantes · {pct}% utilizado
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReassuranceStrip() {
+  const items = [
+    { icon: <ShieldCheck className="h-5 w-5" aria-hidden />, title: "Segurança", desc: "Suas licenças estão seguras", tone: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20" },
+    { icon: <Zap className="h-5 w-5" aria-hidden />, title: "Entrega automática", desc: "Keys entregues instantaneamente", tone: "text-amber-500 bg-amber-500/10 border-amber-500/20" },
+    { icon: <Headphones className="h-5 w-5" aria-hidden />, title: "Suporte 24/7", desc: "Estamos sempre aqui para ajudar", tone: "text-primary bg-primary/10 border-primary/20" },
+  ];
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {items.map((it) => (
+          <div key={it.title} className="flex items-center gap-3 min-w-0">
+            <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl border ${it.tone}`}>
+              {it.icon}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold truncate">{it.title}</p>
+              <p className="text-xs text-muted-foreground truncate">{it.desc}</p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -781,26 +916,41 @@ function LpPanel({
 
   return (
     <>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-        <CompactStat label="Total LP" value={list.length} tone="primary" />
-        <CompactStat label="Ativas" value={active} tone="emerald" />
-        <CompactStat label="Trials" value={trials} tone="amber" />
-        <CompactStat label="Expiradas" value={expired} tone="rose" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <GradientStatCard
+          label="Total LP"
+          description="Todas as licenças LP"
+          value={list.length}
+          tone="primary"
+          icon={<FileText className="h-4 w-4" aria-hidden />}
+        />
+        <GradientStatCard
+          label="Ativas"
+          description="Licenças LP ativas"
+          value={active}
+          tone="emerald"
+          percent={list.length > 0 ? Math.round((active / list.length) * 100) : 0}
+          icon={<CheckCircle2 className="h-4 w-4" aria-hidden />}
+        />
+        <GradientStatCard
+          label="Trials"
+          description="LP em período de teste"
+          value={trials}
+          tone="amber"
+          percent={list.length > 0 ? Math.round((trials / list.length) * 100) : 0}
+          icon={<FlaskConical className="h-4 w-4" aria-hidden />}
+        />
+        <GradientStatCard
+          label="Expiradas"
+          description="Licenças LP expiradas"
+          value={expired}
+          tone="rose"
+          percent={list.length > 0 ? Math.round((expired / list.length) * 100) : 0}
+          icon={<XCircle className="h-4 w-4" aria-hidden />}
+        />
       </div>
 
-      <div className="flex items-center gap-4 rounded-lg border border-border/50 bg-card px-4 py-2.5">
-        <div className="flex items-center gap-2 text-sm shrink-0">
-          <Activity className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
-          <span className="text-muted-foreground">Cota LP</span>
-          <span className="font-semibold tabular-nums">{used} / {maxKeys}</span>
-        </div>
-        <div className="flex-1 min-w-[120px]">
-          <Progress value={pct} aria-label="Uso da cota LP" className="h-1.5" />
-        </div>
-        <div className="text-xs text-muted-foreground shrink-0 tabular-nums">
-          {remaining} restantes · {pct}%
-        </div>
-      </div>
+      <QuotaBar used={used} max={maxKeys} pct={pct} remaining={remaining} />
 
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="relative flex-1 min-w-[220px]">
