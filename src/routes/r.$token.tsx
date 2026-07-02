@@ -255,11 +255,11 @@ function ResellerPublicPage() {
               <TabsList className="grid w-full max-w-md grid-cols-2">
                 <TabsTrigger value="main" className="gap-1.5">
                   <Package className="h-3.5 w-3.5" aria-hidden />
-                  Main ({r.max_keys})
+                  LoveX ({r.max_keys})
                 </TabsTrigger>
                 <TabsTrigger value="lp" className="gap-1.5">
                   <Package className="h-3.5 w-3.5" aria-hidden />
-                  LP ({r.max_keys_lp ?? 0})
+                  Lovpro ({r.max_keys_lp ?? 0})
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="lp" className="space-y-4 mt-0">
@@ -871,7 +871,7 @@ function LpPanel({
   const revoke = useMutation({
     mutationFn: (id: string) => revokeFn({ data: { id } }),
     onSuccess: () => {
-      toast.success("Licença LP revogada");
+      toast.success("Licença Lovpro revogada");
       qc.invalidateQueries({ queryKey: ["reseller-lp-licenses", resellerId] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -879,7 +879,7 @@ function LpPanel({
   const remove = useMutation({
     mutationFn: (id: string) => removeFn({ data: { id } }),
     onSuccess: () => {
-      toast.success("Licença LP removida");
+      toast.success("Licença Lovpro removida");
       qc.invalidateQueries({ queryKey: ["reseller-lp-licenses", resellerId] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -891,15 +891,15 @@ function LpPanel({
     <>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <GradientStatCard
-          label="Total LP"
-          description="Todas as licenças LP"
+          label="Total Lovpro"
+          description="Todas as licenças Lovpro"
           value={list.length}
           tone="primary"
           icon={<FileText className="h-4 w-4" aria-hidden />}
         />
         <GradientStatCard
           label="Ativas"
-          description="Licenças LP ativas"
+          description="Licenças Lovpro ativas"
           value={active}
           tone="emerald"
           percent={list.length > 0 ? Math.round((active / list.length) * 100) : 0}
@@ -907,7 +907,7 @@ function LpPanel({
         />
         <GradientStatCard
           label="Trials"
-          description="LP em período de teste"
+          description="Lovpro em período de teste"
           value={trials}
           tone="amber"
           percent={list.length > 0 ? Math.round((trials / list.length) * 100) : 0}
@@ -915,7 +915,7 @@ function LpPanel({
         />
         <GradientStatCard
           label="Expiradas"
-          description="Licenças LP expiradas"
+          description="Licenças Lovpro expiradas"
           value={expired}
           tone="rose"
           percent={list.length > 0 ? Math.round((expired / list.length) * 100) : 0}
@@ -960,9 +960,9 @@ function LpPanel({
         <div className="flex items-start gap-2 rounded-md border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs">
           <ShieldAlert className="h-4 w-4 text-destructive shrink-0 mt-0.5" aria-hidden />
           <div>
-            <span className="font-medium text-destructive">Geração LP bloqueada.</span>{" "}
+            <span className="font-medium text-destructive">Geração Lovpro bloqueada.</span>{" "}
             <span className="text-muted-foreground">
-              {disabled ? "Revenda inativa." : "Cota LP esgotada."}
+              {disabled ? "Revenda inativa." : "Cota Lovpro esgotada."}
             </span>
           </div>
         </div>
@@ -972,7 +972,7 @@ function LpPanel({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-xs">Chave LP</TableHead>
+              <TableHead className="text-xs">Chave Lovpro</TableHead>
               <TableHead className="text-xs">Cliente</TableHead>
               <TableHead className="text-xs">Vendedor</TableHead>
               <TableHead className="text-xs">Status</TableHead>
@@ -990,7 +990,7 @@ function LpPanel({
             ) : filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="py-6 text-center text-xs text-muted-foreground">
-                  Nenhuma licença LP encontrada.
+                  Nenhuma licença Lovpro encontrada.
                 </TableCell>
               </TableRow>
             ) : (
@@ -1042,7 +1042,7 @@ function LpPanel({
                         size="sm"
                         disabled={remove.isPending}
                         onClick={() => {
-                          if (confirm("Remover esta licença LP?")) remove.mutate(l.id);
+                          if (confirm("Remover esta licença Lovpro?")) remove.mutate(l.id);
                         }}
                         aria-label="Remover"
                       >
@@ -1090,7 +1090,7 @@ function NewLpLicenseDialog({
   const create = useMutation({
     mutationFn: async () => {
       if (status !== "trial" && currentCount >= maxKeys) {
-        throw new Error("Cota LP esgotada.");
+        throw new Error("Cota Lovpro esgotada.");
       }
       const factor = unit === "minutes" ? 60_000 : unit === "hours" ? 3_600_000 : 86_400_000;
       const minutesTotal =
@@ -1109,7 +1109,7 @@ function NewLpLicenseDialog({
       });
     },
     onSuccess: () => {
-      toast.success("Licença LP criada");
+      toast.success("Licença Lovpro criada");
       qc.invalidateQueries({ queryKey: ["reseller-lp-licenses", resellerId] });
       setOpen(false);
       setKey(generateSecondLicenseKey());
@@ -1123,14 +1123,14 @@ function NewLpLicenseDialog({
       <DialogTrigger asChild>
         <Button size="sm" className="gap-2 h-9" disabled={disabled}>
           <Plus className="h-4 w-4" aria-hidden />
-          Nova licença LP
+          Nova licença Lovpro
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nova licença LP</DialogTitle>
+          <DialogTitle>Nova licença Lovpro</DialogTitle>
           <DialogDescription>
-            Cota LP: {currentCount}/{maxKeys}. Trials são grátis e não consomem cota.
+            Cota Lovpro: {currentCount}/{maxKeys}. Trials são grátis e não consomem cota.
           </DialogDescription>
         </DialogHeader>
         <form
@@ -1189,7 +1189,7 @@ function NewLpLicenseDialog({
             </div>
           ) : null}
           <div className="space-y-2">
-            <Label htmlFor="lpkey">Chave LP</Label>
+            <Label htmlFor="lpkey">Chave Lovpro</Label>
             <div className="flex gap-2">
               <Input
                 id="lpkey"
@@ -1230,7 +1230,7 @@ function NewLpLicenseDialog({
           </div>
           <p className="text-xs text-muted-foreground">Use 0 para sem expiração.</p>
           {quotaReached && status !== "trial" ? (
-            <p className="text-xs text-destructive">Cota LP esgotada — só é possível gerar Trial.</p>
+            <p className="text-xs text-destructive">Cota Lovpro esgotada — só é possível gerar Trial.</p>
           ) : null}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>

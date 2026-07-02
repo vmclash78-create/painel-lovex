@@ -257,7 +257,7 @@ function ResellerDialog({ mode, reseller }: { mode: "create" | "edit"; reseller?
         throw new Error("Defina uma senha de acesso (mínimo 4 caracteres).");
       }
       if (!sellsMain && !sellsLp) {
-        throw new Error("Selecione ao menos um produto (Main ou LP).");
+        throw new Error("Selecione ao menos um produto (LoveX ou Lovpro).");
       }
       if (mode === "create") {
         const { error } = await supabase.from("resellers").insert({
@@ -356,24 +356,24 @@ function ResellerDialog({ mode, reseller }: { mode: "create" | "edit"; reseller?
             <div className="grid gap-2 sm:grid-cols-2">
               <label className="flex items-center justify-between gap-2 rounded-md border p-2.5 cursor-pointer">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium">Main</p>
-                  <p className="text-[11px] text-muted-foreground">Extensão principal</p>
+                  <p className="text-sm font-medium">LoveX</p>
+                  <p className="text-[11px] text-muted-foreground">Extensão LoveX</p>
                 </div>
-                <Switch checked={sellsMain} onCheckedChange={setSellsMain} aria-label="Vende Main" />
+                <Switch checked={sellsMain} onCheckedChange={setSellsMain} aria-label="Vende LoveX" />
               </label>
               <label className="flex items-center justify-between gap-2 rounded-md border p-2.5 cursor-pointer">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium">LP</p>
-                  <p className="text-[11px] text-muted-foreground">Extensão LP (chaves LP-…)</p>
+                  <p className="text-sm font-medium">Lovpro</p>
+                  <p className="text-[11px] text-muted-foreground">Extensão Lovpro (chaves LP-…)</p>
                 </div>
-                <Switch checked={sellsLp} onCheckedChange={setSellsLp} aria-label="Vende LP" />
+                <Switch checked={sellsLp} onCheckedChange={setSellsLp} aria-label="Vende Lovpro" />
               </label>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="rmax">Cota Main</Label>
+              <Label htmlFor="rmax">Cota LoveX</Label>
               <Input
                 id="rmax"
                 type="number"
@@ -384,7 +384,7 @@ function ResellerDialog({ mode, reseller }: { mode: "create" | "edit"; reseller?
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="rmaxlp">Cota LP</Label>
+              <Label htmlFor="rmaxlp">Cota Lovpro</Label>
               <Input
                 id="rmaxlp"
                 type="number"
