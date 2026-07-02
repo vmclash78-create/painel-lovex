@@ -699,6 +699,18 @@ function Sparkline({ className, seed }: { className?: string; seed: number }) {
   );
 }
 
+function MobileEmptyState({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="rounded-xl border border-border/60 bg-card px-4 py-8 text-center text-muted-foreground">
+      <div className="mx-auto grid h-10 w-10 place-items-center rounded-xl border border-dashed border-border/60 bg-muted/40">
+        <KeyRound className="h-4 w-4 opacity-60" aria-hidden />
+      </div>
+      <p className="mt-3 text-sm font-medium">{title}</p>
+      <p className="mx-auto mt-1 max-w-[260px] text-xs leading-relaxed">{description}</p>
+    </div>
+  );
+}
+
 function QuotaBar({
   used, max, pct, remaining,
 }: { used: number; max: number; pct: number; remaining: number }) {
@@ -990,7 +1002,7 @@ function LpPanel({
 
   return (
     <>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
         <GradientStatCard
           label="Total Lovpro"
           description="Todas as licenças Lovpro"
@@ -1026,8 +1038,8 @@ function LpPanel({
 
       <QuotaBar used={used} max={maxKeys} pct={pct} remaining={remaining} />
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <div className="relative flex-1 min-w-[220px]">
+      <div className="grid gap-2.5 sm:flex sm:items-center sm:gap-3">
+        <div className="relative min-w-0 sm:flex-1 sm:min-w-[220px]">
           <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" aria-hidden />
           <Input
             value={search}
@@ -1069,7 +1081,75 @@ function LpPanel({
         </div>
       ) : null}
 
-      <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card">
+      <div className="space-y-2 sm:hidden">
+        {q.isLoading ? (
+          Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-xl" />)
+        ) : filtered.length === 0 ? (
+          <MobileEmptyState title="Nenhuma licença Lovpro encontrada" description="Crie sua primeira licença Lovpro em Nova licença Lovpro." />
+        ) : (
+          filtered.map((l) => (
+            <article key={l.id} className="rounded-xl border border-border/60 bg-card p-3">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                <div className="min-w-0 space-y-1">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <KeyRound className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+                    <span className="truncate font-mono text-xs font-semibold">{l.license_key}</span>
+                  </div>
+                  <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
+                    <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-[10px] font-bold text-primary uppercase">
+                      {(l.user_name ?? "?").slice(0, 1)}
+                    </div>
+                    <span className="truncate">{l.user_name ?? "—"}</span>
+                  </div>
+                </div>
+                <StatusBadge status={(l.status ?? "active") as "active" | "trial" | "expired" | "revoked"} />
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                <div className="min-w-0 truncate">Vendedor: <span className="text-foreground/80">{l.sold_by ?? "—"}</span></div>
+                <div className="col-span-2 tabular-nums">Expira: <span className="text-foreground/80">{formatDate(l.expires_at)}</span></div>
+              </div>
+              <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 justify-start gap-1.5 truncate px-2 text-xs"
+                  onClick={async () => {
+                    try { await navigator.clipboard.writeText(l.license_key); toast.success("Copiado"); }
+                    catch { toast.error("Falha ao copiar"); }
+                  }}
+                >
+                  <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  Copiar
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  disabled={l.status === "revoked" || revoke.isPending}
+                  onClick={() => revoke.mutate(l.id)}
+                  aria-label="Revogar"
+                >
+                  <Ban className="h-4 w-4" aria-hidden />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  disabled={remove.isPending}
+                  onClick={() => {
+                    if (confirm("Remover esta licença Lovpro?")) remove.mutate(l.id);
+                  }}
+                  aria-label="Remover"
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" aria-hidden />
+                </Button>
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-2xl border border-border/60 bg-card sm:block">
         <Table>
           <TableHeader>
             <TableRow className="border-border/50 hover:bg-transparent">
@@ -1238,9 +1318,9 @@ function NewLpLicenseDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-2 h-9" disabled={disabled}>
+        <Button size="sm" className="h-9 w-full gap-1.5 px-2 text-xs sm:w-auto sm:gap-2 sm:px-3 sm:text-sm" disabled={disabled}>
           <Plus className="h-4 w-4" aria-hidden />
-          Nova licença Lovpro
+          <span className="truncate">Nova licença Lovpro</span>
         </Button>
       </DialogTrigger>
       <DialogContent>
