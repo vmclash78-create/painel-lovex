@@ -307,7 +307,7 @@ function ResellerPublicPage() {
     return (
       <>
         {/* Compact stats row */}
-        <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
           <GradientStatCard
             label="Total de Licenças"
             description="Todas as licenças geradas"
@@ -671,24 +671,24 @@ function GradientStatCard({
   };
   const p = palette[tone];
   return (
-    <div className={`group relative min-w-0 overflow-hidden rounded-lg border border-border/60 bg-card p-2 transition-all hover:border-border sm:rounded-2xl sm:p-4 ${p.glow}`}>
+    <div className={`group relative min-w-0 overflow-hidden rounded-xl border border-border/60 bg-card p-3 transition-all hover:border-border sm:rounded-2xl sm:p-4 ${p.glow}`}>
       <div className={`pointer-events-none absolute -right-14 -top-14 h-40 w-40 rounded-full bg-gradient-to-br ${p.ring} blur-2xl`} />
-      <div className="relative flex items-start justify-between gap-2">
-        <div className={`grid h-6 w-6 shrink-0 place-items-center rounded-md border [&_svg]:h-3.5 [&_svg]:w-3.5 sm:h-9 sm:w-9 sm:rounded-xl sm:[&_svg]:h-4 sm:[&_svg]:w-4 ${p.chip}`}>
+      <div className="relative flex items-center justify-between gap-2">
+        <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border [&_svg]:h-4 [&_svg]:w-4 sm:h-9 sm:w-9 sm:rounded-xl ${p.chip}`}>
           {icon}
         </div>
         {typeof percent === "number" ? (
-          <span className={`rounded-full border px-1 py-0.5 text-[8px] font-semibold tabular-nums sm:px-2 sm:text-[10px] ${p.chip}`}>
+          <span className={`rounded-full border px-1.5 py-0.5 text-[10px] font-semibold tabular-nums sm:px-2 ${p.chip}`}>
             {percent}%
           </span>
         ) : null}
       </div>
       <div className="relative mt-2 sm:mt-3">
-        <p className="truncate text-[9px] font-medium text-foreground/90 sm:text-[13px]">{label}</p>
-        <p className="mt-0.5 text-lg font-bold tracking-tight tabular-nums leading-none sm:text-3xl">{value}</p>
+        <p className="truncate text-[11px] font-medium text-muted-foreground sm:text-[13px] sm:text-foreground/90">{label}</p>
+        <p className="mt-0.5 text-2xl font-bold tracking-tight tabular-nums leading-none sm:text-3xl">{value}</p>
         <p className="mt-1 hidden text-[10px] text-muted-foreground truncate sm:mt-2 sm:block sm:text-[11px]">{description}</p>
       </div>
-      <Sparkline className={`relative mt-1 h-4 w-full sm:mt-3 sm:h-8 ${p.stroke}`} seed={label.length + value} />
+      <Sparkline className={`relative mt-2 hidden h-8 w-full sm:mt-3 sm:block ${p.stroke}`} seed={label.length + value} />
     </div>
   );
 }
@@ -1025,7 +1025,7 @@ function LpPanel({
 
   return (
     <>
-      <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         <GradientStatCard
           label="Total Lovpro"
           description="Todas as licenças Lovpro"
