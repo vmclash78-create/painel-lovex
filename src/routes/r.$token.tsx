@@ -351,16 +351,16 @@ function ResellerPublicPage() {
               <RefreshCw className="h-4 w-4" aria-hidden />
             </Button>
             <NewResellerLicenseDialog
-              resellerId={reseller.data.id}
-              maxKeys={reseller.data.max_keys}
+              resellerId={r.id}
+              maxKeys={r.max_keys}
               currentCount={used}
-              disabled={!reseller.data.active}
+              disabled={!r.active}
               quotaReached={remaining <= 0}
             />
             <BuyKeysDialog
-              resellerId={reseller.data.id}
+              resellerId={r.id}
               resellerToken={token}
-              disabled={!reseller.data.active}
+              disabled={!r.active}
             />
           </div>
         </div>
@@ -371,7 +371,7 @@ function ResellerPublicPage() {
             <div>
               <span className="font-medium text-destructive">Geração bloqueada.</span>{" "}
               <span className="text-muted-foreground">
-                {!reseller.data.active
+                {!r.active
                   ? "Revenda inativa. Contate o administrador."
                   : "Cota esgotada. Solicite mais keys."}
               </span>
