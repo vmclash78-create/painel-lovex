@@ -210,9 +210,18 @@ function formatDate(iso: string | null) {
   }
 }
 
-export function EditLicenseDialog({ license }: { license: License }) {
+export function EditLicenseDialog({
+  license,
+  triggerLabel,
+  triggerClassName,
+}: {
+  license: License;
+  triggerLabel?: string;
+  triggerClassName?: string;
+}) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [licenseKey, setLicenseKey] = useState(license.license_key);
   const [userName, setUserName] = useState(license.user_name ?? "");
   const [status, setStatus] = useState<NonNullable<License["status"]>>(license.status ?? "active");
   const [maxDevices, setMaxDevices] = useState<number>(license.max_devices ?? 1);
@@ -225,6 +234,7 @@ export function EditLicenseDialog({ license }: { license: License }) {
   const save = useMutation({
     mutationFn: async () => {
       const patch: Record<string, unknown> = {
+        license_key: licenseKey.trim().toUpperCase(),
         user_name: userName || "Usuário",
         status,
         max_devices: maxDevices,
@@ -259,6 +269,7 @@ export function EditLicenseDialog({ license }: { license: License }) {
         setOpen(o);
         if (o) {
           setUserName(license.user_name ?? "");
+          setLicenseKey(license.license_key);
           setStatus(license.status ?? "active");
           setMaxDevices(license.max_devices ?? 1);
           setExpiresAt(license.expires_at ? toLocalInput(license.expires_at) : "");
@@ -268,8 +279,9 @@ export function EditLicenseDialog({ license }: { license: License }) {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label="Editar">
+        <Button variant="ghost" size="sm" aria-label="Editar" className={triggerClassName}>
           <Pencil className="h-4 w-4" aria-hidden />
+          {triggerLabel ? <span>{triggerLabel}</span> : null}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
@@ -284,6 +296,21 @@ export function EditLicenseDialog({ license }: { license: License }) {
             save.mutate();
           }}
         >
+          <div className="space-y-2">
+            <Label htmlFor="elkey">Key</Label>
+            <div className="flex gap-2">
+              <Input
+                id="elkey"
+                value={licenseKey}
+                onChange={(e) => setLicenseKey(e.target.value.toUpperCase())}
+                className="font-mono"
+                required
+              />
+              <Button type="button" variant="outline" size="sm" onClick={() => setLicenseKey(generateLicenseKey())}>
+                Gerar
+              </Button>
+            </div>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="euname">Usuário</Label>
             <Input id="euname" value={userName} onChange={(e) => setUserName(e.target.value)} />

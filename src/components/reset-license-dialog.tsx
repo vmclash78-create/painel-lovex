@@ -16,9 +16,11 @@ interface Props {
   resellerId?: string;
   /** Query keys to invalidate after a successful reset. */
   invalidateKeys?: readonly (readonly unknown[])[];
+  triggerLabel?: string;
+  triggerClassName?: string;
 }
 
-export function ResetLicenseDialog({ license, resellerId, invalidateKeys }: Props) {
+export function ResetLicenseDialog({ license, resellerId, invalidateKeys, triggerLabel, triggerClassName }: Props) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [clearDevice, setClearDevice] = useState(true);
@@ -61,8 +63,9 @@ export function ResetLicenseDialog({ license, resellerId, invalidateKeys }: Prop
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label="Resetar" title="Resetar (escolher opções)">
+        <Button variant="ghost" size="sm" aria-label="Resetar" title="Resetar (escolher opções)" className={triggerClassName}>
           <RotateCcw className="h-4 w-4" aria-hidden />
+          {triggerLabel ? <span>{triggerLabel}</span> : null}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">

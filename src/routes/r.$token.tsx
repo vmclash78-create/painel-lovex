@@ -306,7 +306,7 @@ function ResellerPublicPage() {
     return (
       <>
         {/* Compact stats row */}
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
           <GradientStatCard
             label="Total de Licenças"
             description="Todas as licenças geradas"
@@ -415,7 +415,7 @@ function ResellerPublicPage() {
             <MobileEmptyState title="Nenhuma licença encontrada" description="Crie sua primeira licença em Nova licença." />
           ) : (
             filtered.map((l) => (
-              <article key={l.id} className="rounded-xl border border-border/60 bg-card p-3">
+              <article key={l.id} className="rounded-xl border border-border/60 bg-card p-2.5">
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                   <div className="min-w-0 space-y-1">
                     <div className="flex min-w-0 items-center gap-1.5">
@@ -436,11 +436,11 @@ function ResellerPublicPage() {
                   <div className="text-right tabular-nums">Disp.: <span className="text-foreground/80">{l.max_devices ?? 1}</span></div>
                   <div className="col-span-2 tabular-nums">Expira: <span className="text-foreground/80">{formatDate(l.expires_at)}</span></div>
                 </div>
-                <div className="mt-3 grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-1.5">
+                <div className="mt-3 grid grid-cols-2 gap-1.5">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 justify-start gap-1.5 truncate px-2 text-xs"
+                    className="h-8 justify-center gap-1.5 px-2 text-xs"
                     onClick={async () => {
                       try { await navigator.clipboard.writeText(l.license_key); toast.success("Copiado"); }
                       catch { toast.error("Falha ao copiar"); }
@@ -449,10 +449,12 @@ function ResellerPublicPage() {
                     <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
                     Copiar
                   </Button>
-                  <EditLicenseDialog license={l} />
+                  <EditLicenseDialog license={l} triggerLabel="Editar" triggerClassName="h-8 justify-center gap-1.5 px-2 text-xs" />
                   <ResetLicenseDialog
                     license={l}
                     resellerId={reseller.data!.id}
+                    triggerLabel="Resetar"
+                    triggerClassName="h-8 justify-center gap-1.5 px-2 text-xs"
                     invalidateKeys={[
                       ["reseller-licenses", reseller.data!.id],
                       ["licenses"],
@@ -461,12 +463,26 @@ function ResellerPublicPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0"
+                    className="h-8 justify-center gap-1.5 px-2 text-xs"
                     disabled={l.status === "revoked" || revoke.isPending}
                     onClick={() => revoke.mutate(l.id)}
                     aria-label="Revogar"
                   >
                     <Ban className="h-4 w-4" aria-hidden />
+                    Bloquear
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="col-span-2 h-8 justify-center gap-1.5 px-2 text-xs text-destructive"
+                    disabled={remove.isPending}
+                    onClick={() => {
+                      if (confirm("Remover esta licença?")) remove.mutate(l.id);
+                    }}
+                    aria-label="Remover"
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden />
+                    Remover
                   </Button>
                 </div>
               </article>
@@ -648,24 +664,24 @@ function GradientStatCard({
   };
   const p = palette[tone];
   return (
-    <div className={`group relative min-w-0 overflow-hidden rounded-xl border border-border/60 bg-card p-3 transition-all hover:border-border sm:rounded-2xl sm:p-4 ${p.glow}`}>
+    <div className={`group relative min-w-0 overflow-hidden rounded-lg border border-border/60 bg-card p-2 transition-all hover:border-border sm:rounded-2xl sm:p-4 ${p.glow}`}>
       <div className={`pointer-events-none absolute -right-14 -top-14 h-40 w-40 rounded-full bg-gradient-to-br ${p.ring} blur-2xl`} />
       <div className="relative flex items-start justify-between gap-2">
-        <div className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg border sm:h-9 sm:w-9 sm:rounded-xl ${p.chip}`}>
+        <div className={`grid h-6 w-6 shrink-0 place-items-center rounded-md border [&_svg]:h-3.5 [&_svg]:w-3.5 sm:h-9 sm:w-9 sm:rounded-xl sm:[&_svg]:h-4 sm:[&_svg]:w-4 ${p.chip}`}>
           {icon}
         </div>
         {typeof percent === "number" ? (
-          <span className={`rounded-full border px-1.5 py-0.5 text-[9px] font-semibold tabular-nums sm:px-2 sm:text-[10px] ${p.chip}`}>
+          <span className={`rounded-full border px-1 py-0.5 text-[8px] font-semibold tabular-nums sm:px-2 sm:text-[10px] ${p.chip}`}>
             {percent}%
           </span>
         ) : null}
       </div>
       <div className="relative mt-2 sm:mt-3">
-        <p className="truncate text-[11px] font-medium text-foreground/90 sm:text-[13px]">{label}</p>
-        <p className="mt-0.5 text-xl font-bold tracking-tight tabular-nums leading-none sm:text-3xl">{value}</p>
-        <p className="mt-1 text-[10px] text-muted-foreground truncate sm:mt-2 sm:text-[11px]">{description}</p>
+        <p className="truncate text-[9px] font-medium text-foreground/90 sm:text-[13px]">{label}</p>
+        <p className="mt-0.5 text-lg font-bold tracking-tight tabular-nums leading-none sm:text-3xl">{value}</p>
+        <p className="mt-1 hidden text-[10px] text-muted-foreground truncate sm:mt-2 sm:block sm:text-[11px]">{description}</p>
       </div>
-      <Sparkline className={`relative mt-2 h-6 w-full sm:mt-3 sm:h-8 ${p.stroke}`} seed={label.length + value} />
+      <Sparkline className={`relative mt-1 h-4 w-full sm:mt-3 sm:h-8 ${p.stroke}`} seed={label.length + value} />
     </div>
   );
 }
