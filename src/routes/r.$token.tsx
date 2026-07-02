@@ -531,7 +531,6 @@ function NewResellerLicenseDialog({
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState("");
-  const [soldBy, setSoldBy] = useState("");
   const [status, setStatus] = useState<NonNullable<License["status"]>>("active");
   const [days, setDays] = useState<number>(30);
   const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
@@ -576,7 +575,6 @@ function NewResellerLicenseDialog({
         max_devices: maxDevices,
         duration_minutes: days > 0 ? minutesTotal : null,
         reseller_id: resellerId,
-        sold_by: soldBy.trim() || null,
       });
       if (error) throw error;
     },
@@ -675,18 +673,9 @@ function NewResellerLicenseDialog({
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="uname">Cliente</Label>
-              <Input id="uname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do cliente" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="useller" className="flex items-center gap-1">
-                <UserRound className="h-3.5 w-3.5 text-primary" aria-hidden />
-                Vendedor
-              </Label>
-              <Input id="useller" value={soldBy} onChange={(e) => setSoldBy(e.target.value)} placeholder="Quem vendeu" maxLength={60} />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="uname">Cliente</Label>
+            <Input id="uname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do cliente" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
