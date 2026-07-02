@@ -21,6 +21,33 @@ export function computeStatus(l: License): License["status"] {
   return l.status ?? "active";
 }
 
+/**
+ * Trial keys are identified strictly by status === "trial".
+ * They do NOT count against the reseller quota, regardless of duration.
+ */
+export function isTrialLicense(l: License): boolean {
+  return l.status === "trial";
+}
+
+/** Aggregates licenses by seller (`sold_by`), sorted by most-sold. */
+export function rankSellers(
+  list: License[],
+  opts: { paidOnly?: boolean } = {},
+): Array<{ seller: string; total: number; paid: number; trial: number }> {
+  const map = new Map<string, { total: number; paid: number; trial: number }>();
+  for (const l of list) {
+    const seller = (l.sold_by ?? "").trim() || "—";
+    const cur = map.get(seller) ?? { total: 0, paid: 0, trial: 0 };
+    cur.total += 1;
+    if (isTrialLicense(l)) cur.trial += 1;
+    else cur.paid += 1;
+    map.set(seller, cur);
+  }
+  const arr = Array.from(map.entries()).map(([seller, v]) => ({ seller, ...v }));
+  arr.sort((a, b) => (opts.paidOnly ? b.paid - a.paid : b.total - a.total));
+  return arr.filter((r) => r.seller !== "—" || (opts.paidOnly ? r.paid > 0 : r.total > 0));
+}
+
 export function generateLicenseKey(): string {
   const digits = Array.from({ length: 8 }, () => Math.floor(Math.random() * 10)).join("");
   const hex = Array.from({ length: 8 }, () =>
