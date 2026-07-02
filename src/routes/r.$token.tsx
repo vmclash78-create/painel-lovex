@@ -307,7 +307,7 @@ function ResellerPublicPage() {
     return (
       <>
         {/* Compact stats row */}
-        <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
           <GradientStatCard
             label="Total de Licenças"
             description="Todas as licenças geradas"
@@ -1025,7 +1025,7 @@ function LpPanel({
 
   return (
     <>
-      <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         <GradientStatCard
           label="Total Lovpro"
           description="Todas as licenças Lovpro"
