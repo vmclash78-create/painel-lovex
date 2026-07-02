@@ -15,6 +15,8 @@ export type SecondLicense = {
   is_active: boolean | null;
   created_at: string | null;
   updated_at: string | null;
+  reseller_id: string | null;
+  sold_by: string | null;
 };
 
 export const listSecondLicenses = createServerFn({ method: "GET" }).handler(
@@ -30,6 +32,20 @@ export const listSecondLicenses = createServerFn({ method: "GET" }).handler(
   },
 );
 
+export const listSecondLicensesByReseller = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({ reseller_id: z.string().uuid() }).parse(input))
+  .handler(async ({ data }): Promise<SecondLicense[]> => {
+    const { getSecondAdmin } = await import("./second-supabase.server");
+    const supabase = getSecondAdmin();
+    const { data: rows, error } = await supabase
+      .from("licenses")
+      .select("*")
+      .eq("reseller_id", data.reseller_id)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (rows ?? []) as SecondLicense[];
+  });
+
 const createSchema = z.object({
   license_key: z.string().min(3),
   user_name: z.string().optional(),
@@ -37,6 +53,8 @@ const createSchema = z.object({
   expires_at: z.string().nullable().optional(),
   max_devices: z.number().int().min(1).default(1),
   duration_minutes: z.number().int().nullable().optional(),
+  reseller_id: z.string().uuid().nullable().optional(),
+  sold_by: z.string().nullable().optional(),
 });
 
 export const createSecondLicense = createServerFn({ method: "POST" })
@@ -51,7 +69,32 @@ export const createSecondLicense = createServerFn({ method: "POST" })
       expires_at: data.expires_at ?? null,
       max_devices: data.max_devices,
       duration_minutes: data.duration_minutes ?? null,
+      reseller_id: data.reseller_id ?? null,
+      sold_by: data.sold_by ?? null,
     });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const updateSecondLicense = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) =>
+    z.object({
+      id: z.string().uuid(),
+      status: z.enum(["active", "trial", "expired", "revoked", "paused", "inactive"]).optional(),
+      expires_at: z.string().nullable().optional(),
+      user_name: z.string().optional(),
+      max_devices: z.number().int().min(1).optional(),
+    }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { getSecondAdmin } = await import("./second-supabase.server");
+    const supabase = getSecondAdmin();
+    const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (data.status !== undefined) patch.status = data.status;
+    if (data.expires_at !== undefined) patch.expires_at = data.expires_at;
+    if (data.user_name !== undefined) patch.user_name = data.user_name;
+    if (data.max_devices !== undefined) patch.max_devices = data.max_devices;
+    const { error } = await supabase.from("licenses").update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

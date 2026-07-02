@@ -247,11 +247,17 @@ function ResellerDialog({ mode, reseller }: { mode: "create" | "edit"; reseller?
   const [token, setToken] = useState(reseller?.token ?? generateResellerToken());
   const [active, setActive] = useState<boolean>(reseller?.active ?? true);
   const [password, setPassword] = useState<string>(reseller?.password ?? "");
+  const [sellsMain, setSellsMain] = useState<boolean>(reseller?.sells_main ?? true);
+  const [sellsLp, setSellsLp] = useState<boolean>(reseller?.sells_lp ?? false);
+  const [maxKeysLp, setMaxKeysLp] = useState<number>(reseller?.max_keys_lp ?? 0);
 
   const save = useMutation({
     mutationFn: async () => {
       if (!password || password.length < 4) {
         throw new Error("Defina uma senha de acesso (mínimo 4 caracteres).");
+      }
+      if (!sellsMain && !sellsLp) {
+        throw new Error("Selecione ao menos um produto (Main ou LP).");
       }
       if (mode === "create") {
         const { error } = await supabase.from("resellers").insert({
@@ -260,12 +266,24 @@ function ResellerDialog({ mode, reseller }: { mode: "create" | "edit"; reseller?
           token,
           active,
           password,
+          sells_main: sellsMain,
+          sells_lp: sellsLp,
+          max_keys_lp: maxKeysLp,
         });
         if (error) throw error;
       } else if (reseller) {
         const { error } = await supabase
           .from("resellers")
-          .update({ name, max_keys: maxKeys, token, active, password })
+          .update({
+            name,
+            max_keys: maxKeys,
+            token,
+            active,
+            password,
+            sells_main: sellsMain,
+            sells_lp: sellsLp,
+            max_keys_lp: maxKeysLp,
+          })
           .eq("id", reseller.id);
         if (error) throw error;
       }
@@ -279,6 +297,9 @@ function ResellerDialog({ mode, reseller }: { mode: "create" | "edit"; reseller?
         setMaxKeys(10);
         setToken(generateResellerToken());
         setPassword("");
+        setSellsMain(true);
+        setSellsLp(false);
+        setMaxKeysLp(0);
       }
     },
     onError: (e: Error) => toast.error(e.message),
@@ -295,6 +316,9 @@ function ResellerDialog({ mode, reseller }: { mode: "create" | "edit"; reseller?
           setToken(reseller.token);
           setActive(reseller.active);
           setPassword(reseller.password ?? "");
+          setSellsMain(reseller.sells_main ?? true);
+          setSellsLp(reseller.sells_lp ?? false);
+          setMaxKeysLp(reseller.max_keys_lp ?? 0);
         }
       }}
     >
@@ -326,18 +350,53 @@ function ResellerDialog({ mode, reseller }: { mode: "create" | "edit"; reseller?
             <Label htmlFor="rname">Nome</Label>
             <Input id="rname" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
+
+          <div className="space-y-2 rounded-md border p-3">
+            <Label className="text-sm font-medium">Produtos que a revenda pode vender</Label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label className="flex items-center justify-between gap-2 rounded-md border p-2.5 cursor-pointer">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">Main</p>
+                  <p className="text-[11px] text-muted-foreground">Extensão principal</p>
+                </div>
+                <Switch checked={sellsMain} onCheckedChange={setSellsMain} aria-label="Vende Main" />
+              </label>
+              <label className="flex items-center justify-between gap-2 rounded-md border p-2.5 cursor-pointer">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">LP</p>
+                  <p className="text-[11px] text-muted-foreground">Extensão LP (chaves LP-…)</p>
+                </div>
+                <Switch checked={sellsLp} onCheckedChange={setSellsLp} aria-label="Vende LP" />
+              </label>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="rmax">Cota de keys</Label>
+              <Label htmlFor="rmax">Cota Main</Label>
               <Input
                 id="rmax"
                 type="number"
                 min={0}
                 value={maxKeys}
+                disabled={!sellsMain}
                 onChange={(e) => setMaxKeys(Number(e.target.value))}
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="rmaxlp">Cota LP</Label>
+              <Input
+                id="rmaxlp"
+                type="number"
+                min={0}
+                value={maxKeysLp}
+                disabled={!sellsLp}
+                onChange={(e) => setMaxKeysLp(Number(e.target.value))}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
               <Label htmlFor="rtoken">Token do link</Label>
               <div className="flex gap-1">
                 <Input
@@ -351,7 +410,6 @@ function ResellerDialog({ mode, reseller }: { mode: "create" | "edit"; reseller?
                   Gerar
                 </Button>
               </div>
-            </div>
           </div>
           <div className="flex items-center justify-between rounded-md border p-3">
             <div>

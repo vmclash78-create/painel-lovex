@@ -44,4 +44,7 @@ export type Reseller = {
   active: boolean;
   created_at: string | null;
   password: string | null;
+  sells_main: boolean;
+  sells_lp: boolean;
+  max_keys_lp: number;
 };
