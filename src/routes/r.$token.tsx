@@ -1017,7 +1017,6 @@ function NewLpLicenseDialog({
   const createFn = useServerFn(createSecondLicense);
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState("");
-  const [soldBy, setSoldBy] = useState("");
   const [status, setStatus] = useState<"active" | "trial">("active");
   const [days, setDays] = useState<number>(30);
   const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
@@ -1056,7 +1055,6 @@ function NewLpLicenseDialog({
           max_devices: maxDevices,
           duration_minutes: days > 0 ? minutesTotal : null,
           reseller_id: resellerId,
-          sold_by: soldBy.trim() || null,
         },
       });
     },
@@ -1155,18 +1153,9 @@ function NewLpLicenseDialog({
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="lpuname">Cliente</Label>
-              <Input id="lpuname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do cliente" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="lpseller" className="flex items-center gap-1">
-                <UserRound className="h-3.5 w-3.5 text-primary" aria-hidden />
-                Vendedor
-              </Label>
-              <Input id="lpseller" value={soldBy} onChange={(e) => setSoldBy(e.target.value)} placeholder="Quem vendeu" maxLength={60} />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="lpuname">Cliente</Label>
+            <Input id="lpuname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do cliente" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
