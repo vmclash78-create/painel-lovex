@@ -22,13 +22,23 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
-  Activity, Trophy, UserRound, Medal,
+  Activity, Trophy, UserRound, Medal, Package,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
 import { BuyKeysDialog } from "@/components/buy-keys-dialog";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  listSecondLicensesByReseller,
+  createSecondLicense,
+  revokeSecondLicense,
+  deleteSecondLicense,
+  generateSecondLicenseKey,
+  type SecondLicense,
+} from "@/lib/second-licenses.functions";
 
 export const Route = createFileRoute("/r/$token")({
   ssr: false,
