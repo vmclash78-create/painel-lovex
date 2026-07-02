@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase, type License } from "@/integrations/external-supabase/client";
 import { fetchResellerByToken, fetchResellerLicenses } from "@/lib/resellers";
-import { computeStatus, generateLicenseKey, isTrialLicense, rankSellers } from "@/lib/licenses";
+import { computeStatus, generateLicenseKey, isTrialLicense } from "@/lib/licenses";
 import { StatusBadge } from "./_authenticated/dashboard";
 import { EditLicenseDialog } from "./_authenticated/licenses";
 import { Button } from "@/components/ui/button";
@@ -118,11 +118,6 @@ function ResellerPublicPage() {
   const activeCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "active").length;
   const expiredCount = (licenses.data ?? []).filter((l) => computeStatus(l) === "expired").length;
   const totalCount = (licenses.data ?? []).length;
-  const sellerRanking = useMemo(
-    () => rankSellers(licenses.data ?? []).slice(0, 5),
-    [licenses.data],
-  );
-
   const revoke = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("licenses")
@@ -312,9 +307,6 @@ function ResellerPublicPage() {
             {remaining} restantes · {pct}%
           </div>
         </div>
-
-        {/* Ranking de vendedores */}
-        <SellerRankingCard rows={sellerRanking} />
 
         {/* Licenses toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
