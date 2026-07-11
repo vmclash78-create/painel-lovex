@@ -25,7 +25,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
   Activity, UserRound, Package, FileText, Pencil, RotateCcw,
-  CheckCircle2, FlaskConical, XCircle,
+  CheckCircle2, FlaskConical, XCircle, CalendarClock, MessageCircle,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
