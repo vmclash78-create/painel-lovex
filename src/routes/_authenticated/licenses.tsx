@@ -324,6 +324,7 @@ export function EditLicenseDialog({
     license.expires_at ? toLocalInput(license.expires_at) : "",
   );
   const [maxVersion, setMaxVersion] = useState<string>(license.max_version ?? "");
+  const [customerPhone, setCustomerPhone] = useState<string>(license.customer_phone ?? "");
   const [clearDevice, setClearDevice] = useState(false);
   const [resetSession, setResetSession] = useState(false);
 
@@ -336,6 +337,7 @@ export function EditLicenseDialog({
         max_devices: maxDevices,
         expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
         max_version: maxVersion.trim() ? maxVersion.trim() : null,
+        customer_phone: customerPhone.trim() ? customerPhone.trim() : null,
         updated_at: new Date().toISOString(),
       };
       if (clearDevice) {
@@ -371,6 +373,7 @@ export function EditLicenseDialog({
           setMaxDevices(license.max_devices ?? 1);
           setExpiresAt(license.expires_at ? toLocalInput(license.expires_at) : "");
           setMaxVersion(license.max_version ?? "");
+          setCustomerPhone(license.customer_phone ?? "");
           setClearDevice(false);
           setResetSession(false);
         }
@@ -412,6 +415,19 @@ export function EditLicenseDialog({
           <div className="space-y-2">
             <Label htmlFor="euname">Usuário</Label>
             <Input id="euname" value={userName} onChange={(e) => setUserName(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="ephone">Contato (WhatsApp)</Label>
+            <Input
+              id="ephone"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              placeholder="Ex: 5511999999999 (com DDI)"
+              inputMode="tel"
+            />
+            <p className="text-xs text-muted-foreground">
+              Use somente números com DDI + DDD. Facilita contato para renovação.
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
