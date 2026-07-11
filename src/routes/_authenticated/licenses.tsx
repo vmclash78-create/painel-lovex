@@ -625,7 +625,7 @@ function NewLicenseDialog() {
           Nova licença
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nova licença</DialogTitle>
           <DialogDescription>Gere uma nova chave de licença.</DialogDescription>
