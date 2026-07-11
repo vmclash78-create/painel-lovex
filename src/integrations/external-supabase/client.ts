@@ -34,6 +34,7 @@ export type License = {
   duration_minutes: number | null;
   reseller_id?: string | null;
   sold_by?: string | null;
+  max_version?: string | null;
 };
 
 export type Reseller = {

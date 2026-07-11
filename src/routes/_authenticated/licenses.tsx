@@ -126,6 +126,7 @@ function LicensesPage() {
                   <TableHead>Status</TableHead>
                   <TableHead>Expira em</TableHead>
                   <TableHead>Dispositivos</TableHead>
+                  <TableHead>Versão máx.</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -133,12 +134,12 @@ function LicensesPage() {
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell colSpan={7}><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell colSpan={8}><Skeleton className="h-6 w-full" /></TableCell>
                     </TableRow>
                   ))
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                    <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
                       Nenhuma licença encontrada.
                     </TableCell>
                   </TableRow>
@@ -160,6 +161,13 @@ function LicensesPage() {
                       <TableCell><StatusBadge status={computeStatus(l)} /></TableCell>
                       <TableCell className="text-sm">{formatDate(l.expires_at)}</TableCell>
                       <TableCell className="text-sm">{l.max_devices ?? 1}</TableCell>
+                      <TableCell className="text-xs font-mono">
+                        {l.max_version ? (
+                          <span className="rounded-md bg-muted px-1.5 py-0.5">{l.max_version}</span>
+                        ) : (
+                          <span className="text-muted-foreground">Todas</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <EditLicenseDialog license={l} />
@@ -228,6 +236,7 @@ export function EditLicenseDialog({
   const [expiresAt, setExpiresAt] = useState<string>(
     license.expires_at ? toLocalInput(license.expires_at) : "",
   );
+  const [maxVersion, setMaxVersion] = useState<string>(license.max_version ?? "");
   const [clearDevice, setClearDevice] = useState(false);
   const [resetSession, setResetSession] = useState(false);
 
@@ -239,6 +248,7 @@ export function EditLicenseDialog({
         status,
         max_devices: maxDevices,
         expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+        max_version: maxVersion.trim() ? maxVersion.trim() : null,
         updated_at: new Date().toISOString(),
       };
       if (clearDevice) {
@@ -273,6 +283,7 @@ export function EditLicenseDialog({
           setStatus(license.status ?? "active");
           setMaxDevices(license.max_devices ?? 1);
           setExpiresAt(license.expires_at ? toLocalInput(license.expires_at) : "");
+          setMaxVersion(license.max_version ?? "");
           setClearDevice(false);
           setResetSession(false);
         }
