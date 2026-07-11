@@ -138,7 +138,7 @@ function LicensesPage() {
             <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs">
               <div className="flex items-center gap-2 font-medium text-amber-700 dark:text-amber-400">
                 <BellRing className="h-4 w-4" aria-hidden />
-                {expiringSoon.length} licença(s) expiram em até 7 dias — hora de entrar em contato.
+                {expiringSoon.length} licença(s) expiram em até 15 dias — hora de entrar em contato.
               </div>
             </div>
           ) : null}
