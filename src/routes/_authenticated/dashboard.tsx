@@ -67,9 +67,13 @@ function DashboardPage() {
   const expiringSoon = useMemo(() => {
     const list = data ?? [];
     return list
-      .filter((l) => l.status !== "trial" && l.status !== "revoked" && l.expires_at)
+      .filter((l) => {
+        if (!l.expires_at) return false;
+        const s = computeStatus(l);
+        return s !== "trial" && s !== "revoked" && s !== "expired";
+      })
       .map((l) => ({ l, days: daysUntil(l.expires_at) }))
-      .filter((x) => x.days !== null && x.days >= 0 && x.days <= 7)
+      .filter((x) => x.days !== null && x.days >= 0 && x.days <= 15)
       .sort((a, b) => (a.days ?? 0) - (b.days ?? 0));
   }, [data]);
 
