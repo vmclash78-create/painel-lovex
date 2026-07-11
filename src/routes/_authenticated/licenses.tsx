@@ -365,6 +365,39 @@ export function EditLicenseDialog({
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="emaxver">Versão máxima permitida</Label>
+            <div className="flex gap-2">
+              <Input
+                id="emaxver"
+                value={maxVersion}
+                onChange={(e) => setMaxVersion(e.target.value)}
+                placeholder="ex: 1.9  (vazio = todas as versões)"
+                className="font-mono"
+              />
+              <Button type="button" variant="outline" size="sm" onClick={() => setMaxVersion("")}>
+                Liberar todas
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {["1.9", "2.0", "2.1"].map((v) => (
+                <Button
+                  key={v}
+                  type="button"
+                  variant={maxVersion === v ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setMaxVersion(v)}
+                >
+                  {v}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Bloqueia o uso em versões superiores. Deixe vazio para permitir qualquer versão.
+            </p>
+          </div>
+
           <div className="rounded-md border bg-muted/30 p-3 space-y-2">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Ações rápidas</p>
             <div className="text-xs text-muted-foreground">
@@ -431,6 +464,7 @@ function NewLicenseDialog() {
   const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
   const [maxDevices, setMaxDevices] = useState<number>(1);
   const [key, setKey] = useState<string>(generateLicenseKey());
+  const [maxVersion, setMaxVersion] = useState<string>("");
 
   const updateStatus = (nextStatus: NonNullable<License["status"]>) => {
     setStatus(nextStatus);
@@ -463,6 +497,7 @@ function NewLicenseDialog() {
         expires_at,
         max_devices: maxDevices,
         duration_minutes: days > 0 ? minutesTotal : null,
+        max_version: maxVersion.trim() ? maxVersion.trim() : null,
       });
       if (error) throw error;
     },
@@ -560,6 +595,16 @@ function NewLicenseDialog() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground">Use 0 para sem expiração. Trial = chave com tempo limitado.</p>
+          <div className="space-y-2">
+            <Label htmlFor="nmaxver">Versão máxima (opcional)</Label>
+            <Input
+              id="nmaxver"
+              value={maxVersion}
+              onChange={(e) => setMaxVersion(e.target.value)}
+              placeholder="ex: 1.9  (vazio = todas)"
+              className="font-mono"
+            />
+          </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button type="submit" disabled={create.isPending}>{create.isPending ? "Criando..." : "Criar"}</Button>
