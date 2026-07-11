@@ -18,6 +18,17 @@ import {
   PieChart, Pie, Cell,
 } from "recharts";
 
+function daysUntil(dateStr: string | null | undefined): number | null {
+  if (!dateStr) return null;
+  const t = new Date(dateStr).getTime();
+  if (Number.isNaN(t)) return null;
+  return Math.ceil((t - Date.now()) / 86_400_000);
+}
+
+function normalizePhoneDigits(v: string | null | undefined): string {
+  return (v ?? "").replace(/\D/g, "");
+}
+
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Licenças" }] }),
   component: DashboardPage,
