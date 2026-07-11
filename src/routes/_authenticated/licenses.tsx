@@ -258,6 +258,53 @@ function formatDate(iso: string | null) {
   }
 }
 
+function daysUntil(iso: string | null): number | null {
+  if (!iso) return null;
+  const diff = new Date(iso).getTime() - Date.now();
+  return Math.ceil(diff / 86_400_000);
+}
+
+function isExpiringSoon(l: License): boolean {
+  if (!l.expires_at) return false;
+  const status = computeStatus(l);
+  if (status === "revoked" || status === "expired" || status === "trial") return false;
+  const d = daysUntil(l.expires_at);
+  return d !== null && d >= 0 && d <= 7;
+}
+
+function normalizePhoneDigits(phone: string): string {
+  return phone.replace(/\D+/g, "");
+}
+
+function PhoneCell({
+  phone,
+  userName,
+  licenseKey,
+}: {
+  phone: string | null;
+  userName: string | null;
+  licenseKey: string;
+}) {
+  if (!phone) return <span className="text-muted-foreground">—</span>;
+  const digits = normalizePhoneDigits(phone);
+  const msg = encodeURIComponent(
+    `Olá ${userName ?? ""}, sua licença ${licenseKey} está próxima de expirar. Deseja renovar?`,
+  );
+  const href = `https://wa.me/${digits}?text=${msg}`;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400"
+      title="Abrir no WhatsApp"
+    >
+      <Phone className="h-3 w-3" aria-hidden />
+      {phone}
+    </a>
+  );
+}
+
 export function EditLicenseDialog({
   license,
   triggerLabel,
