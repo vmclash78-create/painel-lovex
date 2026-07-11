@@ -269,7 +269,7 @@ function isExpiringSoon(l: License): boolean {
   const status = computeStatus(l);
   if (status === "revoked" || status === "expired" || status === "trial") return false;
   const d = daysUntil(l.expires_at);
-  return d !== null && d >= 0 && d <= 7;
+  return d !== null && d >= 0 && d <= 15;
 }
 
 function normalizePhoneDigits(phone: string): string {
