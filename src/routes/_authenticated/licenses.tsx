@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound } from "lucide-react";
+import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
 
@@ -32,6 +32,12 @@ function LicensesPage() {
   const { data, isLoading } = useQuery(licensesQueryOptions);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [onlyExpiringSoon, setOnlyExpiringSoon] = useState(false);
+
+  const expiringSoon = useMemo(() => {
+    const list = data ?? [];
+    return list.filter((l) => isExpiringSoon(l));
+  }, [data]);
 
   const filtered = useMemo(() => {
     const list = data ?? [];
@@ -41,9 +47,10 @@ function LicensesPage() {
         l.license_key.toLowerCase().includes(search.toLowerCase()) ||
         (l.user_name ?? "").toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || computeStatus(l) === statusFilter;
-      return matchSearch && matchStatus;
+      const matchExpiring = !onlyExpiringSoon || isExpiringSoon(l);
+      return matchSearch && matchStatus && matchExpiring;
     });
-  }, [data, search, statusFilter]);
+  }, [data, search, statusFilter, onlyExpiringSoon]);
 
   const revoke = useMutation({
     mutationFn: async (id: string) => {
@@ -114,7 +121,27 @@ function LicensesPage() {
                 <SelectItem value="revoked">Revogadas</SelectItem>
               </SelectContent>
             </Select>
+            <Button
+              type="button"
+              variant={onlyExpiringSoon ? "default" : "outline"}
+              size="sm"
+              onClick={() => setOnlyExpiringSoon((v) => !v)}
+              className="gap-2"
+              aria-pressed={onlyExpiringSoon}
+            >
+              <BellRing className="h-4 w-4" aria-hidden />
+              Renovações ({expiringSoon.length})
+            </Button>
           </div>
+
+          {expiringSoon.length > 0 ? (
+            <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs">
+              <div className="flex items-center gap-2 font-medium text-amber-700 dark:text-amber-400">
+                <BellRing className="h-4 w-4" aria-hidden />
+                {expiringSoon.length} licença(s) expiram em até 7 dias — hora de entrar em contato.
+              </div>
+            </div>
+          ) : null}
 
           <div className="overflow-x-auto rounded-md border">
             <Table>
@@ -122,6 +149,7 @@ function LicensesPage() {
                 <TableRow>
                   <TableHead>Chave</TableHead>
                   <TableHead>Usuário</TableHead>
+                  <TableHead>Contato</TableHead>
                 <TableHead>Vendedor</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Expira em</TableHead>
@@ -134,12 +162,12 @@ function LicensesPage() {
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      <TableCell colSpan={8}><Skeleton className="h-6 w-full" /></TableCell>
+                      <TableCell colSpan={9}><Skeleton className="h-6 w-full" /></TableCell>
                     </TableRow>
                   ))
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
+                    <TableCell colSpan={9} className="py-8 text-center text-sm text-muted-foreground">
                       Nenhuma licença encontrada.
                     </TableCell>
                   </TableRow>
@@ -148,6 +176,9 @@ function LicensesPage() {
                     <TableRow key={l.id}>
                       <TableCell className="font-mono text-xs">{l.license_key}</TableCell>
                       <TableCell>{l.user_name ?? "—"}</TableCell>
+                      <TableCell className="text-xs">
+                        <PhoneCell phone={l.customer_phone ?? null} userName={l.user_name} licenseKey={l.license_key} />
+                      </TableCell>
                       <TableCell className="text-xs">
                         {l.sold_by ? (
                           <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-primary">
@@ -159,7 +190,16 @@ function LicensesPage() {
                         )}
                       </TableCell>
                       <TableCell><StatusBadge status={computeStatus(l)} /></TableCell>
-                      <TableCell className="text-sm">{formatDate(l.expires_at)}</TableCell>
+                      <TableCell className="text-sm">
+                        <div className="flex items-center gap-2">
+                          <span>{formatDate(l.expires_at)}</span>
+                          {isExpiringSoon(l) ? (
+                            <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">
+                              {daysUntil(l.expires_at)}d
+                            </span>
+                          ) : null}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-sm">{l.max_devices ?? 1}</TableCell>
                       <TableCell className="text-xs font-mono">
                         {l.max_version ? (
@@ -218,6 +258,53 @@ function formatDate(iso: string | null) {
   }
 }
 
+function daysUntil(iso: string | null): number | null {
+  if (!iso) return null;
+  const diff = new Date(iso).getTime() - Date.now();
+  return Math.ceil(diff / 86_400_000);
+}
+
+function isExpiringSoon(l: License): boolean {
+  if (!l.expires_at) return false;
+  const status = computeStatus(l);
+  if (status === "revoked" || status === "expired" || status === "trial") return false;
+  const d = daysUntil(l.expires_at);
+  return d !== null && d >= 0 && d <= 7;
+}
+
+function normalizePhoneDigits(phone: string): string {
+  return phone.replace(/\D+/g, "");
+}
+
+function PhoneCell({
+  phone,
+  userName,
+  licenseKey,
+}: {
+  phone: string | null;
+  userName: string | null;
+  licenseKey: string;
+}) {
+  if (!phone) return <span className="text-muted-foreground">—</span>;
+  const digits = normalizePhoneDigits(phone);
+  const msg = encodeURIComponent(
+    `Olá ${userName ?? ""}, sua licença ${licenseKey} está próxima de expirar. Deseja renovar?`,
+  );
+  const href = `https://wa.me/${digits}?text=${msg}`;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400"
+      title="Abrir no WhatsApp"
+    >
+      <Phone className="h-3 w-3" aria-hidden />
+      {phone}
+    </a>
+  );
+}
+
 export function EditLicenseDialog({
   license,
   triggerLabel,
@@ -237,6 +324,7 @@ export function EditLicenseDialog({
     license.expires_at ? toLocalInput(license.expires_at) : "",
   );
   const [maxVersion, setMaxVersion] = useState<string>(license.max_version ?? "");
+  const [customerPhone, setCustomerPhone] = useState<string>(license.customer_phone ?? "");
   const [clearDevice, setClearDevice] = useState(false);
   const [resetSession, setResetSession] = useState(false);
 
@@ -249,6 +337,7 @@ export function EditLicenseDialog({
         max_devices: maxDevices,
         expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
         max_version: maxVersion.trim() ? maxVersion.trim() : null,
+        customer_phone: customerPhone.trim() ? customerPhone.trim() : null,
         updated_at: new Date().toISOString(),
       };
       if (clearDevice) {
@@ -284,6 +373,7 @@ export function EditLicenseDialog({
           setMaxDevices(license.max_devices ?? 1);
           setExpiresAt(license.expires_at ? toLocalInput(license.expires_at) : "");
           setMaxVersion(license.max_version ?? "");
+          setCustomerPhone(license.customer_phone ?? "");
           setClearDevice(false);
           setResetSession(false);
         }
@@ -325,6 +415,19 @@ export function EditLicenseDialog({
           <div className="space-y-2">
             <Label htmlFor="euname">Usuário</Label>
             <Input id="euname" value={userName} onChange={(e) => setUserName(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="ephone">Contato (WhatsApp)</Label>
+            <Input
+              id="ephone"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              placeholder="Ex: 5511999999999 (com DDI)"
+              inputMode="tel"
+            />
+            <p className="text-xs text-muted-foreground">
+              Use somente números com DDI + DDD. Facilita contato para renovação.
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
@@ -465,6 +568,7 @@ function NewLicenseDialog() {
   const [maxDevices, setMaxDevices] = useState<number>(1);
   const [key, setKey] = useState<string>(generateLicenseKey());
   const [maxVersion, setMaxVersion] = useState<string>("");
+  const [customerPhone, setCustomerPhone] = useState<string>("");
 
   const updateStatus = (nextStatus: NonNullable<License["status"]>) => {
     setStatus(nextStatus);
@@ -498,6 +602,7 @@ function NewLicenseDialog() {
         max_devices: maxDevices,
         duration_minutes: days > 0 ? minutesTotal : null,
         max_version: maxVersion.trim() ? maxVersion.trim() : null,
+        customer_phone: customerPhone.trim() ? customerPhone.trim() : null,
       });
       if (error) throw error;
     },
@@ -507,6 +612,7 @@ function NewLicenseDialog() {
       setOpen(false);
       setKey(generateLicenseKey());
       setUserName("");
+      setCustomerPhone("");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -558,6 +664,16 @@ function NewLicenseDialog() {
           <div className="space-y-2">
             <Label htmlFor="uname">Usuário</Label>
             <Input id="uname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do usuário" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="uphone">Contato (WhatsApp)</Label>
+            <Input
+              id="uphone"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              placeholder="Ex: 5511999999999 (com DDI)"
+              inputMode="tel"
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
