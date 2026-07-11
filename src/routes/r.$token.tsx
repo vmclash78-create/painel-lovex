@@ -914,7 +914,7 @@ function NewResellerLicenseDialog({
           <span className="truncate">Nova licença</span>
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nova licença</DialogTitle>
           <DialogDescription>
@@ -1420,7 +1420,7 @@ function EditSecondLicenseDialog({ license, iconOnly = false }: { license: Secon
           {iconOnly ? null : "Editar"}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar licença Lovpro</DialogTitle>
           <DialogDescription className="font-mono text-xs break-all">{license.license_key}</DialogDescription>
@@ -1526,7 +1526,7 @@ function ResetSecondLicenseDialog({ license, iconOnly = false }: { license: Seco
           {iconOnly ? null : "Resetar"}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Resetar licença Lovpro</DialogTitle>
           <DialogDescription className="font-mono text-xs break-all">{license.license_key}</DialogDescription>
@@ -1624,7 +1624,7 @@ function NewLpLicenseDialog({
           <span className="truncate">Nova licença Lovpro</span>
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nova licença Lovpro</DialogTitle>
           <DialogDescription>
