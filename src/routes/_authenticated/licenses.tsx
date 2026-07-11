@@ -568,6 +568,7 @@ function NewLicenseDialog() {
   const [maxDevices, setMaxDevices] = useState<number>(1);
   const [key, setKey] = useState<string>(generateLicenseKey());
   const [maxVersion, setMaxVersion] = useState<string>("");
+  const [customerPhone, setCustomerPhone] = useState<string>("");
 
   const updateStatus = (nextStatus: NonNullable<License["status"]>) => {
     setStatus(nextStatus);
@@ -601,6 +602,7 @@ function NewLicenseDialog() {
         max_devices: maxDevices,
         duration_minutes: days > 0 ? minutesTotal : null,
         max_version: maxVersion.trim() ? maxVersion.trim() : null,
+        customer_phone: customerPhone.trim() ? customerPhone.trim() : null,
       });
       if (error) throw error;
     },
@@ -610,6 +612,7 @@ function NewLicenseDialog() {
       setOpen(false);
       setKey(generateLicenseKey());
       setUserName("");
+      setCustomerPhone("");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -661,6 +664,16 @@ function NewLicenseDialog() {
           <div className="space-y-2">
             <Label htmlFor="uname">Usuário</Label>
             <Input id="uname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do usuário" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="uphone">Contato (WhatsApp)</Label>
+            <Input
+              id="uphone"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              placeholder="Ex: 5511999999999 (com DDI)"
+              inputMode="tel"
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
