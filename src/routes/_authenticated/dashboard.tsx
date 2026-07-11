@@ -10,12 +10,24 @@ import { Button } from "@/components/ui/button";
 import {
   KeyRound, CheckCircle2, Clock, XCircle, AlertTriangle, Store,
   TrendingUp, Activity, ArrowUpRight, Sparkles, Trophy, Medal,
+  CalendarClock, MessageCircle,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
   PieChart, Pie, Cell,
 } from "recharts";
+
+function daysUntil(dateStr: string | null | undefined): number | null {
+  if (!dateStr) return null;
+  const t = new Date(dateStr).getTime();
+  if (Number.isNaN(t)) return null;
+  return Math.ceil((t - Date.now()) / 86_400_000);
+}
+
+function normalizePhoneDigits(v: string | null | undefined): string {
+  return (v ?? "").replace(/\D/g, "");
+}
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Licenças" }] }),
@@ -51,6 +63,15 @@ function DashboardPage() {
     () => (data ? rankSellers(data).slice(0, 6) : []),
     [data],
   );
+
+  const expiringSoon = useMemo(() => {
+    const list = data ?? [];
+    return list
+      .filter((l) => l.status !== "trial" && l.status !== "revoked" && l.expires_at)
+      .map((l) => ({ l, days: daysUntil(l.expires_at) }))
+      .filter((x) => x.days !== null && x.days >= 0 && x.days <= 7)
+      .sort((a, b) => (a.days ?? 0) - (b.days ?? 0));
+  }, [data]);
 
   return (
     <section className="space-y-6">
@@ -247,6 +268,80 @@ function DashboardPage() {
       </div>
 
       {/* Lista + revendas */}
+      <Card className="shadow-soft">
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <div className="flex items-center gap-2">
+            <CalendarClock className="h-4 w-4 text-amber-500" aria-hidden />
+            <CardTitle className="text-base">
+              Renovações próximas{" "}
+              <span className="text-xs font-normal text-muted-foreground">
+                (vencem em até 7 dias)
+              </span>
+            </CardTitle>
+          </div>
+          <Button asChild variant="ghost" size="sm" className="gap-1 text-xs text-muted-foreground hover:text-foreground">
+            <Link to="/licenses">
+              Ver todas <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : expiringSoon.length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              Nenhuma licença vencendo nos próximos 7 dias. 🎉
+            </p>
+          ) : (
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {expiringSoon.slice(0, 8).map(({ l, days }) => {
+                const phone = normalizePhoneDigits(l.customer_phone);
+                const msg = encodeURIComponent(
+                  `Olá${l.user_name ? ` ${l.user_name}` : ""}! Sua licença ${l.license_key} vence em ${days} dia${days === 1 ? "" : "s"}. Podemos já fazer sua renovação?`,
+                );
+                return (
+                  <li
+                    key={l.id}
+                    className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5"
+                  >
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                      <CalendarClock className="h-4 w-4" aria-hidden />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-mono text-xs">{l.license_key}</div>
+                      <div className="truncate text-xs text-muted-foreground">
+                        {l.user_name ?? "—"} ·{" "}
+                        <span className="font-medium text-amber-600 dark:text-amber-400">
+                          {days === 0 ? "vence hoje" : `${days}d restantes`}
+                        </span>
+                      </div>
+                    </div>
+                    {phone ? (
+                      <Button asChild size="sm" variant="outline" className="gap-1.5 h-8 border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400">
+                        <a
+                          href={`https://wa.me/${phone}?text=${msg}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" aria-hidden />
+                          WhatsApp
+                        </a>
+                      </Button>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground">sem contato</span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2 shadow-soft">
           <CardHeader className="flex-row items-center justify-between space-y-0">
