@@ -25,7 +25,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
   Activity, UserRound, Package, FileText, Pencil, RotateCcw,
-  CheckCircle2, FlaskConical, XCircle,
+  CheckCircle2, FlaskConical, XCircle, CalendarClock, MessageCircle,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
@@ -304,6 +304,18 @@ function ResellerPublicPage() {
 
   function MainPanelBody() {
     const r = reseller.data!;
+    const expiringSoon = (licenses.data ?? [])
+      .filter((l) => {
+        if (!l.expires_at) return false;
+        const s = computeStatus(l);
+        return s !== "trial" && s !== "revoked" && s !== "expired";
+      })
+      .map((l) => {
+        const diff = new Date(l.expires_at!).getTime() - Date.now();
+        return { l, days: Math.ceil(diff / 86_400_000) };
+      })
+      .filter((x) => x.days >= 0 && x.days <= 15)
+      .sort((a, b) => a.days - b.days);
     return (
       <>
         {/* Compact stats row */}
@@ -343,6 +355,76 @@ function ResellerPublicPage() {
 
         {/* Quota bar — premium */}
         <QuotaBar used={used} max={max} pct={pct} remaining={remaining} />
+
+        {/* Renovações próximas */}
+        <Card className="border-amber-500/30 bg-amber-500/[0.03]">
+          <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+            <div className="flex items-center gap-2">
+              <CalendarClock className="h-4 w-4 text-amber-500" aria-hidden />
+              <CardTitle className="text-sm">
+                Renovações próximas{" "}
+                <span className="text-xs font-normal text-muted-foreground">
+                  (vencem em até 15 dias){expiringSoon.length > 0 ? ` · ${expiringSoon.length}` : ""}
+                </span>
+              </CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {licenses.isLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : expiringSoon.length === 0 ? (
+              <p className="py-3 text-center text-xs text-muted-foreground">
+                Nenhuma licença vencendo nos próximos 15 dias. 🎉
+              </p>
+            ) : (
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {expiringSoon.map(({ l, days }) => {
+                  const phone = (l.customer_phone ?? "").replace(/\D+/g, "");
+                  const msg = encodeURIComponent(
+                    `Olá${l.user_name ? ` ${l.user_name}` : ""}! Sua licença ${l.license_key} vence em ${days} dia${days === 1 ? "" : "s"}. Podemos já fazer sua renovação?`,
+                  );
+                  return (
+                    <li
+                      key={l.id}
+                      className="flex items-center gap-2 rounded-lg border border-amber-500/25 bg-background/40 px-2.5 py-2"
+                    >
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                        <CalendarClock className="h-4 w-4" aria-hidden />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-mono text-[11px]">{l.license_key}</div>
+                        <div className="truncate text-[11px] text-muted-foreground">
+                          {l.user_name ?? "—"} ·{" "}
+                          <span className="font-medium text-amber-600 dark:text-amber-400">
+                            {days === 0 ? "vence hoje" : `${days}d restantes`}
+                          </span>
+                        </div>
+                      </div>
+                      {phone ? (
+                        <Button asChild size="sm" variant="outline" className="h-7 gap-1.5 border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400">
+                          <a
+                            href={`https://wa.me/${phone}?text=${msg}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <MessageCircle className="h-3.5 w-3.5" aria-hidden />
+                            <span className="text-xs">WhatsApp</span>
+                          </a>
+                        </Button>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground">sem contato</span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Licenses toolbar */}
         <div className="grid gap-2.5 sm:flex sm:items-center sm:gap-3">
