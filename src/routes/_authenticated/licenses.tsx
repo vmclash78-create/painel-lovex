@@ -138,7 +138,7 @@ function LicensesPage() {
             <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-3 text-xs">
               <div className="flex items-center gap-2 font-medium text-amber-700 dark:text-amber-400">
                 <BellRing className="h-4 w-4" aria-hidden />
-                {expiringSoon.length} licença(s) expiram em até 7 dias — hora de entrar em contato.
+                {expiringSoon.length} licença(s) expiram em até 15 dias — hora de entrar em contato.
               </div>
             </div>
           ) : null}
@@ -269,7 +269,7 @@ function isExpiringSoon(l: License): boolean {
   const status = computeStatus(l);
   if (status === "revoked" || status === "expired" || status === "trial") return false;
   const d = daysUntil(l.expires_at);
-  return d !== null && d >= 0 && d <= 7;
+  return d !== null && d >= 0 && d <= 15;
 }
 
 function normalizePhoneDigits(phone: string): string {

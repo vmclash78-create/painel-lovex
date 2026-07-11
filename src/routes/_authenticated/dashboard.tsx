@@ -67,9 +67,13 @@ function DashboardPage() {
   const expiringSoon = useMemo(() => {
     const list = data ?? [];
     return list
-      .filter((l) => l.status !== "trial" && l.status !== "revoked" && l.expires_at)
+      .filter((l) => {
+        if (!l.expires_at) return false;
+        const s = computeStatus(l);
+        return s !== "trial" && s !== "revoked" && s !== "expired";
+      })
       .map((l) => ({ l, days: daysUntil(l.expires_at) }))
-      .filter((x) => x.days !== null && x.days >= 0 && x.days <= 7)
+      .filter((x) => x.days !== null && x.days >= 0 && x.days <= 15)
       .sort((a, b) => (a.days ?? 0) - (b.days ?? 0));
   }, [data]);
 
@@ -275,7 +279,7 @@ function DashboardPage() {
             <CardTitle className="text-base">
               Renovações próximas{" "}
               <span className="text-xs font-normal text-muted-foreground">
-                (vencem em até 7 dias)
+                (vencem em até 15 dias){expiringSoon.length > 0 ? ` · ${expiringSoon.length}` : ""}
               </span>
             </CardTitle>
           </div>
@@ -294,11 +298,11 @@ function DashboardPage() {
             </div>
           ) : expiringSoon.length === 0 ? (
             <p className="py-4 text-center text-sm text-muted-foreground">
-              Nenhuma licença vencendo nos próximos 7 dias. 🎉
+              Nenhuma licença vencendo nos próximos 15 dias. 🎉
             </p>
           ) : (
             <ul className="grid gap-2 sm:grid-cols-2">
-              {expiringSoon.slice(0, 8).map(({ l, days }) => {
+              {expiringSoon.map(({ l, days }) => {
                 const phone = normalizePhoneDigits(l.customer_phone);
                 const msg = encodeURIComponent(
                   `Olá${l.user_name ? ` ${l.user_name}` : ""}! Sua licença ${l.license_key} vence em ${days} dia${days === 1 ? "" : "s"}. Podemos já fazer sua renovação?`,
