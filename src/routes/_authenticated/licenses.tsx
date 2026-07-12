@@ -22,6 +22,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
+import { useDb } from "@/contexts/db-context";
+import { LpLicensesPanel } from "@/components/lp-licenses-panel";
 
 const searchSchema = z.object({
   filter: z.enum(["expiring"]).optional(),
@@ -36,6 +38,8 @@ export const Route = createFileRoute("/_authenticated/licenses")({
 });
 
 function LicensesPage() {
+  const { db } = useDb();
+  if (db === "lp") return <LpLicensesPanel />;
   const qc = useQueryClient();
   const search = Route.useSearch();
   const { data, isLoading } = useQuery(licensesQueryOptions);
