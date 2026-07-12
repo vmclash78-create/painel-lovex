@@ -221,7 +221,7 @@ const TONE: Record<Tone, { icon: string; stroke: string; fill: string; grad: str
   },
 };
 
-function StatCard({
+export function StatCard({
   label,
   value,
   delta,
@@ -310,7 +310,7 @@ function DeltaChip({ delta }: { delta: { value: number; positiveIsGood: boolean 
 
 /* ---------------- avatar & ring ---------------- */
 
-function Avatar({ name }: { name: string }) {
+export function Avatar({ name }: { name: string }) {
   const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]!.toUpperCase()).join("") || "?";
   return (
     <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-neon-purple/60 to-neon-pink/60 text-xs font-bold text-primary-foreground">
@@ -319,7 +319,7 @@ function Avatar({ name }: { name: string }) {
   );
 }
 
-function RingPct({ pct }: { pct: number }) {
+export function RingPct({ pct }: { pct: number }) {
   const clamped = Math.max(0, Math.min(100, pct));
   const size = 36;
   const stroke = 4;
@@ -352,7 +352,7 @@ function RingPct({ pct }: { pct: number }) {
 
 /* ---------------- helpers ---------------- */
 
-function buildDailySeries(dates: Array<string | null | undefined>, days: number) {
+export function buildDailySeries(dates: Array<string | null | undefined>, days: number) {
   const buckets: { v: number }[] = Array.from({ length: days }, () => ({ v: 0 }));
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -383,7 +383,7 @@ function buildRevenueSeries(rows: Array<{ amount: number | null; paid_at: string
   return buckets;
 }
 
-function monthDelta(dates: Array<string | null | undefined>) {
+export function monthDelta(dates: Array<string | null | undefined>) {
   const now = new Date();
   const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
   const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
@@ -401,7 +401,7 @@ function monthDelta(dates: Array<string | null | undefined>) {
   return { value: pct, positiveIsGood: true };
 }
 
-function timeUntil(iso: string | null | undefined): string {
+export function timeUntil(iso: string | null | undefined): string {
   if (!iso) return "—";
   const diff = new Date(iso).getTime() - Date.now();
   if (diff <= 0) return "vencida";
@@ -414,7 +414,7 @@ function timeUntil(iso: string | null | undefined): string {
   return new Date(iso).toLocaleDateString("pt-BR");
 }
 
-function progressPct(activated: string | null | undefined, expires: string | null | undefined): number {
+export function progressPct(activated: string | null | undefined, expires: string | null | undefined): number {
   if (!expires) return 0;
   const now = Date.now();
   const exp = new Date(expires).getTime();
