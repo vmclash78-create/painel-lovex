@@ -4,6 +4,8 @@ import { useMemo } from "react";
 import { supabase } from "@/integrations/external-supabase/client";
 import { licensesQueryOptions, computeStatus } from "@/lib/licenses";
 import { resellersQueryOptions } from "@/lib/resellers";
+import { lpLicensesQueryOptions, computeLpStatus } from "@/lib/lp-licenses.hooks";
+import { useDb } from "@/contexts/db-context";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,8 +34,10 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function DashboardPage() {
-  const licenses = useQuery(licensesQueryOptions);
-  const resellers = useQuery(resellersQueryOptions);
+  const { db } = useDb();
+  const mainLicenses = useQuery({ ...licensesQueryOptions, enabled: db === "main" });
+  const lpLicenses = useQuery({ ...lpLicensesQueryOptions, enabled: db === "lp" });
+  const resellers = useQuery({ ...resellersQueryOptions, enabled: db === "main" });
   const revenue = useQuery({
     queryKey: ["reseller-purchases", "paid"],
     queryFn: async () => {
@@ -44,15 +48,42 @@ function DashboardPage() {
       if (error) throw error;
       return data ?? [];
     },
+    enabled: db === "main",
   });
 
-  const list = licenses.data ?? [];
+  const licensesLoading = db === "main" ? mainLicenses.isLoading : lpLicenses.isLoading;
+  // Normalize both shapes to a common minimum used here.
+  const list = useMemo(() => {
+    if (db === "lp") {
+      return (lpLicenses.data ?? []).map((l) => ({
+        id: l.id,
+        license_key: l.license_key,
+        user_name: l.user_name,
+        status: l.status,
+        expires_at: l.expires_at,
+        activated_at: l.activated_at,
+        created_at: l.created_at,
+        _status: computeLpStatus(l),
+      }));
+    }
+    return (mainLicenses.data ?? []).map((l) => ({
+      id: l.id,
+      license_key: l.license_key,
+      user_name: l.user_name,
+      status: l.status,
+      expires_at: l.expires_at,
+      activated_at: l.activated_at,
+      created_at: l.created_at,
+      _status: computeStatus(l),
+    }));
+  }, [db, mainLicenses.data, lpLicenses.data]);
+
   const stats = useMemo(() => {
     const now = Date.now();
     const inSevenDays = now + 7 * 86_400_000;
     const expiring = list.filter((l) => {
       if (!l.expires_at) return false;
-      if (computeStatus(l) !== "active") return false;
+      if (l._status !== "active") return false;
       const t = new Date(l.expires_at).getTime();
       return t >= now && t <= inSevenDays;
     });
@@ -66,6 +97,7 @@ function DashboardPage() {
   }, [list]);
 
   const totalRevenue = (revenue.data ?? []).reduce((s, r) => s + Number(r.amount ?? 0), 0);
+  const isLp = db === "lp";
 
   return (
     <section className="space-y-6">
@@ -77,7 +109,7 @@ function DashboardPage() {
           series={buildDailySeries(list.map((l) => l.created_at), 14)}
           icon={KeyRound}
           tone="purple"
-          loading={licenses.isLoading}
+          loading={licensesLoading}
         />
         <StatCard
           label="Expirando em 7 dias"
@@ -86,9 +118,10 @@ function DashboardPage() {
           series={buildDailySeries(list.map((l) => l.expires_at), 14)}
           icon={Clock}
           tone="orange"
-          loading={licenses.isLoading}
+          loading={licensesLoading}
         />
-        <StatCard
+        {!isLp ? (
+          <StatCard
           label="Revendedores"
           value={(resellers.data?.length ?? 0).toString()}
           delta={{ value: 5, positiveIsGood: true }}
@@ -96,8 +129,10 @@ function DashboardPage() {
           icon={Users}
           tone="cyan"
           loading={resellers.isLoading}
-        />
-        <StatCard
+          />
+        ) : null}
+        {!isLp ? (
+          <StatCard
           label="Receita total"
           value={totalRevenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
           delta={monthDelta((revenue.data ?? []).map((r) => r.paid_at ?? r.created_at))}
@@ -105,7 +140,8 @@ function DashboardPage() {
           icon={Wallet}
           tone="pink"
           loading={revenue.isLoading}
-        />
+          />
+        ) : null}
       </div>
 
       <Card className="border-border/60 shadow-soft">
@@ -114,7 +150,9 @@ function DashboardPage() {
             <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-neon-orange/15 text-neon-orange">
               <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
             </span>
-            <h2 className="truncate text-sm font-semibold">Keys próximas de expirar</h2>
+            <h2 className="truncate text-sm font-semibold">
+              Keys próximas de expirar {isLp ? "(LP)" : "(Principal)"}
+            </h2>
           </div>
           <Button asChild variant="ghost" size="sm" className="gap-1 text-xs text-muted-foreground hover:text-foreground">
             <Link to="/licenses" search={{ filter: "expiring" }}>
@@ -123,7 +161,7 @@ function DashboardPage() {
           </Button>
         </div>
         <CardContent className="p-2 sm:p-3">
-          {licenses.isLoading ? (
+          {licensesLoading ? (
             <div className="space-y-2 py-2">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Skeleton key={i} className="h-14 w-full" />
