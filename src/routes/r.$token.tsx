@@ -9,6 +9,14 @@ import {
 } from "@/lib/reseller-auth.functions";
 import { computeStatus, generateLicenseKey, isTrialLicense } from "@/lib/licenses";
 import { StatusBadge } from "./_authenticated/dashboard";
+import {
+  StatCard,
+  Avatar as DashAvatar,
+  RingPct,
+  buildDailySeries,
+  timeUntil,
+  progressPct,
+} from "./_authenticated/dashboard";
 import { EditLicenseDialog } from "./_authenticated/licenses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +38,7 @@ import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
   Activity, UserRound, Package, FileText, Pencil, RotateCcw,
   CheckCircle2, FlaskConical, XCircle, CalendarClock, MessageCircle,
+  Clock, AlertTriangle, ArrowUpRight, Wallet,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
