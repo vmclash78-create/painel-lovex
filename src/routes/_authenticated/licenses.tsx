@@ -40,6 +40,10 @@ export const Route = createFileRoute("/_authenticated/licenses")({
 function LicensesPage() {
   const { db } = useDb();
   if (db === "lp") return <LpLicensesPanel />;
+  return <MainLicensesPage />;
+}
+
+function MainLicensesPage() {
   const qc = useQueryClient();
   const search = Route.useSearch();
   const { data, isLoading } = useQuery(licensesQueryOptions);
