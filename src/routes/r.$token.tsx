@@ -1141,37 +1141,39 @@ function LpPanel({
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-        <GradientStatCard
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4">
+        <StatCard
           label="Total Lovpro"
-          description="Todas as licenças Lovpro"
-          value={list.length}
-          tone="primary"
-          icon={<FileText className="h-4 w-4" aria-hidden />}
+          value={list.length.toLocaleString("pt-BR")}
+          series={buildDailySeries(list.map((l) => l.created_at), 14)}
+          icon={FileText}
+          tone="purple"
+          loading={q.isLoading}
         />
-        <GradientStatCard
+        <StatCard
           label="Ativas"
-          description="Licenças Lovpro ativas"
-          value={active}
-          tone="emerald"
-          percent={list.length > 0 ? Math.round((active / list.length) * 100) : 0}
-          icon={<CheckCircle2 className="h-4 w-4" aria-hidden />}
+          value={active.toString()}
+          delta={{ value: list.length > 0 ? Math.round((active / list.length) * 100) : 0, positiveIsGood: true }}
+          series={buildDailySeries(list.filter((l) => l.status === "active").map((l) => l.activated_at ?? l.created_at), 14)}
+          icon={CheckCircle2}
+          tone="cyan"
+          loading={q.isLoading}
         />
-        <GradientStatCard
+        <StatCard
           label="Trials"
-          description="Lovpro em período de teste"
-          value={trials}
-          tone="amber"
-          percent={list.length > 0 ? Math.round((trials / list.length) * 100) : 0}
-          icon={<FlaskConical className="h-4 w-4" aria-hidden />}
+          value={trials.toString()}
+          series={buildDailySeries(list.filter((l) => l.status === "trial").map((l) => l.created_at), 14)}
+          icon={FlaskConical}
+          tone="orange"
+          loading={q.isLoading}
         />
-        <GradientStatCard
+        <StatCard
           label="Expiradas"
-          description="Licenças Lovpro expiradas"
-          value={expired}
-          tone="rose"
-          percent={list.length > 0 ? Math.round((expired / list.length) * 100) : 0}
-          icon={<XCircle className="h-4 w-4" aria-hidden />}
+          value={expired.toString()}
+          series={buildDailySeries(list.filter((l) => l.status === "expired").map((l) => l.expires_at), 14)}
+          icon={XCircle}
+          tone="pink"
+          loading={q.isLoading}
         />
       </div>
 
