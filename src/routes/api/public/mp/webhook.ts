@@ -21,14 +21,22 @@ export const Route = createFileRoute("/api/public/mp/webhook")({
 
           // ---- signature verification (MercadoPago) ----
           const webhookSecret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
-          if (webhookSecret && xSignature) {
+          if (!webhookSecret) {
+            // Fail closed: refuse to process webhooks when the secret is not configured.
+            console.error("[mp webhook] MERCADOPAGO_WEBHOOK_SECRET is not configured");
+            return new Response("Webhook secret not configured", { status: 500 });
+          }
+          {
+            if (!xSignature || !xRequestId) {
+              return new Response("Missing signature headers", { status: 401 });
+            }
             const parts = Object.fromEntries(
               xSignature.split(",").map((p) => p.trim().split("=").map((s) => s.trim()) as [string, string]),
             );
             const ts = parts.ts;
             const v1 = parts.v1;
-            if (!ts || !v1 || !dataId || !xRequestId) {
-              return new Response("Bad signature payload", { status: 400 });
+            if (!ts || !v1 || !dataId) {
+              return new Response("Bad signature payload", { status: 401 });
             }
             const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
             const expected = createHmac("sha256", webhookSecret).update(manifest).digest("hex");
