@@ -405,7 +405,9 @@ export function timeUntil(iso: string | null | undefined): string {
   if (!iso) return "—";
   const diff = new Date(iso).getTime() - Date.now();
   if (diff <= 0) return "vencida";
-  const m = Math.floor(diff / 60_000);
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
   if (m < 60) return `${m}m`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ${m % 60}m`;
