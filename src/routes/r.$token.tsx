@@ -566,11 +566,12 @@ function ResellerPublicPage() {
                     <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
                     Copiar
                   </Button>
-                  <EditLicenseDialog license={l} triggerLabel="Editar" triggerClassName="h-8 justify-center gap-1.5 px-2 text-xs" />
+                  <EditLicenseDialog license={l} triggerLabel="Editar" triggerVariant="outline" triggerClassName="h-8 justify-center gap-1.5 px-2 text-xs" />
                   <ResetLicenseDialog
                     license={l}
                     resellerId={reseller.data!.id}
                     triggerLabel="Resetar"
+                    triggerVariant="outline"
                     triggerClassName="h-8 justify-center gap-1.5 px-2 text-xs"
                     invalidateKeys={[
                       ["reseller-licenses", reseller.data!.id],
@@ -578,7 +579,7 @@ function ResellerPublicPage() {
                     ]}
                   />
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     className="h-8 justify-center gap-1.5 px-2 text-xs"
                     disabled={l.status === "revoked" || revoke.isPending}
@@ -589,9 +590,9 @@ function ResellerPublicPage() {
                     Bloquear
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="col-span-2 h-8 justify-center gap-1.5 px-2 text-xs text-destructive"
+                    className="col-span-2 h-8 justify-center gap-1.5 px-2 text-xs border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
                     disabled={remove.isPending}
                     onClick={() => {
                       if (confirm("Remover esta licença?")) remove.mutate(l.id);
