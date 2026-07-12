@@ -9,6 +9,8 @@ import {
   type SecondLicense,
 } from "@/lib/second-licenses.functions";
 
+export type { SecondLicense };
+
 type CreateInput = {
   license_key: string;
   user_name?: string;
