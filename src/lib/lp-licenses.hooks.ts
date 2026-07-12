@@ -9,6 +9,30 @@ import {
   type SecondLicense,
 } from "@/lib/second-licenses.functions";
 
+type CreateInput = {
+  license_key: string;
+  user_name?: string;
+  status?: "active" | "trial" | "expired" | "revoked" | "paused" | "inactive";
+  expires_at?: string | null;
+  max_devices?: number;
+  duration_minutes?: number | null;
+  reseller_id?: string | null;
+  sold_by?: string | null;
+};
+
+type UpdateInput = {
+  id: string;
+  license_key?: string;
+  status?: "active" | "trial" | "expired" | "revoked" | "paused" | "inactive";
+  expires_at?: string | null;
+  user_name?: string;
+  max_devices?: number;
+  device_id?: string | null;
+  activated_at?: string | null;
+  session_id?: string | null;
+  is_active?: boolean;
+};
+
 // Query options for LP licenses (all rows).
 // Uses the server fn directly; auth headers are attached client-side.
 export const lpLicensesQueryOptions = queryOptions({
@@ -33,11 +57,11 @@ export function useLpMutations() {
 
   return {
     create: useMutation({
-      mutationFn: (data: Parameters<typeof createFn>[0]["data"]) => createFn({ data }),
+      mutationFn: (data: CreateInput) => createFn({ data }),
       onSuccess: invalidate,
     }),
     update: useMutation({
-      mutationFn: (data: Parameters<typeof updateFn>[0]["data"]) => updateFn({ data }),
+      mutationFn: (data: UpdateInput) => updateFn({ data }),
       onSuccess: invalidate,
     }),
     revoke: useMutation({
