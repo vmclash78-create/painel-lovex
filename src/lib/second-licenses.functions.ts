@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { requireSecondAuth } from "./second-auth.middleware";
 
 export type SecondLicense = {
   id: string;
@@ -19,8 +20,12 @@ export type SecondLicense = {
   sold_by: string | null;
 };
 
-export const listSecondLicenses = createServerFn({ method: "GET" }).handler(
-  async (): Promise<SecondLicense[]> => {
+export const listSecondLicenses = createServerFn({ method: "GET" })
+  .middleware([requireSecondAuth])
+  .handler(async ({ context }): Promise<SecondLicense[]> => {
+    if (!context.isAdmin) {
+      throw new Response("Forbidden", { status: 403 });
+    }
     const { getSecondAdmin } = await import("./second-supabase.server");
     const supabase = getSecondAdmin();
     const { data, error } = await supabase
@@ -29,12 +34,15 @@ export const listSecondLicenses = createServerFn({ method: "GET" }).handler(
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return (data ?? []) as SecondLicense[];
-  },
-);
+  });
 
 export const listSecondLicensesByReseller = createServerFn({ method: "POST" })
+  .middleware([requireSecondAuth])
   .inputValidator((input: unknown) => z.object({ reseller_id: z.string().uuid() }).parse(input))
-  .handler(async ({ data }): Promise<SecondLicense[]> => {
+  .handler(async ({ data, context }): Promise<SecondLicense[]> => {
+    if (!context.isAdmin && context.resellerId !== data.reseller_id) {
+      throw new Response("Forbidden", { status: 403 });
+    }
     const { getSecondAdmin } = await import("./second-supabase.server");
     const supabase = getSecondAdmin();
     const { data: rows, error } = await supabase
@@ -58,8 +66,15 @@ const createSchema = z.object({
 });
 
 export const createSecondLicense = createServerFn({ method: "POST" })
+  .middleware([requireSecondAuth])
   .inputValidator((input: unknown) => createSchema.parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    if (!context.isAdmin) {
+      // Non-admins may only create licenses within their own reseller scope.
+      if (!context.resellerId || data.reseller_id !== context.resellerId) {
+        throw new Response("Forbidden", { status: 403 });
+      }
+    }
     const { getSecondAdmin } = await import("./second-supabase.server");
     const supabase = getSecondAdmin();
     const { error } = await supabase.from("licenses").insert({
@@ -77,6 +92,7 @@ export const createSecondLicense = createServerFn({ method: "POST" })
   });
 
 export const updateSecondLicense = createServerFn({ method: "POST" })
+  .middleware([requireSecondAuth])
   .inputValidator((input: unknown) =>
     z.object({
       id: z.string().uuid(),
@@ -91,9 +107,16 @@ export const updateSecondLicense = createServerFn({ method: "POST" })
       is_active: z.boolean().optional(),
     }).parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { getSecondAdmin } = await import("./second-supabase.server");
     const supabase = getSecondAdmin();
+    if (!context.isAdmin) {
+      const { data: row } = await supabase
+        .from("licenses").select("reseller_id").eq("id", data.id).maybeSingle();
+      if (!row || row.reseller_id !== context.resellerId) {
+        throw new Response("Forbidden", { status: 403 });
+      }
+    }
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
     if (data.license_key !== undefined) patch.license_key = data.license_key;
     if (data.status !== undefined) patch.status = data.status;
@@ -110,10 +133,18 @@ export const updateSecondLicense = createServerFn({ method: "POST" })
   });
 
 export const revokeSecondLicense = createServerFn({ method: "POST" })
+  .middleware([requireSecondAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { getSecondAdmin } = await import("./second-supabase.server");
     const supabase = getSecondAdmin();
+    if (!context.isAdmin) {
+      const { data: row } = await supabase
+        .from("licenses").select("reseller_id").eq("id", data.id).maybeSingle();
+      if (!row || row.reseller_id !== context.resellerId) {
+        throw new Response("Forbidden", { status: 403 });
+      }
+    }
     const { error } = await supabase
       .from("licenses")
       .update({ status: "revoked", is_active: false, updated_at: new Date().toISOString() })
@@ -123,10 +154,18 @@ export const revokeSecondLicense = createServerFn({ method: "POST" })
   });
 
 export const deleteSecondLicense = createServerFn({ method: "POST" })
+  .middleware([requireSecondAuth])
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { getSecondAdmin } = await import("./second-supabase.server");
     const supabase = getSecondAdmin();
+    if (!context.isAdmin) {
+      const { data: row } = await supabase
+        .from("licenses").select("reseller_id").eq("id", data.id).maybeSingle();
+      if (!row || row.reseller_id !== context.resellerId) {
+        throw new Response("Forbidden", { status: 403 });
+      }
+    }
     const { error } = await supabase.from("licenses").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
