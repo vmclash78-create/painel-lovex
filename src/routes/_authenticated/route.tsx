@@ -41,22 +41,14 @@ function AuthedLayout() {
     let cancelled = false;
     supabase.auth.getSession().then(({ data }) => {
       if (cancelled) return;
-      if (!data.session) {
-        navigate({ to: "/auth", replace: true });
-        return;
-      }
-      setEmail(data.session.user.email ?? null);
+      setEmail(data.session?.user.email ?? null);
       setAuthed(true);
       setChecked(true);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
       if (cancelled) return;
-      if (!session) {
-        setAuthed(false);
-        navigate({ to: "/auth", replace: true });
-      } else {
-        setEmail(session.user.email ?? null);
-      }
+      setEmail(session?.user.email ?? null);
+      setAuthed(true);
     });
     return () => {
       cancelled = true;
