@@ -283,9 +283,9 @@ function ResellerPublicPage() {
                   value="main"
                   className="h-9 min-w-0 gap-1.5 rounded-full px-2 text-xs sm:gap-2 sm:px-4 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
                 >
-                  <Package className="h-3.5 w-3.5" aria-hidden />
-                  LoveX
-                  <span className="ml-1 rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
+                  <Package className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  <span className="truncate">LoveX</span>
+                  <span className="ml-1 shrink-0 rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
                     {r.max_keys}
                   </span>
                 </TabsTrigger>
@@ -293,9 +293,9 @@ function ResellerPublicPage() {
                   value="lp"
                   className="h-9 min-w-0 gap-1.5 rounded-full px-2 text-xs sm:gap-2 sm:px-4 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
                 >
-                  <Package className="h-3.5 w-3.5" aria-hidden />
-                  Lovpro
-                  <span className="ml-1 rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
+                  <Package className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  <span className="truncate">Lovpro</span>
+                  <span className="ml-1 shrink-0 rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
                     {r.max_keys_lp ?? 0}
                   </span>
                 </TabsTrigger>
