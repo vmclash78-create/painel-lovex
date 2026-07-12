@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { DbSwitcher } from "@/components/db-switcher";
+import { DbProvider, useDb } from "@/contexts/db-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,18 +22,45 @@ export const Route = createFileRoute("/_authenticated")({
   component: AuthedLayout,
 });
 
-const PAGE_META: Record<string, { title: string; subtitle: string }> = {
-  "/dashboard": { title: "Dashboard Principal", subtitle: "Visão geral do banco Principal — sistema completo" },
-  "/licenses": { title: "Keys", subtitle: "Gerenciamento completo de licenças" },
-  "/resellers": { title: "Revendedores", subtitle: "Parceiros e cotas de revenda" },
-  "/second-panel": { title: "Banco LP", subtitle: "Licenças isoladas do Second Supabase" },
-  "/logs": { title: "Logs & Auditoria", subtitle: "Transações, compras e movimentações" },
-  "/settings": { title: "Configurações", subtitle: "Sessão e preferências do painel" },
+const PAGE_META: Record<string, { main: { title: string; subtitle: string }; lp: { title: string; subtitle: string } }> = {
+  "/dashboard": {
+    main: { title: "Dashboard Principal", subtitle: "Visão geral do banco Principal — sistema completo" },
+    lp: { title: "Dashboard LP", subtitle: "Visão geral do banco LP — dados isolados" },
+  },
+  "/licenses": {
+    main: { title: "Keys — Principal", subtitle: "Gerenciamento de licenças do banco Principal" },
+    lp: { title: "Keys — LP", subtitle: "Gerenciamento de licenças do banco LP" },
+  },
+  "/resellers": {
+    main: { title: "Revendedores", subtitle: "Parceiros e cotas de revenda" },
+    lp: { title: "Revendedores", subtitle: "Parceiros e cotas de revenda" },
+  },
+  "/second-panel": {
+    main: { title: "Banco LP", subtitle: "Licenças isoladas do Second Supabase" },
+    lp: { title: "Banco LP", subtitle: "Licenças isoladas do Second Supabase" },
+  },
+  "/logs": {
+    main: { title: "Logs & Auditoria", subtitle: "Transações, compras e movimentações" },
+    lp: { title: "Logs & Auditoria", subtitle: "Transações, compras e movimentações" },
+  },
+  "/settings": {
+    main: { title: "Configurações", subtitle: "Sessão e preferências do painel" },
+    lp: { title: "Configurações", subtitle: "Sessão e preferências do painel" },
+  },
 };
 
 function AuthedLayout() {
+  return (
+    <DbProvider>
+      <AuthedLayoutInner />
+    </DbProvider>
+  );
+}
+
+function AuthedLayoutInner() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+  const { db } = useDb();
   const [checked, setChecked] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [email, setEmail] = useState<string | null>(null);
@@ -73,7 +101,8 @@ function AuthedLayout() {
     );
   }
 
-  const meta = PAGE_META[pathname] ?? { title: "Painel", subtitle: "" };
+  const metaEntry = PAGE_META[pathname];
+  const meta = metaEntry ? metaEntry[db] : { title: "Painel", subtitle: "" };
   const initials = (email ?? "V T").split(/[\s@.]/).filter(Boolean).slice(0, 2).map((s) => s[0]!.toUpperCase()).join("") || "VT";
 
   return (

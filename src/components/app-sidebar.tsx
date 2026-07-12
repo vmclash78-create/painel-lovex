@@ -7,7 +7,6 @@ import {
   Clock,
   Ban,
   Users,
-  Database,
   ScrollText,
   Settings,
   Sparkles,
@@ -28,6 +27,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { licensesQueryOptions, computeStatus } from "@/lib/licenses";
+import { lpLicensesQueryOptions, computeLpStatus } from "@/lib/lp-licenses.hooks";
+import { useDb } from "@/contexts/db-context";
 
 type Item = {
   label: string;
@@ -49,19 +50,22 @@ const resellers: Item[] = [
 ];
 
 const system: Item[] = [
-  { label: "Banco Principal", to: "/dashboard", icon: Database },
-  { label: "Banco LP", to: "/second-panel", icon: Database },
   { label: "Logs", to: "/logs", icon: ScrollText },
   { label: "Configurações", to: "/settings", icon: Settings },
 ];
 
 function useExpiringCount(): number {
-  const { data } = useQuery(licensesQueryOptions);
+  const { db } = useDb();
+  const main = useQuery({ ...licensesQueryOptions, enabled: db === "main" });
+  const lp = useQuery({ ...lpLicensesQueryOptions, enabled: db === "lp" });
+  const data = db === "lp" ? lp.data : main.data;
   if (!data) return 0;
   const soon = Date.now() + 7 * 86_400_000;
-  return data.filter((l) => {
+  return (data as Array<{ expires_at: string | null; status: string | null }>).filter((l) => {
     if (!l.expires_at) return false;
-    const s = computeStatus(l);
+    const s = db === "lp"
+      ? computeLpStatus(l as Parameters<typeof computeLpStatus>[0])
+      : computeStatus(l as Parameters<typeof computeStatus>[0]);
     if (s !== "active") return false;
     const t = new Date(l.expires_at).getTime();
     return !Number.isNaN(t) && t <= soon && t >= Date.now();
