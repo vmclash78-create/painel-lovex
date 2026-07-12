@@ -1266,7 +1266,7 @@ function LpPanel({
                 <EditSecondLicenseDialog license={l} />
                 <ResetSecondLicenseDialog license={l} />
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   className="h-8 justify-center gap-1.5 px-2 text-xs"
                   disabled={l.status === "revoked" || revoke.isPending}
@@ -1277,9 +1277,9 @@ function LpPanel({
                   Bloquear
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  className="h-8 justify-center gap-1.5 px-2 text-xs text-destructive"
+                  className="h-8 justify-center gap-1.5 px-2 text-xs border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
                   disabled={remove.isPending}
                   onClick={() => {
                     if (confirm("Remover esta licença Lovpro?")) remove.mutate(l.id);
