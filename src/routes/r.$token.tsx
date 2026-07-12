@@ -229,32 +229,26 @@ function ResellerPublicPage() {
 
   return (
     <div className="min-h-dvh bg-background relative">
-      {/* Subtle dot grid background */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 opacity-[0.35] [background-image:radial-gradient(color-mix(in_oklab,var(--foreground)_8%,transparent)_1px,transparent_1px)] [background-size:22px_22px]"
-      />
-      {/* Hero */}
-      <header className="relative border-b border-border/50">
-        <div className="relative mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:flex sm:justify-between sm:px-5 sm:py-5 sm:gap-4">
+      {/* Top bar — same brand treatment as admin dashboard */}
+      <header className="sticky top-0 z-20 border-b border-sidebar-border bg-sidebar/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border/60 bg-card text-primary">
-              <KeyRound className="h-4.5 w-4.5" aria-hidden />
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary-glow text-primary-foreground shadow-neon">
+              <KeyRound className="h-4 w-4" aria-hidden />
             </div>
             <div className="min-w-0 leading-tight">
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                 Painel de Revenda
               </p>
-              <h1 className="mt-1 flex items-center gap-2 text-lg font-semibold tracking-tight">
-                <span className="text-muted-foreground font-normal">{getGreeting()},</span>
-                <span className="truncate text-foreground">{reseller.data.name}</span>
+              <h1 className="mt-0.5 truncate text-base font-bold tracking-tight sm:text-lg">
+                {getGreeting()}, <span className="text-primary">{reseller.data.name}</span>
               </h1>
             </div>
           </div>
           {reseller.data.active ? (
-            <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[11px] font-medium text-emerald-600 dark:text-emerald-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Ativa
+            <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full border border-neon-lime/30 bg-neon-lime/10 text-[11px] font-medium text-neon-lime">
+              <span className="h-1.5 w-1.5 rounded-full bg-neon-lime" />
+              Sessão ativa
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full border border-destructive/30 bg-destructive/5 text-[11px] font-medium text-destructive">
