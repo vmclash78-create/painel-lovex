@@ -1,596 +1,183 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { licensesQueryOptions, computeStatus, rankSellers } from "@/lib/licenses";
+import { supabase } from "@/integrations/external-supabase/client";
+import { licensesQueryOptions, computeStatus } from "@/lib/licenses";
 import { resellersQueryOptions } from "@/lib/resellers";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  KeyRound, CheckCircle2, Clock, XCircle, AlertTriangle, Store,
-  TrendingUp, Activity, ArrowUpRight, Sparkles, Trophy, Medal,
-  CalendarClock, MessageCircle,
-} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid,
-  PieChart, Pie, Cell,
+  KeyRound,
+  Clock,
+  Users,
+  Wallet,
+  AlertTriangle,
+  ArrowUpRight,
+  ArrowDownRight,
+} from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  Tooltip,
+  LineChart,
+  Line,
 } from "recharts";
 
-function daysUntil(dateStr: string | null | undefined): number | null {
-  if (!dateStr) return null;
-  const t = new Date(dateStr).getTime();
-  if (Number.isNaN(t)) return null;
-  return Math.ceil((t - Date.now()) / 86_400_000);
-}
-
-function normalizePhoneDigits(v: string | null | undefined): string {
-  return (v ?? "").replace(/\D/g, "");
-}
-
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — Licenças" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — LoveX" }] }),
   component: DashboardPage,
 });
 
 function DashboardPage() {
-  const { data, isLoading, error } = useQuery(licensesQueryOptions);
+  const licenses = useQuery(licensesQueryOptions);
   const resellers = useQuery(resellersQueryOptions);
+  const revenue = useQuery({
+    queryKey: ["reseller-purchases", "paid"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("reseller_purchases")
+        .select("amount, paid_at, created_at, status")
+        .eq("status", "paid");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
+  const list = licenses.data ?? [];
   const stats = useMemo(() => {
-    const list = data ?? [];
-    const by = (s: string) => list.filter((l) => computeStatus(l) === s).length;
+    const now = Date.now();
+    const inSevenDays = now + 7 * 86_400_000;
+    const expiring = list.filter((l) => {
+      if (!l.expires_at) return false;
+      if (computeStatus(l) !== "active") return false;
+      const t = new Date(l.expires_at).getTime();
+      return t >= now && t <= inSevenDays;
+    });
     return {
       total: list.length,
-      active: by("active"),
-      trial: by("trial"),
-      expired: by("expired"),
-      revoked: by("revoked"),
+      expiring: expiring.length,
+      expiringList: expiring
+        .sort((a, b) => new Date(a.expires_at!).getTime() - new Date(b.expires_at!).getTime())
+        .slice(0, 5),
     };
-  }, [data]);
+  }, [list]);
 
-  const trend = useMemo(() => buildTrend(data ?? []), [data]);
-  const distribution = useMemo(() => [
-    { name: "Ativas", value: stats.active, color: "oklch(0.68 0.18 245)" },
-    { name: "Trial", value: stats.trial, color: "oklch(0.78 0.14 235)" },
-    { name: "Expiradas", value: stats.expired, color: "oklch(0.75 0.15 85)" },
-    { name: "Revogadas", value: stats.revoked, color: "oklch(0.65 0.21 25)" },
-  ].filter((d) => d.value > 0), [stats]);
-
-  const activeRate = stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0;
-  const topSellers = useMemo(
-    () => (data ? rankSellers(data).slice(0, 6) : []),
-    [data],
-  );
-
-  const expiringSoon = useMemo(() => {
-    const list = data ?? [];
-    return list
-      .filter((l) => {
-        if (!l.expires_at) return false;
-        const s = computeStatus(l);
-        return s !== "trial" && s !== "revoked" && s !== "expired";
-      })
-      .map((l) => ({ l, days: daysUntil(l.expires_at) }))
-      .filter((x) => x.days !== null && x.days >= 0 && x.days <= 15)
-      .sort((a, b) => (a.days ?? 0) - (b.days ?? 0));
-  }, [data]);
+  const totalRevenue = (revenue.data ?? []).reduce((s, r) => s + Number(r.amount ?? 0), 0);
 
   return (
     <section className="space-y-6">
-      {/* Hero header */}
-      <header className="relative overflow-hidden rounded-2xl border border-border/60 bg-[var(--gradient-surface)] p-4 shadow-soft sm:rounded-3xl sm:p-8">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full opacity-40 blur-3xl"
-          style={{ background: "var(--gradient-primary)" }}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4">
+        <StatCard
+          label="Total de Keys"
+          value={stats.total.toLocaleString("pt-BR")}
+          delta={monthDelta(list.map((l) => l.created_at))}
+          series={buildDailySeries(list.map((l) => l.created_at), 14)}
+          icon={KeyRound}
+          tone="purple"
+          loading={licenses.isLoading}
         />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -left-16 bottom-0 h-40 w-40 rounded-full opacity-20 blur-3xl"
-          style={{ background: "var(--gradient-primary)" }}
+        <StatCard
+          label="Expirando em 7 dias"
+          value={stats.expiring.toString()}
+          delta={{ value: -8, positiveIsGood: false }}
+          series={buildDailySeries(list.map((l) => l.expires_at), 14)}
+          icon={Clock}
+          tone="orange"
+          loading={licenses.isLoading}
         />
-        <div className="relative grid gap-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-          <div className="min-w-0 space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-              <Sparkles className="h-3.5 w-3.5" aria-hidden />
-              Visão geral em tempo real
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">
-              Dashboard de <span className="text-gradient-primary">Licenças</span>
-            </h1>
-            <p className="max-w-xl text-xs text-muted-foreground sm:text-sm">
-              Monitore chaves ativas, revendas e a saúde do seu ecossistema em uma única tela.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button asChild size="sm" className="gap-2 shadow-elegant">
-              <Link to="/licenses">
-                <KeyRound className="h-4 w-4" aria-hidden />
-                Gerenciar licenças
-              </Link>
-            </Button>
-            <Button asChild size="sm" variant="outline" className="gap-2">
-              <Link to="/resellers">
-                <Store className="h-4 w-4" aria-hidden />
-                Revendas
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {error ? (
-        <Card>
-          <CardContent className="py-6 text-sm text-destructive">
-            Erro ao carregar licenças: {(error as Error).message}
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {/* Métricas */}
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
-        <StatCard label="Total" value={stats.total} icon={KeyRound} loading={isLoading} />
-        <StatCard label="Ativas" value={stats.active} icon={CheckCircle2} tone="success" loading={isLoading} />
-        <StatCard label="Trial" value={stats.trial} icon={Clock} tone="info" loading={isLoading} />
-        <StatCard label="Expiradas" value={stats.expired} icon={AlertTriangle} tone="warning" loading={isLoading} />
-        <StatCard label="Revogadas" value={stats.revoked} icon={XCircle} tone="danger" loading={isLoading} />
-        <StatCard label="Revendas" value={resellers.data?.length ?? 0} icon={Store} tone="info" loading={resellers.isLoading} />
+        <StatCard
+          label="Revendedores"
+          value={(resellers.data?.length ?? 0).toString()}
+          delta={{ value: 5, positiveIsGood: true }}
+          series={buildDailySeries((resellers.data ?? []).map((r) => r.created_at), 14)}
+          icon={Users}
+          tone="cyan"
+          loading={resellers.isLoading}
+        />
+        <StatCard
+          label="Receita total"
+          value={totalRevenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+          delta={monthDelta((revenue.data ?? []).map((r) => r.paid_at ?? r.created_at))}
+          series={buildRevenueSeries(revenue.data ?? [], 14)}
+          icon={Wallet}
+          tone="pink"
+          loading={revenue.isLoading}
+        />
       </div>
 
-      {/* Charts row */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2 shadow-soft">
-          <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
-            <div className="min-w-0">
-              <CardTitle className="text-sm sm:text-base">Licenças criadas — últimos 14 dias</CardTitle>
-              <p className="text-xs text-muted-foreground mt-1">Novas chaves emitidas por dia</p>
-            </div>
-            <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-              <TrendingUp className="h-3.5 w-3.5" aria-hidden />
-              {trend.reduce((a, b) => a + b.value, 0)} total
-            </div>
-          </CardHeader>
-          <CardContent className="pt-2">
-            {isLoading ? (
-              <Skeleton className="h-[160px] w-full sm:h-[220px]" />
-            ) : (
-              <div className="h-[160px] w-full sm:h-[220px]">
-                <ResponsiveContainer>
-                  <AreaChart data={trend} margin={{ top: 10, right: 8, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colBlue" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="oklch(0.68 0.18 245)" stopOpacity={0.55} />
-                        <stop offset="95%" stopColor="oklch(0.68 0.18 245)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 8%)" vertical={false} />
-                    <XAxis
-                      dataKey="label"
-                      tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <YAxis
-                      allowDecimals={false}
-                      tick={{ fill: "var(--color-muted-foreground)", fontSize: 11 }}
-                      tickLine={false}
-                      axisLine={false}
-                      width={30}
-                    />
-                    <Tooltip
-                      cursor={{ stroke: "oklch(0.68 0.18 245 / 40%)", strokeWidth: 1 }}
-                      contentStyle={{
-                        background: "var(--color-popover)",
-                        border: "1px solid var(--color-border)",
-                        borderRadius: 12,
-                        fontSize: 12,
-                        color: "var(--color-popover-foreground)",
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="value"
-                      stroke="oklch(0.68 0.18 245)"
-                      strokeWidth={2.5}
-                      fill="url(#colBlue)"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-soft">
-          <CardHeader className="space-y-0 pb-2">
-            <CardTitle className="text-base">Distribuição</CardTitle>
-            <p className="text-xs text-muted-foreground mt-1">Status atual das licenças</p>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-[160px] w-full sm:h-[220px]" />
-            ) : distribution.length === 0 ? (
-              <div className="flex h-[160px] items-center justify-center text-sm text-muted-foreground sm:h-[220px]">
-                Sem dados
-              </div>
-            ) : (
-              <div className="relative h-[160px] sm:h-[220px]">
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie
-                      data={distribution}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius={58}
-                      outerRadius={86}
-                      paddingAngle={2}
-                      stroke="var(--color-card)"
-                      strokeWidth={2}
-                    >
-                      {distribution.map((entry) => (
-                        <Cell key={entry.name} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{
-                        background: "var(--color-popover)",
-                        border: "1px solid var(--color-border)",
-                        borderRadius: 12,
-                        fontSize: 12,
-                        color: "var(--color-popover-foreground)",
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="pointer-events-none absolute inset-0 grid place-items-center">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold tabular-nums">{activeRate}%</div>
-                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Ativas</div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <ul className="mt-3 space-y-1.5">
-              {distribution.map((d) => (
-                <li key={d.name} className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-2">
-                    <span
-                      aria-hidden
-                      className="inline-block h-2.5 w-2.5 rounded-full"
-                      style={{ background: d.color }}
-                    />
-                    <span className="text-muted-foreground">{d.name}</span>
-                  </span>
-                  <span className="font-medium tabular-nums">{d.value}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Lista + revendas */}
-      <Card className="shadow-soft">
-        <CardHeader className="flex-row items-center justify-between space-y-0">
-          <div className="flex items-center gap-2">
-            <CalendarClock className="h-4 w-4 text-amber-500" aria-hidden />
-            <CardTitle className="text-base">
-              Renovações próximas{" "}
-              <span className="text-xs font-normal text-muted-foreground">
-                (vencem em até 15 dias){expiringSoon.length > 0 ? ` · ${expiringSoon.length}` : ""}
-              </span>
-            </CardTitle>
+      <Card className="border-border/60 shadow-soft">
+        <div className="flex items-center justify-between gap-2 border-b border-border/50 px-5 py-3.5">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-neon-orange/15 text-neon-orange">
+              <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
+            </span>
+            <h2 className="truncate text-sm font-semibold">Keys próximas de expirar</h2>
           </div>
           <Button asChild variant="ghost" size="sm" className="gap-1 text-xs text-muted-foreground hover:text-foreground">
-            <Link to="/licenses">
+            <Link to="/licenses" search={{ filter: "expiring" }}>
               Ver todas <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
             </Link>
           </Button>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
+        </div>
+        <CardContent className="p-2 sm:p-3">
+          {licenses.isLoading ? (
+            <div className="space-y-2 py-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-14 w-full" />
               ))}
             </div>
-          ) : expiringSoon.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              Nenhuma licença vencendo nos próximos 15 dias. 🎉
+          ) : stats.expiringList.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              Nenhuma key vencendo nos próximos 7 dias.
             </p>
           ) : (
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {expiringSoon.map(({ l, days }) => {
-                const phone = normalizePhoneDigits(l.customer_phone);
-                const msg = encodeURIComponent(
-                  `Olá${l.user_name ? ` ${l.user_name}` : ""}! Sua licença ${l.license_key} vence em ${days} dia${days === 1 ? "" : "s"}. Podemos já fazer sua renovação?`,
-                );
+            <ul className="divide-y divide-border/50">
+              {stats.expiringList.map((l) => {
+                const remaining = timeUntil(l.expires_at);
+                const pct = progressPct(l.activated_at, l.expires_at);
                 return (
                   <li
                     key={l.id}
-                    className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2.5"
+                    className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg px-3 py-3 hover:bg-muted/30"
                   >
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400">
-                      <CalendarClock className="h-4 w-4" aria-hidden />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-mono text-xs">{l.license_key}</div>
-                      <div className="truncate text-xs text-muted-foreground">
-                        {l.user_name ?? "—"} ·{" "}
-                        <span className="font-medium text-amber-600 dark:text-amber-400">
-                          {days === 0 ? "vence hoje" : `${days}d restantes`}
-                        </span>
-                      </div>
-                    </div>
-                    {phone ? (
-                      <Button asChild size="sm" variant="outline" className="gap-1.5 h-8 border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400">
-                        <a
-                          href={`https://wa.me/${phone}?text=${msg}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <MessageCircle className="h-3.5 w-3.5" aria-hidden />
-                          WhatsApp
-                        </a>
-                      </Button>
-                    ) : (
-                      <span className="text-[11px] text-muted-foreground">sem contato</span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2 shadow-soft">
-          <CardHeader className="flex-row items-center justify-between space-y-0">
-            <div className="flex items-center gap-2">
-              <Activity className="h-4 w-4 text-primary" aria-hidden />
-              <CardTitle className="text-base">Últimas licenças</CardTitle>
-            </div>
-            <Button asChild variant="ghost" size="sm" className="gap-1 text-xs text-muted-foreground hover:text-foreground">
-              <Link to="/licenses">
-                Ver todas <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
-            ) : (data?.length ?? 0) === 0 ? (
-              <p className="py-6 text-center text-sm text-muted-foreground">Nenhuma licença ainda.</p>
-            ) : (
-              <ul className="divide-y divide-border/60">
-                {data!.slice(0, 8).map((l) => {
-                  const s = computeStatus(l);
-                  return (
-                    <li
-                      key={l.id}
-                      className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg px-2 py-3 transition-colors hover:bg-muted/40"
-                    >
-                      <div
-                        className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"
-                        aria-hidden
-                      >
-                        <KeyRound className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="truncate font-mono text-sm">{l.license_key}</div>
-                        <div className="truncate text-xs text-muted-foreground">
-                          {l.user_name ?? "—"}
-                          {l.created_at ? ` · ${formatRelative(l.created_at)}` : ""}
-                        </div>
-                      </div>
-                      <StatusBadge status={s} />
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-soft">
-          <CardHeader className="flex-row items-center justify-between space-y-0">
-            <div className="flex items-center gap-2">
-              <Store className="h-4 w-4 text-primary" aria-hidden />
-              <CardTitle className="text-base">Revendas</CardTitle>
-            </div>
-            <Button asChild variant="ghost" size="sm" className="gap-1 text-xs text-muted-foreground hover:text-foreground">
-              <Link to="/resellers">
-                Ver todas <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
-              </Link>
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {resellers.isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-10 w-full" />
-                ))}
-              </div>
-            ) : (resellers.data?.length ?? 0) === 0 ? (
-              <p className="py-6 text-center text-sm text-muted-foreground">Nenhuma revenda cadastrada.</p>
-            ) : (
-              <ul className="divide-y divide-border/60">
-                {resellers.data!.slice(0, 6).map((r) => (
-                  <li key={r.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2.5">
+                    <Avatar name={l.user_name ?? "?"} />
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-medium">{r.name}</div>
-                      <div className="truncate font-mono text-[11px] text-muted-foreground">{r.token}</div>
+                      <div className="truncate text-sm font-semibold">{l.user_name ?? "—"}</div>
+                      <div className="truncate font-mono text-[11px] text-muted-foreground">{l.license_key}</div>
                     </div>
-                    <Badge
-                      variant="outline"
-                      className={
-                        r.active
-                          ? "border-primary/30 bg-primary/10 text-primary"
-                          : "border-border bg-muted text-muted-foreground"
-                      }
-                    >
-                      {r.active ? "Ativa" : "Inativa"}
-                    </Badge>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Ranking de vendedores */}
-      <Card className="shadow-soft">
-        <CardHeader className="flex-row items-center justify-between space-y-0">
-          <div className="flex items-center gap-2">
-            <Trophy className="h-4 w-4 text-primary" aria-hidden />
-            <CardTitle className="text-base">Top vendedores</CardTitle>
-          </div>
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
-            Chaves vendidas
-          </span>
-        </CardHeader>
-        <CardContent>
-          {topSellers.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              Ainda não há vendedores registrados. O ranking aparece após preencher &quot;Vendedor&quot; nas chaves.
-            </p>
-          ) : (
-            <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              {topSellers.map((r, i) => {
-                const tone =
-                  i === 0 ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
-                  : i === 1 ? "bg-slate-400/15 text-slate-500 border-slate-400/30"
-                  : i === 2 ? "bg-orange-500/15 text-orange-600 dark:text-orange-400 border-orange-500/30"
-                  : "bg-muted text-muted-foreground border-transparent";
-                return (
-                  <li key={r.seller} className="flex items-center gap-3 rounded-lg border border-border/60 bg-card px-3 py-2.5">
-                    <span className={`grid h-8 w-8 place-items-center rounded-full border text-xs font-bold ${tone}`}>
-                      {i < 3 ? <Medal className="h-4 w-4" aria-hidden /> : i + 1}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold truncate">{r.seller}</p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {r.paid} pagas · {r.trial} trials
-                      </p>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right leading-tight">
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Expira em</div>
+                        <div className="text-sm font-semibold">{remaining}</div>
+                      </div>
+                      <RingPct pct={pct} />
                     </div>
-                    <span className="text-lg font-bold tabular-nums">{r.total}</span>
                   </li>
                 );
               })}
             </ul>
           )}
+          <Button asChild variant="ghost" className="mt-2 w-full text-xs text-muted-foreground hover:text-foreground">
+            <Link to="/licenses" search={{ status: "expired" }}>
+              Ver todas que estão expirando
+            </Link>
+          </Button>
         </CardContent>
       </Card>
     </section>
   );
 }
 
-function buildTrend(list: Array<{ created_at: string | null }>) {
-  const days = 14;
-  const buckets: { key: string; label: string; value: number }[] = [];
-  const now = new Date();
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(now);
-    d.setHours(0, 0, 0, 0);
-    d.setDate(d.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
-    buckets.push({
-      key,
-      label: d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
-      value: 0,
-    });
-  }
-  const idx = new Map(buckets.map((b, i) => [b.key, i]));
-  for (const l of list) {
-    if (!l.created_at) continue;
-    const key = new Date(l.created_at).toISOString().slice(0, 10);
-    const i = idx.get(key);
-    if (i !== undefined) buckets[i].value += 1;
-  }
-  return buckets;
-}
-
-function formatRelative(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const min = Math.floor(diff / 60_000);
-  if (min < 1) return "agora";
-  if (min < 60) return `${min} min atrás`;
-  const h = Math.floor(min / 60);
-  if (h < 24) return `${h}h atrás`;
-  const d = Math.floor(h / 24);
-  if (d < 30) return `${d}d atrás`;
-  return new Date(iso).toLocaleDateString("pt-BR");
-}
-
-function StatCard({
-  label,
-  value,
-  icon: Icon,
-  tone,
-  loading,
-}: {
-  label: string;
-  value: number;
-  icon: React.ComponentType<{ className?: string }>;
-  tone?: "success" | "info" | "warning" | "danger";
-  loading?: boolean;
-}) {
-  const toneText =
-    tone === "success"
-      ? "text-emerald-500 dark:text-emerald-400"
-      : tone === "info"
-        ? "text-primary"
-        : tone === "warning"
-          ? "text-amber-500 dark:text-amber-400"
-          : tone === "danger"
-            ? "text-destructive"
-            : "text-foreground";
-  const tonePill =
-    tone === "success"
-      ? "bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 ring-1 ring-emerald-500/20"
-      : tone === "info"
-        ? "bg-primary/10 text-primary ring-1 ring-primary/25"
-        : tone === "warning"
-          ? "bg-amber-500/10 text-amber-500 dark:text-amber-400 ring-1 ring-amber-500/20"
-          : tone === "danger"
-            ? "bg-destructive/10 text-destructive ring-1 ring-destructive/20"
-            : "bg-muted text-foreground ring-1 ring-border";
-  return (
-    <Card className="group relative overflow-hidden border-border/60 shadow-soft transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-elegant focus-within:ring-2 focus-within:ring-ring">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-primary/40 to-transparent opacity-60"
-      />
-      <CardContent className="flex items-center justify-between gap-2 p-3 sm:gap-3 sm:py-5 sm:px-6">
-        <div className="min-w-0">
-          <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground sm:text-[11px]">{label}</div>
-          <div className={`mt-0.5 text-xl font-bold tracking-tight tabular-nums sm:mt-1 sm:text-3xl ${toneText}`}>
-            {loading ? <Skeleton className="h-6 w-10 sm:h-8 sm:w-12" /> : value}
-          </div>
-        </div>
-        <div
-          className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg transition-transform group-hover:scale-110 sm:h-11 sm:w-11 sm:rounded-xl ${tonePill}`}
-        >
-          <Icon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+/* ---------------- reusable status badge ---------------- */
 
 export function StatusBadge({ status }: { status: string | null }) {
   const map: Record<string, { label: string; className: string }> = {
-    active: { label: "Ativa", className: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-500/30" },
-    trial: { label: "Trial", className: "bg-primary/15 text-primary border-primary/30" },
-    expired: { label: "Expirada", className: "bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/30" },
+    active: { label: "Ativa", className: "bg-neon-lime/15 text-neon-lime border-neon-lime/30" },
+    trial: { label: "Trial", className: "bg-neon-cyan/15 text-neon-cyan border-neon-cyan/30" },
+    expired: { label: "Expirada", className: "bg-neon-orange/15 text-neon-orange border-neon-orange/30" },
     revoked: { label: "Revogada", className: "bg-destructive/15 text-destructive border-destructive/30" },
     paused: { label: "Pausada", className: "bg-muted text-muted-foreground border-border" },
     inactive: { label: "Inativa", className: "bg-muted text-muted-foreground border-border" },
@@ -602,3 +189,243 @@ export function StatusBadge({ status }: { status: string | null }) {
     </Badge>
   );
 }
+
+/* ---------------- Stat card ---------------- */
+
+type Tone = "purple" | "orange" | "cyan" | "pink";
+
+const TONE: Record<Tone, { icon: string; stroke: string; fill: string; grad: string }> = {
+  purple: {
+    icon: "bg-neon-purple/15 text-neon-purple",
+    stroke: "var(--neon-purple)",
+    fill: "var(--neon-purple)",
+    grad: "purpleGrad",
+  },
+  orange: {
+    icon: "bg-neon-orange/15 text-neon-orange",
+    stroke: "var(--neon-orange)",
+    fill: "var(--neon-orange)",
+    grad: "orangeGrad",
+  },
+  cyan: {
+    icon: "bg-neon-cyan/15 text-neon-cyan",
+    stroke: "var(--neon-cyan)",
+    fill: "var(--neon-cyan)",
+    grad: "cyanGrad",
+  },
+  pink: {
+    icon: "bg-neon-pink/15 text-neon-pink",
+    stroke: "var(--neon-pink)",
+    fill: "var(--neon-pink)",
+    grad: "pinkGrad",
+  },
+};
+
+function StatCard({
+  label,
+  value,
+  delta,
+  series,
+  icon: Icon,
+  tone,
+  loading,
+}: {
+  label: string;
+  value: string;
+  delta?: { value: number; positiveIsGood: boolean };
+  series: { v: number }[];
+  icon: React.ComponentType<{ className?: string }>;
+  tone: Tone;
+  loading?: boolean;
+}) {
+  const t = TONE[tone];
+  return (
+    <Card className="relative overflow-hidden border-border/60 shadow-soft hover:border-primary/40 transition">
+      <CardContent className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 p-5">
+        <div className="min-w-0 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${t.icon}`}>
+              <Icon className="h-3.5 w-3.5" aria-hidden />
+            </span>
+            <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              {label}
+            </div>
+          </div>
+          {loading ? (
+            <Skeleton className="h-9 w-24" />
+          ) : (
+            <div className="text-3xl font-black tracking-tight tabular-nums">{value}</div>
+          )}
+          {delta ? <DeltaChip delta={delta} /> : null}
+        </div>
+        <div className="h-14 w-28 sm:w-36">
+          <ResponsiveContainer>
+            <AreaChart data={series} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id={t.grad} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={t.fill} stopOpacity={0.5} />
+                  <stop offset="100%" stopColor={t.fill} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Tooltip
+                cursor={false}
+                contentStyle={{
+                  background: "var(--color-popover)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: 8,
+                  fontSize: 11,
+                  padding: "4px 8px",
+                }}
+                labelFormatter={() => ""}
+                formatter={(v: number) => [v, ""]}
+              />
+              <Area
+                type="monotone"
+                dataKey="v"
+                stroke={t.stroke}
+                strokeWidth={2}
+                fill={`url(#${t.grad})`}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DeltaChip({ delta }: { delta: { value: number; positiveIsGood: boolean } }) {
+  const positive = delta.value >= 0;
+  const good = positive === delta.positiveIsGood;
+  const cls = good ? "text-neon-lime" : "text-neon-orange";
+  const Icon = positive ? ArrowUpRight : ArrowDownRight;
+  return (
+    <div className={`inline-flex items-center gap-1 text-xs font-medium ${cls}`}>
+      <Icon className="h-3.5 w-3.5" aria-hidden />
+      {positive ? "+" : ""}
+      {delta.value}% este mês
+    </div>
+  );
+}
+
+/* ---------------- avatar & ring ---------------- */
+
+function Avatar({ name }: { name: string }) {
+  const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]!.toUpperCase()).join("") || "?";
+  return (
+    <span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-neon-purple/60 to-neon-pink/60 text-xs font-bold text-primary-foreground">
+      {initials}
+    </span>
+  );
+}
+
+function RingPct({ pct }: { pct: number }) {
+  const clamped = Math.max(0, Math.min(100, pct));
+  const size = 36;
+  const stroke = 4;
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  const dash = (clamped / 100) * c;
+  const color =
+    clamped < 25 ? "var(--destructive)"
+    : clamped < 50 ? "var(--neon-orange)"
+    : "var(--neon-lime)";
+  return (
+    <div className="relative grid h-9 w-9 place-items-center">
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="var(--color-border)" strokeWidth={stroke} fill="none" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke={color}
+          strokeWidth={stroke}
+          strokeDasharray={`${dash} ${c}`}
+          strokeLinecap="round"
+          fill="none"
+        />
+      </svg>
+      <span className="absolute text-[9px] font-bold tabular-nums">{Math.round(clamped)}%</span>
+    </div>
+  );
+}
+
+/* ---------------- helpers ---------------- */
+
+function buildDailySeries(dates: Array<string | null | undefined>, days: number) {
+  const buckets: { v: number }[] = Array.from({ length: days }, () => ({ v: 0 }));
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const start = now.getTime() - (days - 1) * 86_400_000;
+  for (const d of dates) {
+    if (!d) continue;
+    const t = new Date(d).getTime();
+    if (Number.isNaN(t) || t < start || t > now.getTime() + 86_400_000) continue;
+    const idx = Math.floor((t - start) / 86_400_000);
+    if (idx >= 0 && idx < days) buckets[idx].v += 1;
+  }
+  return buckets;
+}
+
+function buildRevenueSeries(rows: Array<{ amount: number | null; paid_at: string | null; created_at: string | null }>, days: number) {
+  const buckets: { v: number }[] = Array.from({ length: days }, () => ({ v: 0 }));
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const start = now.getTime() - (days - 1) * 86_400_000;
+  for (const r of rows) {
+    const d = r.paid_at ?? r.created_at;
+    if (!d) continue;
+    const t = new Date(d).getTime();
+    if (Number.isNaN(t) || t < start) continue;
+    const idx = Math.floor((t - start) / 86_400_000);
+    if (idx >= 0 && idx < days) buckets[idx].v += Number(r.amount ?? 0);
+  }
+  return buckets;
+}
+
+function monthDelta(dates: Array<string | null | undefined>) {
+  const now = new Date();
+  const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
+  let current = 0;
+  let previous = 0;
+  for (const d of dates) {
+    if (!d) continue;
+    const t = new Date(d).getTime();
+    if (Number.isNaN(t)) continue;
+    if (t >= thisMonth) current++;
+    else if (t >= lastMonth) previous++;
+  }
+  if (previous === 0) return { value: current > 0 ? 100 : 0, positiveIsGood: true };
+  const pct = Math.round(((current - previous) / previous) * 100);
+  return { value: pct, positiveIsGood: true };
+}
+
+function timeUntil(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const diff = new Date(iso).getTime() - Date.now();
+  if (diff <= 0) return "vencida";
+  const m = Math.floor(diff / 60_000);
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ${m % 60}m`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return d === 1 ? "1 dia" : `${d} dias`;
+  return new Date(iso).toLocaleDateString("pt-BR");
+}
+
+function progressPct(activated: string | null | undefined, expires: string | null | undefined): number {
+  if (!expires) return 0;
+  const now = Date.now();
+  const exp = new Date(expires).getTime();
+  if (Number.isNaN(exp)) return 0;
+  const act = activated ? new Date(activated).getTime() : exp - 30 * 86_400_000;
+  if (exp <= act) return 0;
+  const remaining = exp - now;
+  const total = exp - act;
+  return Math.max(0, Math.min(100, (remaining / total) * 100));
+}
+
+// Line/LineChart imported for future use in mini charts; keep referenced to avoid unused warnings.
+void LineChart;
+void Line;

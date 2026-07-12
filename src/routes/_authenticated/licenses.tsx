@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { z } from "zod";
 import { supabase, type License } from "@/integrations/external-supabase/client";
 import { licensesQueryOptions, computeStatus, generateLicenseKey } from "@/lib/licenses";
 import { StatusBadge } from "./dashboard";
@@ -22,17 +23,30 @@ import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserR
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
 
+const searchSchema = z.object({
+  filter: z.enum(["expiring"]).optional(),
+  status: z.enum(["active", "trial", "expired", "revoked"]).optional(),
+  open: z.enum(["new"]).optional(),
+});
+
 export const Route = createFileRoute("/_authenticated/licenses")({
   head: () => ({ meta: [{ title: "Licenças" }] }),
+  validateSearch: (s) => searchSchema.parse(s),
   component: LicensesPage,
 });
 
 function LicensesPage() {
   const qc = useQueryClient();
+  const search = Route.useSearch();
   const { data, isLoading } = useQuery(licensesQueryOptions);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [onlyExpiringSoon, setOnlyExpiringSoon] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>(search.status ?? "all");
+  const [onlyExpiringSoon, setOnlyExpiringSoon] = useState(search.filter === "expiring");
+
+  useEffect(() => {
+    setStatusFilter(search.status ?? "all");
+    setOnlyExpiringSoon(search.filter === "expiring");
+  }, [search.status, search.filter]);
 
   const expiringSoon = useMemo(() => {
     const list = data ?? [];
@@ -43,14 +57,14 @@ function LicensesPage() {
     const list = data ?? [];
     return list.filter((l) => {
       const matchSearch =
-        !search ||
-        l.license_key.toLowerCase().includes(search.toLowerCase()) ||
-        (l.user_name ?? "").toLowerCase().includes(search.toLowerCase());
+        !searchTerm ||
+        l.license_key.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (l.user_name ?? "").toLowerCase().includes(searchTerm.toLowerCase());
       const matchStatus = statusFilter === "all" || computeStatus(l) === statusFilter;
       const matchExpiring = !onlyExpiringSoon || isExpiringSoon(l);
       return matchSearch && matchStatus && matchExpiring;
     });
-  }, [data, search, statusFilter, onlyExpiringSoon]);
+  }, [data, searchTerm, statusFilter, onlyExpiringSoon]);
 
   const revoke = useMutation({
     mutationFn: async (id: string) => {
@@ -102,8 +116,8 @@ function LicensesPage() {
             <div className="relative flex-1 min-w-[220px]">
               <Search className="pointer-events-none absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden />
               <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Buscar por chave ou usuário..."
                 className="pl-8"
                 aria-label="Buscar"
