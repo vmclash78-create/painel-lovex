@@ -19,7 +19,6 @@ import { Route as AuthenticatedResellersRouteImport } from './routes/_authentica
 import { Route as AuthenticatedLogsRouteImport } from './routes/_authenticated/logs'
 import { Route as AuthenticatedLicensesRouteImport } from './routes/_authenticated/licenses'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as ApiPublicProvisionAdminRouteImport } from './routes/api/public/provision-admin'
 import { Route as ApiPublicMpWebhookRouteImport } from './routes/api/public/mp/webhook'
 import { Route as ApiPublicMpStatusRouteImport } from './routes/api/public/mp/status'
 import { Route as ApiPublicMpCreatePaymentRouteImport } from './routes/api/public/mp/create-payment'
@@ -74,11 +73,6 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ApiPublicProvisionAdminRoute = ApiPublicProvisionAdminRouteImport.update({
-  id: '/api/public/provision-admin',
-  path: '/api/public/provision-admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicMpWebhookRoute = ApiPublicMpWebhookRouteImport.update({
   id: '/api/public/mp/webhook',
   path: '/api/public/mp/webhook',
@@ -106,7 +100,6 @@ export interface FileRoutesByFullPath {
   '/second-panel': typeof AuthenticatedSecondPanelRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/r/$token': typeof RTokenRoute
-  '/api/public/provision-admin': typeof ApiPublicProvisionAdminRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -121,7 +114,6 @@ export interface FileRoutesByTo {
   '/second-panel': typeof AuthenticatedSecondPanelRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/r/$token': typeof RTokenRoute
-  '/api/public/provision-admin': typeof ApiPublicProvisionAdminRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -138,7 +130,6 @@ export interface FileRoutesById {
   '/_authenticated/second-panel': typeof AuthenticatedSecondPanelRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/r/$token': typeof RTokenRoute
-  '/api/public/provision-admin': typeof ApiPublicProvisionAdminRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -155,7 +146,6 @@ export interface FileRouteTypes {
     | '/second-panel'
     | '/settings'
     | '/r/$token'
-    | '/api/public/provision-admin'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -170,7 +160,6 @@ export interface FileRouteTypes {
     | '/second-panel'
     | '/settings'
     | '/r/$token'
-    | '/api/public/provision-admin'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -186,7 +175,6 @@ export interface FileRouteTypes {
     | '/_authenticated/second-panel'
     | '/_authenticated/settings'
     | '/r/$token'
-    | '/api/public/provision-admin'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -197,7 +185,6 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   RTokenRoute: typeof RTokenRoute
-  ApiPublicProvisionAdminRoute: typeof ApiPublicProvisionAdminRoute
   ApiPublicMpCreatePaymentRoute: typeof ApiPublicMpCreatePaymentRoute
   ApiPublicMpStatusRoute: typeof ApiPublicMpStatusRoute
   ApiPublicMpWebhookRoute: typeof ApiPublicMpWebhookRoute
@@ -275,13 +262,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/provision-admin': {
-      id: '/api/public/provision-admin'
-      path: '/api/public/provision-admin'
-      fullPath: '/api/public/provision-admin'
-      preLoaderRoute: typeof ApiPublicProvisionAdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/mp/webhook': {
       id: '/api/public/mp/webhook'
       path: '/api/public/mp/webhook'
@@ -332,7 +312,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   RTokenRoute: RTokenRoute,
-  ApiPublicProvisionAdminRoute: ApiPublicProvisionAdminRoute,
   ApiPublicMpCreatePaymentRoute: ApiPublicMpCreatePaymentRoute,
   ApiPublicMpStatusRoute: ApiPublicMpStatusRoute,
   ApiPublicMpWebhookRoute: ApiPublicMpWebhookRoute,
