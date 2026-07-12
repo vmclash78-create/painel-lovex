@@ -414,16 +414,16 @@ export function timeUntil(iso: string | null | undefined): string {
   return new Date(iso).toLocaleDateString("pt-BR");
 }
 
-export function progressPct(activated: string | null | undefined, expires: string | null | undefined): number {
+export function progressPct(_activated: string | null | undefined, expires: string | null | undefined): number {
+  // Urgência baseada nos dias restantes numa janela fixa de 30 dias.
+  // Assim o anel bate direto com o texto "Expira em X dias":
+  // 30d → 100%, 15d → 50%, 2d → ~7%, vencida → 0%.
   if (!expires) return 0;
-  const now = Date.now();
   const exp = new Date(expires).getTime();
   if (Number.isNaN(exp)) return 0;
-  const act = activated ? new Date(activated).getTime() : exp - 30 * 86_400_000;
-  if (exp <= act) return 0;
-  const remaining = exp - now;
-  const total = exp - act;
-  return Math.max(0, Math.min(100, (remaining / total) * 100));
+  const daysRemaining = (exp - Date.now()) / 86_400_000;
+  const pct = (daysRemaining / 30) * 100;
+  return Math.max(0, Math.min(100, pct));
 }
 
 // Line/LineChart imported for future use in mini charts; keep referenced to avoid unused warnings.
