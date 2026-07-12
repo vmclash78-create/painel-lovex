@@ -9,6 +9,14 @@ import {
 } from "@/lib/reseller-auth.functions";
 import { computeStatus, generateLicenseKey, isTrialLicense } from "@/lib/licenses";
 import { StatusBadge } from "./_authenticated/dashboard";
+import {
+  StatCard,
+  Avatar as DashAvatar,
+  RingPct,
+  buildDailySeries,
+  timeUntil,
+  progressPct,
+} from "./_authenticated/dashboard";
 import { EditLicenseDialog } from "./_authenticated/licenses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +38,7 @@ import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
   Activity, UserRound, Package, FileText, Pencil, RotateCcw,
   CheckCircle2, FlaskConical, XCircle, CalendarClock, MessageCircle,
+  Clock, AlertTriangle, ArrowUpRight, Wallet,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
@@ -220,32 +229,26 @@ function ResellerPublicPage() {
 
   return (
     <div className="min-h-dvh bg-background relative">
-      {/* Subtle dot grid background */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 opacity-[0.35] [background-image:radial-gradient(color-mix(in_oklab,var(--foreground)_8%,transparent)_1px,transparent_1px)] [background-size:22px_22px]"
-      />
-      {/* Hero */}
-      <header className="relative border-b border-border/50">
-        <div className="relative mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:flex sm:justify-between sm:px-5 sm:py-5 sm:gap-4">
+      {/* Top bar — same brand treatment as admin dashboard */}
+      <header className="sticky top-0 z-20 border-b border-sidebar-border bg-sidebar/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border/60 bg-card text-primary">
-              <KeyRound className="h-4.5 w-4.5" aria-hidden />
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary-glow text-primary-foreground shadow-neon">
+              <KeyRound className="h-4 w-4" aria-hidden />
             </div>
             <div className="min-w-0 leading-tight">
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
                 Painel de Revenda
               </p>
-              <h1 className="mt-1 flex items-center gap-2 text-lg font-semibold tracking-tight">
-                <span className="text-muted-foreground font-normal">{getGreeting()},</span>
-                <span className="truncate text-foreground">{reseller.data.name}</span>
+              <h1 className="mt-0.5 truncate text-base font-bold tracking-tight sm:text-lg">
+                {getGreeting()}, <span className="text-primary">{reseller.data.name}</span>
               </h1>
             </div>
           </div>
           {reseller.data.active ? (
-            <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-[11px] font-medium text-emerald-600 dark:text-emerald-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Ativa
+            <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full border border-neon-lime/30 bg-neon-lime/10 text-[11px] font-medium text-neon-lime">
+              <span className="h-1.5 w-1.5 rounded-full bg-neon-lime" />
+              Sessão ativa
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full border border-destructive/30 bg-destructive/5 text-[11px] font-medium text-destructive">
@@ -335,106 +338,120 @@ function ResellerPublicPage() {
       .sort((a, b) => a.days - b.days);
     return (
       <>
-        {/* Compact stats row */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-          <GradientStatCard
+        {/* Stats — same layout as admin dashboard */}
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4">
+          <StatCard
             label="Total de Licenças"
-            description="Todas as licenças geradas"
-            value={totalCount}
-            tone="primary"
-            icon={<FileText className="h-4 w-4" aria-hidden />}
+            value={totalCount.toLocaleString("pt-BR")}
+            series={buildDailySeries((licenses.data ?? []).map((l) => l.created_at), 14)}
+            icon={FileText}
+            tone="purple"
+            loading={licenses.isLoading}
           />
-          <GradientStatCard
+          <StatCard
             label="Ativas"
-            description="Licenças ativas"
-            value={activeCount}
-            tone="emerald"
-            percent={totalCount > 0 ? Math.round((activeCount / totalCount) * 100) : 0}
-            icon={<CheckCircle2 className="h-4 w-4" aria-hidden />}
+            value={activeCount.toString()}
+            delta={{ value: totalCount > 0 ? Math.round((activeCount / totalCount) * 100) : 0, positiveIsGood: true }}
+            series={buildDailySeries(
+              (licenses.data ?? []).filter((l) => computeStatus(l) === "active").map((l) => l.activated_at ?? l.created_at),
+              14,
+            )}
+            icon={CheckCircle2}
+            tone="cyan"
+            loading={licenses.isLoading}
           />
-          <GradientStatCard
+          <StatCard
             label="Trials"
-            description="Licenças em período de teste"
-            value={trialCount}
-            tone="amber"
-            percent={totalCount > 0 ? Math.round((trialCount / totalCount) * 100) : 0}
-            icon={<FlaskConical className="h-4 w-4" aria-hidden />}
+            value={trialCount.toString()}
+            series={buildDailySeries(
+              (licenses.data ?? []).filter((l) => isTrialLicense(l)).map((l) => l.created_at),
+              14,
+            )}
+            icon={FlaskConical}
+            tone="orange"
+            loading={licenses.isLoading}
           />
-          <GradientStatCard
+          <StatCard
             label="Expiradas"
-            description="Licenças expiradas"
-            value={expiredCount}
-            tone="rose"
-            percent={totalCount > 0 ? Math.round((expiredCount / totalCount) * 100) : 0}
-            icon={<XCircle className="h-4 w-4" aria-hidden />}
+            value={expiredCount.toString()}
+            series={buildDailySeries(
+              (licenses.data ?? []).filter((l) => computeStatus(l) === "expired").map((l) => l.expires_at),
+              14,
+            )}
+            icon={XCircle}
+            tone="pink"
+            loading={licenses.isLoading}
           />
         </div>
 
         {/* Quota bar — premium */}
         <QuotaBar used={used} max={max} pct={pct} remaining={remaining} />
 
-        {/* Renovações próximas */}
-        <Card className="border-amber-500/30 bg-amber-500/[0.03]">
-          <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-            <div className="flex items-center gap-2">
-              <CalendarClock className="h-4 w-4 text-amber-500" aria-hidden />
-              <CardTitle className="text-sm">
-                Renovações próximas{" "}
-                <span className="text-xs font-normal text-muted-foreground">
-                  (vencem em até 15 dias){expiringSoon.length > 0 ? ` · ${expiringSoon.length}` : ""}
-                </span>
-              </CardTitle>
+        {/* Licenças próximas de expirar — mesmo estilo do dashboard */}
+        <Card className="border-border/60 shadow-soft">
+          <div className="flex items-center justify-between gap-2 border-b border-border/50 px-5 py-3.5">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-neon-orange/15 text-neon-orange">
+                <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
+              </span>
+              <h2 className="truncate text-sm font-semibold">
+                Licenças próximas de expirar
+                <span className="ml-2 text-xs font-normal text-muted-foreground">(até 15 dias)</span>
+              </h2>
             </div>
-          </CardHeader>
-          <CardContent className="pt-0">
+            {expiringSoon.length > 0 ? (
+              <span className="text-xs text-muted-foreground tabular-nums">{expiringSoon.length}</span>
+            ) : null}
+          </div>
+          <CardContent className="p-2 sm:p-3">
             {licenses.isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 2 }).map((_, i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
+              <div className="space-y-2 py-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-14 w-full" />
                 ))}
               </div>
             ) : expiringSoon.length === 0 ? (
-              <p className="py-3 text-center text-xs text-muted-foreground">
-                Nenhuma licença vencendo nos próximos 15 dias. 🎉
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Nenhuma licença vencendo nos próximos 15 dias.
               </p>
             ) : (
-              <ul className="grid gap-2 sm:grid-cols-2">
-                {expiringSoon.map(({ l, days }) => {
+              <ul className="divide-y divide-border/50">
+                {expiringSoon.map(({ l }) => {
+                  const remaining = timeUntil(l.expires_at);
+                  const pct = progressPct(l.activated_at, l.expires_at);
                   const phone = (l.customer_phone ?? "").replace(/\D+/g, "");
+                  const days = Math.max(0, Math.ceil((new Date(l.expires_at!).getTime() - Date.now()) / 86_400_000));
                   const msg = encodeURIComponent(
                     `Olá${l.user_name ? ` ${l.user_name}` : ""}! Sua licença ${l.license_key} vence em ${days} dia${days === 1 ? "" : "s"}. Podemos já fazer sua renovação?`,
                   );
                   return (
                     <li
                       key={l.id}
-                      className="flex items-center gap-2 rounded-lg border border-amber-500/25 bg-background/40 px-2.5 py-2"
+                      className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg px-3 py-3 hover:bg-muted/30"
                     >
-                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400">
-                        <CalendarClock className="h-4 w-4" aria-hidden />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate font-mono text-[11px]">{l.license_key}</div>
-                        <div className="truncate text-[11px] text-muted-foreground">
-                          {l.user_name ?? "—"} ·{" "}
-                          <span className="font-medium text-amber-600 dark:text-amber-400">
-                            {days === 0 ? "vence hoje" : `${days}d restantes`}
-                          </span>
-                        </div>
+                      <DashAvatar name={l.user_name ?? "?"} />
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold">{l.user_name ?? "—"}</div>
+                        <div className="truncate font-mono text-[11px] text-muted-foreground">{l.license_key}</div>
                       </div>
-                      {phone ? (
-                        <Button asChild size="sm" variant="outline" className="h-7 gap-1.5 border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400">
+                      <div className="flex items-center gap-3">
+                        <div className="text-right leading-tight">
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Expira em</div>
+                          <div className="text-sm font-semibold">{remaining}</div>
+                        </div>
+                        <RingPct pct={pct} />
+                        {phone ? (
                           <a
                             href={`https://wa.me/${phone}?text=${msg}`}
                             target="_blank"
                             rel="noopener noreferrer"
+                            className="grid h-8 w-8 place-items-center rounded-lg border border-neon-lime/40 text-neon-lime hover:bg-neon-lime/10"
+                            aria-label="Enviar WhatsApp"
                           >
-                            <MessageCircle className="h-3.5 w-3.5" aria-hidden />
-                            <span className="text-xs">WhatsApp</span>
+                            <MessageCircle className="h-4 w-4" aria-hidden />
                           </a>
-                        </Button>
-                      ) : (
-                        <span className="text-[10px] text-muted-foreground">sem contato</span>
-                      )}
+                        ) : null}
+                      </div>
                     </li>
                   );
                 })}
@@ -1124,37 +1141,39 @@ function LpPanel({
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-        <GradientStatCard
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4">
+        <StatCard
           label="Total Lovpro"
-          description="Todas as licenças Lovpro"
-          value={list.length}
-          tone="primary"
-          icon={<FileText className="h-4 w-4" aria-hidden />}
+          value={list.length.toLocaleString("pt-BR")}
+          series={buildDailySeries(list.map((l) => l.created_at), 14)}
+          icon={FileText}
+          tone="purple"
+          loading={q.isLoading}
         />
-        <GradientStatCard
+        <StatCard
           label="Ativas"
-          description="Licenças Lovpro ativas"
-          value={active}
-          tone="emerald"
-          percent={list.length > 0 ? Math.round((active / list.length) * 100) : 0}
-          icon={<CheckCircle2 className="h-4 w-4" aria-hidden />}
+          value={active.toString()}
+          delta={{ value: list.length > 0 ? Math.round((active / list.length) * 100) : 0, positiveIsGood: true }}
+          series={buildDailySeries(list.filter((l) => l.status === "active").map((l) => l.activated_at ?? l.created_at), 14)}
+          icon={CheckCircle2}
+          tone="cyan"
+          loading={q.isLoading}
         />
-        <GradientStatCard
+        <StatCard
           label="Trials"
-          description="Lovpro em período de teste"
-          value={trials}
-          tone="amber"
-          percent={list.length > 0 ? Math.round((trials / list.length) * 100) : 0}
-          icon={<FlaskConical className="h-4 w-4" aria-hidden />}
+          value={trials.toString()}
+          series={buildDailySeries(list.filter((l) => l.status === "trial").map((l) => l.created_at), 14)}
+          icon={FlaskConical}
+          tone="orange"
+          loading={q.isLoading}
         />
-        <GradientStatCard
+        <StatCard
           label="Expiradas"
-          description="Licenças Lovpro expiradas"
-          value={expired}
-          tone="rose"
-          percent={list.length > 0 ? Math.round((expired / list.length) * 100) : 0}
-          icon={<XCircle className="h-4 w-4" aria-hidden />}
+          value={expired.toString()}
+          series={buildDailySeries(list.filter((l) => l.status === "expired").map((l) => l.expires_at), 14)}
+          icon={XCircle}
+          tone="pink"
+          loading={q.isLoading}
         />
       </div>
 
