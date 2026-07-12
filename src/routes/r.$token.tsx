@@ -525,91 +525,8 @@ function ResellerPublicPage() {
           </div>
         ) : null}
 
-        <div className="space-y-2 sm:hidden">
-          {licenses.isLoading ? (
-            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-xl" />)
-          ) : filtered.length === 0 ? (
-            <MobileEmptyState title="Nenhuma licença encontrada" description="Crie sua primeira licença em Nova licença." />
-          ) : (
-            filtered.map((l) => (
-              <article key={l.id} className="rounded-xl border border-border/60 bg-card p-2.5">
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                  <div className="min-w-0 space-y-1">
-                    <div className="flex min-w-0 items-center gap-1.5">
-                      <KeyRound className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
-                      <span className="truncate font-mono text-xs font-semibold">{l.license_key}</span>
-                    </div>
-                    <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
-                      <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-[10px] font-bold text-primary uppercase">
-                        {(l.user_name ?? "?").slice(0, 1)}
-                      </div>
-                      <span className="truncate">{l.user_name ?? "—"}</span>
-                    </div>
-                  </div>
-                  <StatusBadge status={computeStatus(l)} />
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                  <div className="min-w-0 truncate">Vendedor: <span className="text-foreground/80">{l.sold_by ?? "—"}</span></div>
-                  <div className="text-right tabular-nums">Disp.: <span className="text-foreground/80">{l.max_devices ?? 1}</span></div>
-                  <div className="col-span-2 tabular-nums">Expira: <span className="text-foreground/80">{formatDate(l.expires_at)}</span></div>
-                </div>
-                <div className="mt-3 grid grid-cols-2 gap-1.5">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 justify-center gap-1.5 px-2 text-xs"
-                    onClick={async () => {
-                      try { await navigator.clipboard.writeText(l.license_key); toast.success("Copiado"); }
-                      catch { toast.error("Falha ao copiar"); }
-                    }}
-                  >
-                    <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                    Copiar
-                  </Button>
-                  <EditLicenseDialog license={l} triggerLabel="Editar" triggerVariant="outline" triggerClassName="h-8 justify-center gap-1.5 px-2 text-xs" />
-                  <ResetLicenseDialog
-                    license={l}
-                    resellerId={reseller.data!.id}
-                    triggerLabel="Resetar"
-                    triggerVariant="outline"
-                    triggerClassName="h-8 justify-center gap-1.5 px-2 text-xs"
-                    invalidateKeys={[
-                      ["reseller-licenses", reseller.data!.id],
-                      ["licenses"],
-                    ]}
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 justify-center gap-1.5 px-2 text-xs"
-                    disabled={l.status === "revoked" || revoke.isPending}
-                    onClick={() => revoke.mutate(l.id)}
-                    aria-label="Revogar"
-                  >
-                    <Ban className="h-4 w-4" aria-hidden />
-                    Bloquear
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="col-span-2 h-8 justify-center gap-1.5 px-2 text-xs border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    disabled={remove.isPending}
-                    onClick={() => {
-                      if (confirm("Remover esta licença?")) remove.mutate(l.id);
-                    }}
-                    aria-label="Remover"
-                  >
-                    <Trash2 className="h-4 w-4" aria-hidden />
-                    Remover
-                  </Button>
-                </div>
-              </article>
-            ))
-          )}
-        </div>
-
-        <div className="hidden overflow-x-auto rounded-2xl border border-border/60 bg-card sm:block">
-          <Table>
+        <div className="block overflow-x-auto rounded-2xl border border-border/60 bg-card">
+          <Table className="min-w-[860px]">
             <TableHeader>
               <TableRow className="border-border/50 hover:bg-transparent">
                 <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Chave</TableHead>
@@ -1223,80 +1140,8 @@ function LpPanel({
         </div>
       ) : null}
 
-      <div className="space-y-2 sm:hidden">
-        {q.isLoading ? (
-          Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-xl" />)
-        ) : filtered.length === 0 ? (
-          <MobileEmptyState title="Nenhuma licença Lovpro encontrada" description="Crie sua primeira licença Lovpro em Nova licença Lovpro." />
-        ) : (
-          filtered.map((l) => (
-            <article key={l.id} className="rounded-xl border border-border/60 bg-card p-2.5">
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-                <div className="min-w-0 space-y-1">
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <KeyRound className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
-                    <span className="truncate font-mono text-xs font-semibold">{l.license_key}</span>
-                  </div>
-                  <div className="flex min-w-0 items-center gap-2 text-sm font-medium">
-                    <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-[10px] font-bold text-primary uppercase">
-                      {(l.user_name ?? "?").slice(0, 1)}
-                    </div>
-                    <span className="truncate">{l.user_name ?? "—"}</span>
-                  </div>
-                </div>
-                <StatusBadge status={(l.status ?? "active") as "active" | "trial" | "expired" | "revoked"} />
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                <div className="min-w-0 truncate">Vendedor: <span className="text-foreground/80">{l.sold_by ?? "—"}</span></div>
-                <div className="col-span-2 tabular-nums">Expira: <span className="text-foreground/80">{formatDate(l.expires_at)}</span></div>
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-1.5">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 justify-center gap-1.5 px-2 text-xs"
-                  onClick={async () => {
-                    try { await navigator.clipboard.writeText(l.license_key); toast.success("Copiado"); }
-                    catch { toast.error("Falha ao copiar"); }
-                  }}
-                >
-                  <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                  Copiar
-                </Button>
-                <EditSecondLicenseDialog license={l} />
-                <ResetSecondLicenseDialog license={l} />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 justify-center gap-1.5 px-2 text-xs"
-                  disabled={l.status === "revoked" || revoke.isPending}
-                  onClick={() => revoke.mutate(l.id)}
-                  aria-label="Revogar"
-                >
-                  <Ban className="h-4 w-4" aria-hidden />
-                  Bloquear
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 justify-center gap-1.5 px-2 text-xs border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                  disabled={remove.isPending}
-                  onClick={() => {
-                    if (confirm("Remover esta licença Lovpro?")) remove.mutate(l.id);
-                  }}
-                  aria-label="Remover"
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" aria-hidden />
-                  Remover
-                </Button>
-              </div>
-            </article>
-          ))
-        )}
-      </div>
-
-      <div className="hidden overflow-x-auto rounded-2xl border border-border/60 bg-card sm:block">
-        <Table>
+      <div className="block overflow-x-auto rounded-2xl border border-border/60 bg-card">
+        <Table className="min-w-[780px]">
           <TableHeader>
             <TableRow className="border-border/50 hover:bg-transparent">
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Chave Lovpro</TableHead>
