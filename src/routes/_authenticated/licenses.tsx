@@ -323,10 +323,12 @@ export function EditLicenseDialog({
   license,
   triggerLabel,
   triggerClassName,
+  triggerVariant = "ghost",
 }: {
   license: License;
   triggerLabel?: string;
   triggerClassName?: string;
+  triggerVariant?: "ghost" | "outline" | "secondary" | "default";
 }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
