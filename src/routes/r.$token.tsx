@@ -283,9 +283,9 @@ function ResellerPublicPage() {
                   value="main"
                   className="h-9 min-w-0 gap-1.5 rounded-full px-2 text-xs sm:gap-2 sm:px-4 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
                 >
-                  <Package className="h-3.5 w-3.5" aria-hidden />
-                  LoveX
-                  <span className="ml-1 rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
+                  <Package className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  <span className="truncate">LoveX</span>
+                  <span className="ml-1 shrink-0 rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
                     {r.max_keys}
                   </span>
                 </TabsTrigger>
@@ -293,9 +293,9 @@ function ResellerPublicPage() {
                   value="lp"
                   className="h-9 min-w-0 gap-1.5 rounded-full px-2 text-xs sm:gap-2 sm:px-4 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
                 >
-                  <Package className="h-3.5 w-3.5" aria-hidden />
-                  Lovpro
-                  <span className="ml-1 rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
+                  <Package className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  <span className="truncate">Lovpro</span>
+                  <span className="ml-1 shrink-0 rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-bold tabular-nums">
                     {r.max_keys_lp ?? 0}
                   </span>
                 </TabsTrigger>
@@ -566,11 +566,12 @@ function ResellerPublicPage() {
                     <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden />
                     Copiar
                   </Button>
-                  <EditLicenseDialog license={l} triggerLabel="Editar" triggerClassName="h-8 justify-center gap-1.5 px-2 text-xs" />
+                  <EditLicenseDialog license={l} triggerLabel="Editar" triggerVariant="outline" triggerClassName="h-8 justify-center gap-1.5 px-2 text-xs" />
                   <ResetLicenseDialog
                     license={l}
                     resellerId={reseller.data!.id}
                     triggerLabel="Resetar"
+                    triggerVariant="outline"
                     triggerClassName="h-8 justify-center gap-1.5 px-2 text-xs"
                     invalidateKeys={[
                       ["reseller-licenses", reseller.data!.id],
@@ -578,7 +579,7 @@ function ResellerPublicPage() {
                     ]}
                   />
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     className="h-8 justify-center gap-1.5 px-2 text-xs"
                     disabled={l.status === "revoked" || revoke.isPending}
@@ -589,9 +590,9 @@ function ResellerPublicPage() {
                     Bloquear
                   </Button>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="col-span-2 h-8 justify-center gap-1.5 px-2 text-xs text-destructive"
+                    className="col-span-2 h-8 justify-center gap-1.5 px-2 text-xs border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
                     disabled={remove.isPending}
                     onClick={() => {
                       if (confirm("Remover esta licença?")) remove.mutate(l.id);
@@ -1265,7 +1266,7 @@ function LpPanel({
                 <EditSecondLicenseDialog license={l} />
                 <ResetSecondLicenseDialog license={l} />
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   className="h-8 justify-center gap-1.5 px-2 text-xs"
                   disabled={l.status === "revoked" || revoke.isPending}
@@ -1276,9 +1277,9 @@ function LpPanel({
                   Bloquear
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  className="h-8 justify-center gap-1.5 px-2 text-xs text-destructive"
+                  className="h-8 justify-center gap-1.5 px-2 text-xs border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
                   disabled={remove.isPending}
                   onClick={() => {
                     if (confirm("Remover esta licença Lovpro?")) remove.mutate(l.id);
@@ -1451,7 +1452,7 @@ function EditSecondLicenseDialog({ license, iconOnly = false }: { license: Secon
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label="Editar" className={iconOnly ? "h-8 w-8 p-0" : "h-8 justify-center gap-1.5 px-2 text-xs"}>
+        <Button variant={iconOnly ? "ghost" : "outline"} size="sm" aria-label="Editar" className={iconOnly ? "h-8 w-8 p-0" : "h-8 justify-center gap-1.5 px-2 text-xs"}>
           <Pencil className="h-4 w-4" aria-hidden />
           {iconOnly ? null : "Editar"}
         </Button>
@@ -1557,7 +1558,7 @@ function ResetSecondLicenseDialog({ license, iconOnly = false }: { license: Seco
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label="Resetar" className={iconOnly ? "h-8 w-8 p-0" : "h-8 justify-center gap-1.5 px-2 text-xs"}>
+        <Button variant={iconOnly ? "ghost" : "outline"} size="sm" aria-label="Resetar" className={iconOnly ? "h-8 w-8 p-0" : "h-8 justify-center gap-1.5 px-2 text-xs"}>
           <RotateCcw className="h-4 w-4" aria-hidden />
           {iconOnly ? null : "Resetar"}
         </Button>

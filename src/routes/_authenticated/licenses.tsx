@@ -323,10 +323,12 @@ export function EditLicenseDialog({
   license,
   triggerLabel,
   triggerClassName,
+  triggerVariant = "ghost",
 }: {
   license: License;
   triggerLabel?: string;
   triggerClassName?: string;
+  triggerVariant?: "ghost" | "outline" | "secondary" | "default";
 }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -394,7 +396,7 @@ export function EditLicenseDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label="Editar" className={triggerClassName}>
+        <Button variant={triggerVariant} size="sm" aria-label="Editar" className={triggerClassName}>
           <Pencil className="h-4 w-4" aria-hidden />
           {triggerLabel ? <span>{triggerLabel}</span> : null}
         </Button>
