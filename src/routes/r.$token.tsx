@@ -174,14 +174,25 @@ function ResellerPublicPage() {
           <CardContent>
             <form
               className="space-y-4"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                if (pwInput === (reseller.data?.password ?? "")) {
-                  window.localStorage.setItem(storageKey, pwInput);
-                  setAuthed(true);
-                  toast.success("Acesso liberado");
-                } else {
-                  toast.error("Senha incorreta");
+                if (verifying) return;
+                setVerifying(true);
+                try {
+                  const res = await verifyResellerPassword({
+                    data: { token, password: pwInput },
+                  });
+                  if (res.ok) {
+                    window.localStorage.setItem(storageKey, "1");
+                    setAuthed(true);
+                    toast.success("Acesso liberado");
+                  } else {
+                    toast.error("Senha incorreta");
+                  }
+                } catch (err) {
+                  toast.error(err instanceof Error ? err.message : "Falha ao verificar");
+                } finally {
+                  setVerifying(false);
                 }
               }}
             >
