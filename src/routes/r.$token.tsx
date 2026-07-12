@@ -2,7 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase, type License } from "@/integrations/external-supabase/client";
-import { fetchResellerByToken, fetchResellerLicenses } from "@/lib/resellers";
+import { fetchResellerLicenses } from "@/lib/resellers";
+import {
+  getResellerPublicByToken,
+  verifyResellerPassword,
+} from "@/lib/reseller-auth.functions";
 import { computeStatus, generateLicenseKey, isTrialLicense } from "@/lib/licenses";
 import { StatusBadge } from "./_authenticated/dashboard";
 import { EditLicenseDialog } from "./_authenticated/licenses";
@@ -72,18 +76,20 @@ function ResellerPublicPage() {
 
   const reseller = useQuery({
     queryKey: ["reseller", token],
-    queryFn: () => fetchResellerByToken(token),
+    queryFn: () => getResellerPublicByToken({ data: { token } }),
   });
 
   const storageKey = `reseller_auth_${token}`;
   const [authed, setAuthed] = useState<boolean>(false);
   const [pwInput, setPwInput] = useState("");
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!reseller.data) return;
-    const saved = window.localStorage.getItem(storageKey);
-    if (saved && saved === reseller.data.password) {
+    // The password is no longer available client-side; keep a simple
+    // "already unlocked in this browser" flag to preserve the previous UX.
+    if (window.localStorage.getItem(storageKey) === "1") {
       setAuthed(true);
     }
   }, [reseller.data, storageKey]);
