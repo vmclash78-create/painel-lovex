@@ -16,7 +16,6 @@ import { Route as RTokenRouteImport } from './routes/r.$token'
 import { Route as AuthenticatedSecondPanelRouteImport } from './routes/_authenticated/second-panel'
 import { Route as AuthenticatedResellersRouteImport } from './routes/_authenticated/resellers'
 import { Route as AuthenticatedLicensesRouteImport } from './routes/_authenticated/licenses'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as ApiPublicMpWebhookRouteImport } from './routes/api/public/mp/webhook'
 import { Route as ApiPublicMpStatusRouteImport } from './routes/api/public/mp/status'
 import { Route as ApiPublicMpCreatePaymentRouteImport } from './routes/api/public/mp/create-payment'
@@ -56,11 +55,6 @@ const AuthenticatedLicensesRoute = AuthenticatedLicensesRouteImport.update({
   path: '/licenses',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const ApiPublicMpWebhookRoute = ApiPublicMpWebhookRouteImport.update({
   id: '/api/public/mp/webhook',
   path: '/api/public/mp/webhook',
@@ -81,7 +75,6 @@ const ApiPublicMpCreatePaymentRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
   '/licenses': typeof AuthenticatedLicensesRoute
   '/resellers': typeof AuthenticatedResellersRoute
   '/second-panel': typeof AuthenticatedSecondPanelRoute
@@ -93,7 +86,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
   '/licenses': typeof AuthenticatedLicensesRoute
   '/resellers': typeof AuthenticatedResellersRoute
   '/second-panel': typeof AuthenticatedSecondPanelRoute
@@ -107,7 +99,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/licenses': typeof AuthenticatedLicensesRoute
   '/_authenticated/resellers': typeof AuthenticatedResellersRoute
   '/_authenticated/second-panel': typeof AuthenticatedSecondPanelRoute
@@ -121,7 +112,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
-    | '/dashboard'
     | '/licenses'
     | '/resellers'
     | '/second-panel'
@@ -133,7 +123,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/dashboard'
     | '/licenses'
     | '/resellers'
     | '/second-panel'
@@ -146,7 +135,6 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
-    | '/_authenticated/dashboard'
     | '/_authenticated/licenses'
     | '/_authenticated/resellers'
     | '/_authenticated/second-panel'
@@ -217,13 +205,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLicensesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/api/public/mp/webhook': {
       id: '/api/public/mp/webhook'
       path: '/api/public/mp/webhook'
@@ -249,14 +230,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedLicensesRoute: typeof AuthenticatedLicensesRoute
   AuthenticatedResellersRoute: typeof AuthenticatedResellersRoute
   AuthenticatedSecondPanelRoute: typeof AuthenticatedSecondPanelRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedLicensesRoute: AuthenticatedLicensesRoute,
   AuthenticatedResellersRoute: AuthenticatedResellersRoute,
   AuthenticatedSecondPanelRoute: AuthenticatedSecondPanelRoute,
