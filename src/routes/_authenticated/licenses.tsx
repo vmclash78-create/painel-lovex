@@ -396,7 +396,7 @@ export function EditLicenseDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label="Editar" className={triggerClassName}>
+        <Button variant={triggerVariant} size="sm" aria-label="Editar" className={triggerClassName}>
           <Pencil className="h-4 w-4" aria-hidden />
           {triggerLabel ? <span>{triggerLabel}</span> : null}
         </Button>
