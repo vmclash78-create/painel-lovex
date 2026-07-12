@@ -1451,7 +1451,7 @@ function EditSecondLicenseDialog({ license, iconOnly = false }: { license: Secon
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label="Editar" className={iconOnly ? "h-8 w-8 p-0" : "h-8 justify-center gap-1.5 px-2 text-xs"}>
+        <Button variant={iconOnly ? "ghost" : "outline"} size="sm" aria-label="Editar" className={iconOnly ? "h-8 w-8 p-0" : "h-8 justify-center gap-1.5 px-2 text-xs"}>
           <Pencil className="h-4 w-4" aria-hidden />
           {iconOnly ? null : "Editar"}
         </Button>
@@ -1557,7 +1557,7 @@ function ResetSecondLicenseDialog({ license, iconOnly = false }: { license: Seco
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label="Resetar" className={iconOnly ? "h-8 w-8 p-0" : "h-8 justify-center gap-1.5 px-2 text-xs"}>
+        <Button variant={iconOnly ? "ghost" : "outline"} size="sm" aria-label="Resetar" className={iconOnly ? "h-8 w-8 p-0" : "h-8 justify-center gap-1.5 px-2 text-xs"}>
           <RotateCcw className="h-4 w-4" aria-hidden />
           {iconOnly ? null : "Resetar"}
         </Button>
