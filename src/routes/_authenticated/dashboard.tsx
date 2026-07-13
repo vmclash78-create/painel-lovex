@@ -449,7 +449,9 @@ export function timeUntil(iso: string | null | undefined): string {
   if (m < 60) return `${m}m`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ${m % 60}m`;
-  const d = Math.floor(h / 24);
+  // Arredonda para cima para bater com daysUntil() usado na página de Licenças.
+  // Ex.: 1d 12h => "2 dias" em ambos os lugares (antes: dashboard mostrava "1 dia").
+  const d = Math.ceil(diff / 86_400_000);
   if (d < 30) return d === 1 ? "1 dia" : `${d} dias`;
   return new Date(iso).toLocaleDateString("pt-BR");
 }
