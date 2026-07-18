@@ -103,7 +103,8 @@ function useLpService(): LicenseService {
 export function LicenseServiceProvider({ children }: { children: ReactNode }) {
   const { db } = useDb();
   const lp = useLpService();
-  const svc = db === "lp" ? lp : useMemo(mainService, []);
+  const main = useMemo(mainService, []);
+  const svc = db === "lp" ? lp : main;
   return <Ctx.Provider value={svc}>{children}</Ctx.Provider>;
 }
 
