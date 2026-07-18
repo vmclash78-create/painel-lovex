@@ -159,6 +159,28 @@
   --shadow-neon: 0 0 0 1px color-mix(in oklab, oklch(0.68 0.2 250) 25%, transparent), 0 8px 30px -8px color-mix(in oklab, oklch(0.68 0.2 250) 55%, transparent);
 }
 
+/* LovPro (LP) purple theme override */
+.dark[data-db="lp"],
+[data-db="lp"].dark,
+[data-db="lp"] {
+  --primary: oklch(0.68 0.22 305);
+  --primary-foreground: oklch(0.12 0.04 300);
+  --primary-glow: oklch(0.78 0.18 300);
+  --accent: oklch(0.3 0.08 305);
+  --accent-foreground: oklch(0.97 0.01 300);
+  --ring: oklch(0.68 0.22 305);
+  --sidebar-primary: oklch(0.68 0.22 305);
+  --sidebar-primary-foreground: oklch(0.12 0.04 300);
+  --sidebar-accent: oklch(0.22 0.06 305);
+  --sidebar-accent-foreground: oklch(0.98 0.01 300);
+  --sidebar-ring: oklch(0.68 0.22 305);
+  --chart-1: oklch(0.68 0.22 305);
+  --neon-purple: oklch(0.68 0.22 305);
+  --gradient-primary: linear-gradient(135deg, oklch(0.68 0.22 305), oklch(0.78 0.18 285));
+  --shadow-elegant: 0 10px 30px -10px color-mix(in oklab, oklch(0.68 0.22 305) 45%, transparent);
+  --shadow-neon: 0 0 0 1px color-mix(in oklab, oklch(0.68 0.22 305) 25%, transparent), 0 8px 30px -8px color-mix(in oklab, oklch(0.68 0.22 305) 55%, transparent);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);

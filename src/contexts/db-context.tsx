@@ -22,6 +22,12 @@ export function DbProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.setAttribute("data-db", db);
+    }
+  }, [db]);
+
   const setDb = (next: DbId) => {
     setDbState(next);
     try {
