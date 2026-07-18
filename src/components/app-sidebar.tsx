@@ -130,7 +130,7 @@ export function AppSidebar() {
           </span>
           {!collapsed && (
             <div className="min-w-0 leading-tight">
-              <div className="truncate text-sm font-bold tracking-tight">LoveX</div>
+              <div className="truncate text-sm font-bold tracking-tight">{db === "lp" ? "LovPro LP" : "LoveX"}</div>
               <div className="truncate text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                 Control Panel
               </div>
