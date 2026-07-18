@@ -25,11 +25,23 @@ export const getResellerPublicByToken = createServerFn({ method: "POST" })
     const supabase = getExternalAdmin();
     const { data: row, error } = await supabase
       .from("resellers")
-      .select("id, name, token, max_keys, active, created_at, sells_main, sells_lp, max_keys_lp")
+      .select("*")
       .eq("token", data.token)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return (row as ResellerPublic | null) ?? null;
+    if (!row) return null;
+    const r = row as Record<string, unknown>;
+    return {
+      id: String(r.id),
+      name: String(r.name ?? ""),
+      token: String(r.token ?? ""),
+      max_keys: Number(r.max_keys ?? 0),
+      active: Boolean(r.active),
+      created_at: (r.created_at as string | null) ?? null,
+      sells_main: r.sells_main === undefined ? true : Boolean(r.sells_main),
+      sells_lp: r.sells_lp === undefined ? false : Boolean(r.sells_lp),
+      max_keys_lp: Number(r.max_keys_lp ?? 0),
+    };
   });
 
 // Verifies the reseller password server-side; the plaintext password never
@@ -53,13 +65,25 @@ export const verifyResellerPassword = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) return { ok: false, reseller: null };
-    const stored = String((row as { password: string | null }).password ?? "");
+    const r = row as Record<string, unknown>;
+    const stored = String((r.password as string | null) ?? "");
     const provided = data.password;
     const a = Buffer.from(stored);
     const b = Buffer.from(provided);
     const ok = a.length === b.length && timingSafeEqual(a, b);
     if (!ok) return { ok: false, reseller: null };
-    const { password: _pw, ...rest } = row as Record<string, unknown>;
-    void _pw;
-    return { ok: true, reseller: rest as unknown as ResellerPublic };
+    return {
+      ok: true,
+      reseller: {
+        id: String(r.id),
+        name: String(r.name ?? ""),
+        token: String(r.token ?? ""),
+        max_keys: Number(r.max_keys ?? 0),
+        active: Boolean(r.active),
+        created_at: (r.created_at as string | null) ?? null,
+        sells_main: r.sells_main === undefined ? true : Boolean(r.sells_main),
+        sells_lp: r.sells_lp === undefined ? false : Boolean(r.sells_lp),
+        max_keys_lp: Number(r.max_keys_lp ?? 0),
+      },
+    };
   });
