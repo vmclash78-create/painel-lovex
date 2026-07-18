@@ -335,6 +335,7 @@ export function EditLicenseDialog({
   triggerVariant?: "ghost" | "outline" | "secondary" | "default";
 }) {
   const qc = useQueryClient();
+  const svc = useLicenseService();
   const [open, setOpen] = useState(false);
   const [licenseKey, setLicenseKey] = useState(license.license_key);
   const [userName, setUserName] = useState(license.user_name ?? "");
@@ -367,12 +368,11 @@ export function EditLicenseDialog({
       if (resetSession) {
         patch.session_id = crypto.randomUUID();
       }
-      const { error } = await supabase.from("licenses").update(patch).eq("id", license.id);
-      if (error) throw error;
+      await svc.update(license.id, patch);
     },
     onSuccess: () => {
       toast.success("Licença atualizada");
-      qc.invalidateQueries({ queryKey: ["licenses"] });
+      qc.invalidateQueries({ queryKey: svc.queryKey });
       qc.invalidateQueries({ queryKey: ["reseller-licenses"] });
       setOpen(false);
       setClearDevice(false);
@@ -427,7 +427,7 @@ export function EditLicenseDialog({
                 className="font-mono"
                 required
               />
-              <Button type="button" variant="outline" size="sm" onClick={() => setLicenseKey(generateLicenseKey())}>
+              <Button type="button" variant="outline" size="sm" onClick={() => setLicenseKey(svc.generateKey())}>
                 Gerar
               </Button>
             </div>
