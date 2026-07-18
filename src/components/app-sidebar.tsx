@@ -75,6 +75,7 @@ function useExpiringCount(): number {
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const { db } = useDb();
   const location = useRouterState({ select: (s) => s.location });
   const currentPath = location.pathname;
   const currentSearch = (location.search ?? {}) as Record<string, string | undefined>;
