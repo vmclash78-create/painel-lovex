@@ -33,7 +33,7 @@ const Ctx = createContext<LicenseService | null>(null);
 function mainService(): LicenseService {
   return {
     id: "main",
-    queryKey: ["licenses", "main"],
+    queryKey: ["licenses"],
     keyPrefix: "LX",
     generateKey: () => generateLicenseKey(),
     list: async () => {
