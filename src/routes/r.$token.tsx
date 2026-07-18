@@ -265,20 +265,36 @@ function ResellerPublicPage() {
           const both = r.sells_main && r.sells_lp;
           if (!both && r.sells_lp && !r.sells_main) {
             return (
-              <LpPanel
-                resellerId={r.id}
-                maxKeys={r.max_keys_lp ?? 0}
-                disabled={!r.active}
-              />
+              <div data-db="lp" className="contents">
+                <LpPanel
+                  resellerId={r.id}
+                  maxKeys={r.max_keys_lp ?? 0}
+                  disabled={!r.active}
+                />
+              </div>
             );
           }
           if (!both) {
             // sells_main only — fall through to original UI below
             return null;
           }
-          return (
-            <Tabs defaultValue="main" className="space-y-5">
-              <TabsList className="grid h-11 w-full grid-cols-2 items-center gap-1 rounded-full border border-border/60 bg-card/60 p-1 backdrop-blur sm:inline-flex sm:w-auto">
+          return <BothPanels r={r} />;
+        })()}
+        {(!reseller.data!.sells_main && reseller.data!.sells_lp) ? null : (
+          reseller.data!.sells_main && !reseller.data!.sells_lp ? (
+            <MainPanelBody />
+          ) : null
+        )}
+      </main>
+    </div>
+  );
+
+  function BothPanels({ r }: { r: NonNullable<typeof reseller.data> }) {
+    const [tab, setTab] = useState<"main" | "lp">("main");
+    return (
+      <div data-db={tab === "lp" ? "lp" : undefined}>
+        <Tabs value={tab} onValueChange={(v) => setTab(v as "main" | "lp")} className="space-y-5">
+          <TabsList className="grid h-11 w-full grid-cols-2 items-center gap-1 rounded-full border border-border/60 bg-card/60 p-1 backdrop-blur sm:inline-flex sm:w-auto">
                 <TabsTrigger
                   value="main"
                   className="h-9 min-w-0 gap-1.5 rounded-full px-2 text-xs sm:gap-2 sm:px-4 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
@@ -301,26 +317,19 @@ function ResellerPublicPage() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="lp" className="space-y-4 mt-0">
-                <LpPanel
-                  resellerId={r.id}
-                  maxKeys={r.max_keys_lp ?? 0}
-                  disabled={!r.active}
-                />
+            <LpPanel
+              resellerId={r.id}
+              maxKeys={r.max_keys_lp ?? 0}
+              disabled={!r.active}
+            />
               </TabsContent>
               <TabsContent value="main" className="space-y-4 mt-0">
                 <MainPanelBody />
               </TabsContent>
-            </Tabs>
-          );
-        })()}
-        {(!reseller.data!.sells_main && reseller.data!.sells_lp) ? null : (
-          reseller.data!.sells_main && !reseller.data!.sells_lp ? (
-            <MainPanelBody />
-          ) : null
-        )}
-      </main>
-    </div>
-  );
+        </Tabs>
+      </div>
+    );
+  }
 
   function MainPanelBody() {
     const r = reseller.data!;
