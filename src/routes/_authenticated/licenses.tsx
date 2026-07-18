@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-import { type License } from "@/integrations/external-supabase/client";
-import { computeStatus } from "@/lib/licenses";
-import { LicenseServiceProvider, useLicenseService } from "@/lib/license-service";
+import { supabase, type License } from "@/integrations/external-supabase/client";
+import { computeStatus, generateLicenseKey } from "@/lib/licenses";
+import { LicenseServiceProvider, useLicenseService, useOptionalLicenseService } from "@/lib/license-service";
 import { StatusBadge } from "./dashboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -325,17 +325,21 @@ function PhoneCell({
 
 export function EditLicenseDialog({
   license,
+  resellerId,
+  invalidateKeys,
   triggerLabel,
   triggerClassName,
   triggerVariant = "ghost",
 }: {
   license: License;
+  resellerId?: string;
+  invalidateKeys?: readonly (readonly unknown[])[];
   triggerLabel?: string;
   triggerClassName?: string;
   triggerVariant?: "ghost" | "outline" | "secondary" | "default";
 }) {
   const qc = useQueryClient();
-  const svc = useLicenseService();
+  const svc = useOptionalLicenseService();
   const [open, setOpen] = useState(false);
   const [licenseKey, setLicenseKey] = useState(license.license_key);
   const [userName, setUserName] = useState(license.user_name ?? "");
@@ -368,12 +372,20 @@ export function EditLicenseDialog({
       if (resetSession) {
         patch.session_id = crypto.randomUUID();
       }
-      await svc.update(license.id, patch);
+      if (svc) {
+        await svc.update(license.id, patch);
+      } else {
+        let q = supabase.from("licenses").update(patch).eq("id", license.id);
+        if (resellerId) q = q.eq("reseller_id", resellerId);
+        const { error } = await q;
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       toast.success("Licença atualizada");
-      qc.invalidateQueries({ queryKey: svc.queryKey });
-      qc.invalidateQueries({ queryKey: ["reseller-licenses"] });
+      (invalidateKeys ?? [svc?.queryKey ?? ["licenses"], ["reseller-licenses"]]).forEach((key) => {
+        qc.invalidateQueries({ queryKey: key as unknown[] });
+      });
       setOpen(false);
       setClearDevice(false);
       setResetSession(false);
@@ -427,7 +439,7 @@ export function EditLicenseDialog({
                 className="font-mono"
                 required
               />
-              <Button type="button" variant="outline" size="sm" onClick={() => setLicenseKey(svc.generateKey())}>
+              <Button type="button" variant="outline" size="sm" onClick={() => setLicenseKey(svc?.generateKey() ?? generateLicenseKey())}>
                 Gerar
               </Button>
             </div>

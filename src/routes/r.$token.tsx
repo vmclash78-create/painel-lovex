@@ -601,7 +601,14 @@ function ResellerPublicPage() {
                     <TableCell className="text-xs tabular-nums">{l.max_devices ?? 1}</TableCell>
                     <TableCell className="text-right">
                       <div className="inline-flex items-center rounded-lg border border-border/60 bg-background/60 p-0.5">
-                        <EditLicenseDialog license={l} />
+                        <EditLicenseDialog
+                          license={l}
+                          resellerId={reseller.data!.id}
+                          invalidateKeys={[
+                            ["reseller-licenses", reseller.data!.id],
+                            ["licenses"],
+                          ]}
+                        />
                         <ResetLicenseDialog
                           license={l}
                           resellerId={reseller.data!.id}
