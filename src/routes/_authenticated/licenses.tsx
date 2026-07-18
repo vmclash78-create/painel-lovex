@@ -580,13 +580,14 @@ function toLocalInput(iso: string): string {
 
 function NewLicenseDialog() {
   const qc = useQueryClient();
+  const svc = useLicenseService();
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState("");
   const [status, setStatus] = useState<NonNullable<License["status"]>>("active");
   const [days, setDays] = useState<number>(30);
   const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
   const [maxDevices, setMaxDevices] = useState<number>(1);
-  const [key, setKey] = useState<string>(generateLicenseKey());
+  const [key, setKey] = useState<string>(svc.generateKey());
   const [maxVersion, setMaxVersion] = useState<string>("");
   const [customerPhone, setCustomerPhone] = useState<string>("");
 
@@ -614,7 +615,7 @@ function NewLicenseDialog() {
         throw new Error("Trial: máximo 15 minutos.");
       }
       const expires_at = days > 0 ? new Date(Date.now() + days * factor).toISOString() : null;
-      const { error } = await supabase.from("licenses").insert({
+      await svc.insert({
         license_key: key,
         user_name: userName || "Usuário",
         status,
@@ -624,13 +625,12 @@ function NewLicenseDialog() {
         max_version: maxVersion.trim() ? maxVersion.trim() : null,
         customer_phone: customerPhone.trim() ? customerPhone.trim() : null,
       });
-      if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Licença criada");
-      qc.invalidateQueries({ queryKey: ["licenses"] });
+      qc.invalidateQueries({ queryKey: svc.queryKey });
       setOpen(false);
-      setKey(generateLicenseKey());
+      setKey(svc.generateKey());
       setUserName("");
       setCustomerPhone("");
     },
@@ -675,7 +675,7 @@ function NewLicenseDialog() {
             <Label htmlFor="lkey">Chave</Label>
             <div className="flex gap-2">
               <Input id="lkey" value={key} onChange={(e) => setKey(e.target.value.toUpperCase())} className="font-mono" required />
-              <Button type="button" variant="outline" onClick={() => setKey(generateLicenseKey())}>
+              <Button type="button" variant="outline" onClick={() => setKey(svc.generateKey())}>
                 Gerar
               </Button>
             </div>
