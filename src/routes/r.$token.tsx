@@ -265,11 +265,13 @@ function ResellerPublicPage() {
           const both = r.sells_main && r.sells_lp;
           if (!both && r.sells_lp && !r.sells_main) {
             return (
-              <LpPanel
-                resellerId={r.id}
-                maxKeys={r.max_keys_lp ?? 0}
-                disabled={!r.active}
-              />
+              <ThemedDbScope db="lp">
+                <LpPanel
+                  resellerId={r.id}
+                  maxKeys={r.max_keys_lp ?? 0}
+                  disabled={!r.active}
+                />
+              </ThemedDbScope>
             );
           }
           if (!both) {
@@ -277,7 +279,7 @@ function ResellerPublicPage() {
             return null;
           }
           return (
-            <Tabs defaultValue="main" className="space-y-5">
+            <TabsThemed defaultValue="main" className="space-y-5">
               <TabsList className="grid h-11 w-full grid-cols-2 items-center gap-1 rounded-full border border-border/60 bg-card/60 p-1 backdrop-blur sm:inline-flex sm:w-auto">
                 <TabsTrigger
                   value="main"
@@ -301,16 +303,18 @@ function ResellerPublicPage() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="lp" className="space-y-4 mt-0">
-                <LpPanel
-                  resellerId={r.id}
-                  maxKeys={r.max_keys_lp ?? 0}
-                  disabled={!r.active}
-                />
+                <ThemedDbScope db="lp">
+                  <LpPanel
+                    resellerId={r.id}
+                    maxKeys={r.max_keys_lp ?? 0}
+                    disabled={!r.active}
+                  />
+                </ThemedDbScope>
               </TabsContent>
               <TabsContent value="main" className="space-y-4 mt-0">
                 <MainPanelBody />
               </TabsContent>
-            </Tabs>
+            </TabsThemed>
           );
         })()}
         {(!reseller.data!.sells_main && reseller.data!.sells_lp) ? null : (
