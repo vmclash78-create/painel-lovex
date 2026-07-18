@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-import { supabase, type License } from "@/integrations/external-supabase/client";
-import { licensesQueryOptions, computeStatus, generateLicenseKey } from "@/lib/licenses";
+import { type License } from "@/integrations/external-supabase/client";
+import { computeStatus } from "@/lib/licenses";
+import { LicenseServiceProvider, useLicenseService } from "@/lib/license-service";
 import { StatusBadge } from "./dashboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,8 +23,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
-import { useDb } from "@/contexts/db-context";
-import { LpLicensesPanel } from "@/components/lp-licenses-panel";
 
 const searchSchema = z.object({
   filter: z.enum(["expiring"]).optional(),
@@ -38,15 +37,18 @@ export const Route = createFileRoute("/_authenticated/licenses")({
 });
 
 function LicensesPage() {
-  const { db } = useDb();
-  if (db === "lp") return <LpLicensesPanel />;
-  return <MainLicensesPage />;
+  return (
+    <LicenseServiceProvider>
+      <MainLicensesPage />
+    </LicenseServiceProvider>
+  );
 }
 
 function MainLicensesPage() {
   const qc = useQueryClient();
+  const svc = useLicenseService();
   const search = Route.useSearch();
-  const { data, isLoading } = useQuery(licensesQueryOptions);
+  const { data, isLoading } = useQuery({ queryKey: svc.queryKey, queryFn: svc.list });
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(search.status ?? "all");
   const [onlyExpiringSoon, setOnlyExpiringSoon] = useState(search.filter === "expiring");
@@ -75,25 +77,19 @@ function MainLicensesPage() {
   }, [data, searchTerm, statusFilter, onlyExpiringSoon]);
 
   const revoke = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("licenses").update({ status: "revoked", updated_at: new Date().toISOString() }).eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => svc.revoke(id),
     onSuccess: () => {
       toast.success("Licença revogada");
-      qc.invalidateQueries({ queryKey: ["licenses"] });
+      qc.invalidateQueries({ queryKey: svc.queryKey });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   const remove = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("licenses").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => svc.remove(id),
     onSuccess: () => {
       toast.success("Licença removida");
-      qc.invalidateQueries({ queryKey: ["licenses"] });
+      qc.invalidateQueries({ queryKey: svc.queryKey });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -109,7 +105,7 @@ function MainLicensesPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => qc.invalidateQueries({ queryKey: ["licenses"] })}
+              onClick={() => qc.invalidateQueries({ queryKey: svc.queryKey })}
             aria-label="Recarregar"
           >
             <RefreshCw className="h-4 w-4" aria-hidden />
@@ -235,7 +231,7 @@ function MainLicensesPage() {
                           <EditLicenseDialog license={l} />
                           <ResetLicenseDialog
                             license={l}
-                            invalidateKeys={[["licenses"], ["reseller-licenses"]]}
+                            invalidateKeys={[svc.queryKey, ["reseller-licenses"]]}
                           />
                           <Button
                             variant="ghost"
