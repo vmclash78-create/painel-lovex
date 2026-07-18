@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+import { useOptionalLicenseService } from "@/lib/license-service";
 
 interface Props {
   license: License;
@@ -23,6 +24,7 @@ interface Props {
 
 export function ResetLicenseDialog({ license, resellerId, invalidateKeys, triggerLabel, triggerClassName, triggerVariant = "ghost" }: Props) {
   const qc = useQueryClient();
+  const svc = useOptionalLicenseService();
   const [open, setOpen] = useState(false);
   const [clearDevice, setClearDevice] = useState(true);
   const [resetSession, setResetSession] = useState(true);
@@ -46,10 +48,14 @@ export function ResetLicenseDialog({ license, resellerId, invalidateKeys, trigge
           Date.now() + (license.duration_minutes ?? 0) * 60_000,
         ).toISOString();
       }
-      let q = supabase.from("licenses").update(patch).eq("id", license.id);
-      if (resellerId) q = q.eq("reseller_id", resellerId);
-      const { error } = await q;
-      if (error) throw error;
+      if (svc) {
+        await svc.update(license.id, patch);
+      } else {
+        let q = supabase.from("licenses").update(patch).eq("id", license.id);
+        if (resellerId) q = q.eq("reseller_id", resellerId);
+        const { error } = await q;
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       toast.success("Licença reiniciada");

@@ -1,99 +1,55 @@
 ## Objetivo
+Fazer o painel LP (quando selecionado no switcher) ter **exatamente** as mesmas funcionalidades do painel Principal — mesma UI, mesmos filtros, mesmas ações — apenas lendo/gravando no banco LP.
 
-Aplicar o novo visual (sidebar dark + dashboard com cards/sparklines + seletor de banco) e criar as rotas novas listadas no menu, reutilizando os dados que já vêm dos dois bancos (Principal e LP). Nenhum número mock — só o que já temos.
+## Estado atual
+- `/licenses` já troca entre Principal e LP via `useDb()`, mas o LP renderiza um componente separado (`LpLicensesPanel`) com **UI simplificada**: sem editar chave, sem resetar dispositivo, sem contato/WhatsApp, sem versão máxima, sem coluna "Expira em X dias", sem card "Renovações próximas", sem filtro "expiring", sem toolbar/paginação idênticos.
+- `MainLicensesPage` usa direto `supabase.from("licenses")` (external client) + hook `licensesQueryOptions`.
+- Server functions do LP (`second-licenses.functions.ts`) já cobrem list/create/update/revoke/delete. Falta suportar campos: `max_version`, `customer_phone` — se existirem no schema LP.
+- Dashboard já é DB-aware.
 
-## Nova estrutura de rotas
+## Plano
 
-```text
-/dashboard              (reformado)
-/keys                   (Todas as Keys — hoje é /licenses; vira /keys e mostra o banco selecionado)
-/keys/new               (Criar Key)
-/keys/expiring          (Expirando — filtra ≤7d)
-/keys/revoked           (Revogadas)
-/resellers              (mantida, novo visual)
-/logs                   (histórico: reseller_key_transactions + reseller_purchases)
-/settings               (dados do admin logado + logout + info de conexão)
-/second-panel           → substituída pelo seletor de banco (removida do menu)
+### 1. Refatorar `MainLicensesPage` em componente genérico
+Extrair a UI da página Principal para um componente `LicensesPageView` parametrizado por uma **camada de dados** (`adapter`) com esta interface:
+- `useList()` → licenças + loading
+- `mutations`: revoke, remove, update (edit), reset device, create
+- `keyPrefix` ("LX" | "LP") para `generateKey`
+- `invalidate()` para refetch
+
+### 2. Criar dois adapters
+- `mainAdapter` → usa `supabase` (external client) direto, como hoje
+- `lpAdapter` → usa os `useServerFn(...)` das `second-licenses.functions.ts`
+
+### 3. Trocar renderização em `/licenses`
+```tsx
+const { db } = useDb();
+const adapter = db === "lp" ? useLpAdapter() : useMainAdapter();
+return <LicensesPageView adapter={adapter} />;
 ```
+Remover `LpLicensesPanel` (arquivo apagado).
 
-`/licenses` fica como redirect para `/keys` para não quebrar links antigos.
+### 4. Ampliar server fns LP para paridade
+- `updateSecondLicense`: aceitar `max_version`, `customer_phone` (opcional, ignora se colunas não existirem — try/catch por campo, ou passar direto — deixar o Postgres reclamar só se coluna faltar).
+- `createSecondLicense`: idem.
+- Adicionar tipo `SecondLicense` com esses campos opcionais.
+- **Nota:** o usuário precisará rodar no banco LP o SQL:
+  ```sql
+  ALTER TABLE public.licenses ADD COLUMN IF NOT EXISTS max_version TEXT;
+  ALTER TABLE public.licenses ADD COLUMN IF NOT EXISTS customer_phone TEXT;
+  ```
+  Vou avisar isso no fim.
 
-## Seletor de banco (Principal ↔ LP)
+### 5. Dashboard
+O dashboard já lê do banco ativo, mas hoje no LP alguns cards ficam ocultos. Manter como está — a solicitação é sobre `/licenses`.
 
-- Contexto global `DbContext` guardando `"main" | "lp"` em `localStorage`.
-- Componente `DbSwitcher` no topo direito (igual ao mock).
-- Todas as telas de keys leem/escrevem no banco ativo:
-  - `main` → cliente `external-supabase` já existente
-  - `lp` → server functions `second-licenses.functions.ts` já existentes
-- Um único hook `useKeysApi()` devolve `list/create/update/delete/revoke` baseado no banco ativo. Assim eu não duplico UI.
+## Arquivos afetados
+- `src/routes/_authenticated/licenses.tsx` — extrai view + adapters (`mainAdapter`, chama `LpAdapter`)
+- `src/lib/lp-licenses.hooks.ts` — vira o adapter LP (`useLpAdapter`)
+- `src/lib/second-licenses.functions.ts` — aceita `max_version` / `customer_phone`
+- `src/components/lp-licenses-panel.tsx` — **removido**
 
-## Layout / sidebar
+## Resultado
+Ao trocar Principal ↔ LP no switcher, a página `/licenses` fica visualmente idêntica (mesma tabela, mesmos filtros "Todos/Expirando/Renovações", botões editar/resetar/bloquear/remover, card "Renovações próximas", diálogo Nova/Editar completo com Contato + Versão máxima). Só os dados vêm do banco LP.
 
-- Novo `AppSidebar` com grupos **KEYS**, **REVENDEDORES**, **SISTEMA**, badge de expirando no item "Expirando".
-- Cabeçalho fixo com título da página + `DbSwitcher` + sino + avatar.
-- Rodapé da sidebar com avatar do admin (nome vem do e-mail do Supabase).
-- Uso de `SidebarProvider` do shadcn com `collapsible="icon"`.
-
-## Dashboard
-
-Cards (dados reais do banco ativo):
-- **Total de keys** — `licenses.length`
-- **Expirando em 7 dias** — filtro `expires_at ≤ now+7d && status==active`
-- **Revendedores** — `resellers.length` (só no banco Principal; no LP oculto)
-- **Receita total** — soma de `reseller_purchases` com `status=paid`
-
-Sparklines: mini-gráfico (recharts) mostrando keys criadas por dia nos últimos 14 dias — derivado de `created_at`. Sem dado sintético.
-
-Percentuais "este mês": comparo count do mês atual vs mês anterior (mesma tabela).
-
-Lista **Keys próximas de expirar**: top 5 por `expires_at` ascendente entre as ativas com expiração ≤7d, com barra circular de progresso baseada em `(now - activated_at) / (expires_at - activated_at)`.
-
-## Novas telas
-
-- **/keys/new** — form já existente, extraído do modal atual em `/licenses`, agora como página.
-- **/keys/expiring** — lista filtrada (≤7d).
-- **/keys/revoked** — lista filtrada `status=revoked`.
-- **/logs** — timeline com `reseller_key_transactions` (créditos/consumos) + `reseller_purchases` (pagamentos PIX).
-- **/settings** — mostra e-mail do admin, botão sair, indicador de qual banco está ativo, versão do painel.
-
-## Design tokens
-
-Tema dark neon (roxo/ciano). Atualizo `src/styles.css` (@theme) para adicionar `--color-neon-purple`, `--color-neon-cyan`, `--color-neon-lime`, `--gradient-*` e ajusto `--sidebar-*`. Nada de classes `bg-black`/`text-white` — só tokens.
-
-Paleta base:
-- background `oklch(0.13 0.02 275)` (roxo bem escuro)
-- sidebar `oklch(0.11 0.02 275)`
-- accent principal `oklch(0.72 0.22 305)` (roxo neon)
-- accents secundários: ciano `oklch(0.78 0.15 200)`, lime `oklch(0.85 0.20 145)`, orange `oklch(0.75 0.18 55)`
-
-## Arquivos a criar
-
-- `src/components/app-sidebar.tsx`
-- `src/components/db-switcher.tsx`
-- `src/components/dashboard/stat-card.tsx` (com sparkline)
-- `src/components/dashboard/expiring-list.tsx`
-- `src/contexts/db-context.tsx`
-- `src/hooks/use-keys-api.ts`
-- `src/routes/_authenticated/keys.tsx` (index — todas as keys)
-- `src/routes/_authenticated/keys.new.tsx`
-- `src/routes/_authenticated/keys.expiring.tsx`
-- `src/routes/_authenticated/keys.revoked.tsx`
-- `src/routes/_authenticated/logs.tsx`
-- `src/routes/_authenticated/settings.tsx`
-- `src/routes/_authenticated/licenses.tsx` → vira redirect para `/keys`
-
-## Arquivos a alterar
-
-- `src/styles.css` — tokens do novo tema + sidebar
-- `src/routes/_authenticated/route.tsx` — envolver com `SidebarProvider` + `DbProvider`, novo header
-- `src/routes/_authenticated/dashboard.tsx` — reescrito
-- `src/routes/_authenticated/resellers.tsx` — só ajustes de estilo pros cards/tabela
-
-## O que fica igual
-
-- Toda a lógica de auth, server functions, webhooks e RLS. Nenhuma mudança de schema.
-- Painel público de revenda `/r/:token` fica como está (visual próprio pro cliente final).
-
-## Validação
-
-Após implementar: `tsgo` para typecheck, abrir `/dashboard` no preview e conferir os 4 cards, seletor de banco, e navegação entre as novas rotas.
+## Confirmação
+Confirma que devo prosseguir? Se sim, também rodo o `ALTER TABLE` no banco LP via server function temporária ou você prefere rodar manualmente?

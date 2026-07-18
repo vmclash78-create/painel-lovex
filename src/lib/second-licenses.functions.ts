@@ -18,6 +18,8 @@ export type SecondLicense = {
   updated_at: string | null;
   reseller_id: string | null;
   sold_by: string | null;
+  max_version?: string | null;
+  customer_phone?: string | null;
 };
 
 export const listSecondLicenses = createServerFn({ method: "GET" })
@@ -63,6 +65,8 @@ const createSchema = z.object({
   duration_minutes: z.number().int().nullable().optional(),
   reseller_id: z.string().uuid().nullable().optional(),
   sold_by: z.string().nullable().optional(),
+  max_version: z.string().nullable().optional(),
+  customer_phone: z.string().nullable().optional(),
 });
 
 export const createSecondLicense = createServerFn({ method: "POST" })
@@ -86,6 +90,8 @@ export const createSecondLicense = createServerFn({ method: "POST" })
       duration_minutes: data.duration_minutes ?? null,
       reseller_id: data.reseller_id ?? null,
       sold_by: data.sold_by ?? null,
+      max_version: data.max_version ?? null,
+      customer_phone: data.customer_phone ?? null,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -105,6 +111,9 @@ export const updateSecondLicense = createServerFn({ method: "POST" })
       activated_at: z.string().nullable().optional(),
       session_id: z.string().nullable().optional(),
       is_active: z.boolean().optional(),
+      max_version: z.string().nullable().optional(),
+      customer_phone: z.string().nullable().optional(),
+      sold_by: z.string().nullable().optional(),
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -127,6 +136,9 @@ export const updateSecondLicense = createServerFn({ method: "POST" })
     if (data.activated_at !== undefined) patch.activated_at = data.activated_at;
     if (data.session_id !== undefined) patch.session_id = data.session_id;
     if (data.is_active !== undefined) patch.is_active = data.is_active;
+    if (data.max_version !== undefined) patch.max_version = data.max_version;
+    if (data.customer_phone !== undefined) patch.customer_phone = data.customer_phone;
+    if (data.sold_by !== undefined) patch.sold_by = data.sold_by;
     const { error } = await supabase.from("licenses").update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
