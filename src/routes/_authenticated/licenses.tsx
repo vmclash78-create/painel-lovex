@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { z } from "zod";
 import { supabase, type License } from "@/integrations/external-supabase/client";
 import { computeStatus, generateLicenseKey } from "@/lib/licenses";
 import { LicenseServiceProvider, useLicenseService, useOptionalLicenseService } from "@/lib/license-service";

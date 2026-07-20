@@ -36,7 +36,12 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function DashboardPage() {
   const { db } = useDb();
   const mainLicenses = useQuery({ ...licensesQueryOptions, enabled: db === "main" });
-  const lpLicenses = useQuery({ ...lpLicensesQueryOptions, enabled: db === "lp" });
+  const lpLicenses = useQuery({
+    ...lpLicensesQueryOptions,
+    enabled: db === "lp",
+    retry: 1,
+    throwOnError: false,
+  });
   const resellers = useQuery({ ...resellersQueryOptions, enabled: db === "main" });
   const revenue = useQuery({
     queryKey: ["reseller-purchases", "paid"],
