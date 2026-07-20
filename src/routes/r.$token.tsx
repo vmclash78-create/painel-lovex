@@ -1169,6 +1169,7 @@ function LpPanel({
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Vendedor</TableHead>
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Status</TableHead>
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Expira em</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Plano</TableHead>
               <TableHead className="text-right text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -1176,12 +1177,12 @@ function LpPanel({
             {q.isLoading ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell colSpan={6}><Skeleton className="h-5 w-full" /></TableCell>
+                  <TableCell colSpan={7}><Skeleton className="h-5 w-full" /></TableCell>
                 </TableRow>
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-14 text-center">
+                <TableCell colSpan={7} className="py-14 text-center">
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
                     <div className="grid h-12 w-12 place-items-center rounded-2xl border border-dashed border-border/60 bg-muted/40">
                       <KeyRound className="h-5 w-5 opacity-60" aria-hidden />
@@ -1232,6 +1233,9 @@ function LpPanel({
                   </TableCell>
                   <TableCell><StatusBadge status={(l.status ?? "active") as "active" | "trial" | "expired" | "revoked"} /></TableCell>
                   <TableCell className="text-xs text-muted-foreground tabular-nums">{formatDate(l.expires_at)}</TableCell>
+                  <TableCell className="text-xs">
+                    <PlanBadge maxVersion={(l as { max_version?: string | null }).max_version ?? null} />
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="inline-flex items-center rounded-lg border border-border/60 bg-background/60 p-0.5">
                       <EditSecondLicenseDialog license={l} iconOnly />
