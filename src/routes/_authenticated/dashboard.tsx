@@ -215,7 +215,122 @@ function DashboardPage() {
           </Button>
         </CardContent>
       </Card>
+
+      {!isLp ? <ExtensionVersionCard rows={mainRows} loading={mainLicenses.isLoading} /> : null}
     </section>
+  );
+}
+
+/* ---------------- Extension version breakdown (LoveX only) ---------------- */
+
+function classifyVersion(v: string | null | undefined): "v19" | "v2" | "unknown" {
+  const s = (v ?? "").trim();
+  if (!s) return "unknown";
+  if (s.startsWith("1.9")) return "v19";
+  if (s.startsWith("2")) return "v2";
+  return "unknown";
+}
+
+function ExtensionVersionCard({
+  rows,
+  loading,
+}: {
+  rows: Array<{ max_version?: string | null; status?: string | null; expires_at?: string | null }>;
+  loading: boolean;
+}) {
+  const groups = useMemo(() => {
+    const now = Date.now();
+    const isActive = (l: { status?: string | null; expires_at?: string | null }) => {
+      if (l.status === "revoked") return false;
+      if (l.expires_at && new Date(l.expires_at).getTime() < now) return false;
+      return true;
+    };
+    const acc = { v19: 0, v2: 0, unknown: 0, v19Active: 0, v2Active: 0, unknownActive: 0 };
+    for (const l of rows) {
+      const c = classifyVersion(l.max_version);
+      acc[c] += 1;
+      if (isActive(l)) acc[`${c}Active` as "v19Active" | "v2Active" | "unknownActive"] += 1;
+    }
+    return acc;
+  }, [rows]);
+
+  const items = [
+    {
+      key: "v19",
+      title: "Extensão 1.9",
+      subtitle: "Plano R$ 80,00 · atual 1.9.1",
+      total: groups.v19,
+      active: groups.v19Active,
+      tone: "text-neon-cyan bg-neon-cyan/15 border-neon-cyan/30",
+      bar: "bg-neon-cyan",
+    },
+    {
+      key: "v2",
+      title: "Extensão 2.x",
+      subtitle: "Plano novo · atual 2.1",
+      total: groups.v2,
+      active: groups.v2Active,
+      tone: "text-neon-purple bg-neon-purple/15 border-neon-purple/30",
+      bar: "bg-neon-purple",
+    },
+    {
+      key: "unknown",
+      title: "Sem versão definida",
+      subtitle: "Preencha em Editar licença",
+      total: groups.unknown,
+      active: groups.unknownActive,
+      tone: "text-muted-foreground bg-muted border-border",
+      bar: "bg-muted-foreground/50",
+    },
+  ];
+  const totalAll = items.reduce((s, i) => s + i.total, 0) || 1;
+
+  return (
+    <Card className="border-border/60 shadow-soft">
+      <div className="flex items-center justify-between gap-2 border-b border-border/50 px-5 py-3.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-neon-cyan/15 text-neon-cyan">
+            <Puzzle className="h-3.5 w-3.5" aria-hidden />
+          </span>
+          <h2 className="truncate text-sm font-semibold">Versão da extensão em uso</h2>
+        </div>
+        <span className="text-[11px] text-muted-foreground">
+          Baseado em <span className="font-mono">max_version</span>
+        </span>
+      </div>
+      <CardContent className="grid gap-3 p-4 sm:grid-cols-3">
+        {loading
+          ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)
+          : items.map((it) => {
+              const pct = Math.round((it.total / totalAll) * 100);
+              return (
+                <div
+                  key={it.key}
+                  className="rounded-xl border border-border/60 bg-card/40 p-4 hover:border-primary/40 transition"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-semibold">{it.title}</div>
+                      <div className="truncate text-[11px] text-muted-foreground">{it.subtitle}</div>
+                    </div>
+                    <span className={`shrink-0 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${it.tone}`}>
+                      {pct}%
+                    </span>
+                  </div>
+                  <div className="mt-3 flex items-baseline gap-2">
+                    <span className="text-2xl font-bold tabular-nums">{it.total}</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      · {it.active} ativas
+                    </span>
+                  </div>
+                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted/40">
+                    <div className={`h-full ${it.bar}`} style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+      </CardContent>
+    </Card>
   );
 }
 
