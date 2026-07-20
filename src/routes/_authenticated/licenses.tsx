@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing } from "lucide-react";
+import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing, Download, PhoneOff } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
 
@@ -65,6 +65,8 @@ function MainLicensesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(search.status ?? "all");
   const [onlyExpiringSoon, setOnlyExpiringSoon] = useState(search.filter === "expiring");
+  const [planFilter, setPlanFilter] = useState<string>("all");
+  const [onlyNoPhone, setOnlyNoPhone] = useState(false);
   const rows = Array.isArray(data) ? data : [];
 
   useEffect(() => {
@@ -84,9 +86,12 @@ function MainLicensesPage() {
         (l.user_name ?? "").toLowerCase().includes(searchTerm.toLowerCase());
       const matchStatus = statusFilter === "all" || computeStatus(l) === statusFilter;
       const matchExpiring = !onlyExpiringSoon || isExpiringSoon(l);
-      return matchSearch && matchStatus && matchExpiring;
+      const plan = classifyPlan(l.max_version);
+      const matchPlan = planFilter === "all" || plan === planFilter;
+      const matchPhone = !onlyNoPhone || !l.customer_phone;
+      return matchSearch && matchStatus && matchExpiring && matchPlan && matchPhone;
     });
-  }, [rows, searchTerm, statusFilter, onlyExpiringSoon]);
+  }, [rows, searchTerm, statusFilter, onlyExpiringSoon, planFilter, onlyNoPhone]);
 
   const revoke = useMutation({
     mutationFn: (id: string) => svc.revoke(id),
@@ -162,6 +167,39 @@ function MainLicensesPage() {
               <BellRing className="h-4 w-4" aria-hidden />
               Renovações ({expiringSoon.length})
             </Button>
+            <Select value={planFilter} onValueChange={setPlanFilter}>
+              <SelectTrigger className="w-[160px]" aria-label="Filtrar por plano">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os planos</SelectItem>
+                <SelectItem value="v19">Plano 1.9 (R$ 80)</SelectItem>
+                <SelectItem value="v2">Plano 2.x</SelectItem>
+                <SelectItem value="unknown">Sem versão</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              type="button"
+              variant={onlyNoPhone ? "default" : "outline"}
+              size="sm"
+              onClick={() => setOnlyNoPhone((v) => !v)}
+              className="gap-2"
+              aria-pressed={onlyNoPhone}
+            >
+              <PhoneOff className="h-4 w-4" aria-hidden />
+              Sem telefone
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => exportLicensesCsv(filtered)}
+              className="gap-2 ml-auto"
+              disabled={filtered.length === 0}
+            >
+              <Download className="h-4 w-4" aria-hidden />
+              CSV
+            </Button>
           </div>
 
           {expiringSoon.length > 0 ? (
@@ -190,7 +228,7 @@ function MainLicensesPage() {
                   <TableHead>Status</TableHead>
                   <TableHead>Expira em</TableHead>
                   <TableHead>Dispositivos</TableHead>
-                  <TableHead>Versão máx.</TableHead>
+                  <TableHead>Plano</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -237,12 +275,8 @@ function MainLicensesPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-sm">{l.max_devices ?? 1}</TableCell>
-                      <TableCell className="text-xs font-mono">
-                        {l.max_version ? (
-                          <span className="rounded-md bg-muted px-1.5 py-0.5">{l.max_version}</span>
-                        ) : (
-                          <span className="text-muted-foreground">Todas</span>
-                        )}
+                      <TableCell className="text-xs">
+                        <PlanBadge maxVersion={l.max_version ?? null} />
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
