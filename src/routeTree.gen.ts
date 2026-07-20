@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RTokenRouteImport } from './routes/r.$token'
+import { Route as AuthenticatedUpdatesRouteImport } from './routes/_authenticated/updates'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSecondPanelRouteImport } from './routes/_authenticated/second-panel'
 import { Route as AuthenticatedResellersRouteImport } from './routes/_authenticated/resellers'
@@ -45,6 +46,11 @@ const RTokenRoute = RTokenRouteImport.update({
   id: '/r/$token',
   path: '/r/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedUpdatesRoute = AuthenticatedUpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/resellers': typeof AuthenticatedResellersRoute
   '/second-panel': typeof AuthenticatedSecondPanelRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/updates': typeof AuthenticatedUpdatesRoute
   '/r/$token': typeof RTokenRoute
   '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
   '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/resellers': typeof AuthenticatedResellersRoute
   '/second-panel': typeof AuthenticatedSecondPanelRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/updates': typeof AuthenticatedUpdatesRoute
   '/r/$token': typeof RTokenRoute
   '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
   '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/_authenticated/resellers': typeof AuthenticatedResellersRoute
   '/_authenticated/second-panel': typeof AuthenticatedSecondPanelRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/updates': typeof AuthenticatedUpdatesRoute
   '/r/$token': typeof RTokenRoute
   '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
   '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
@@ -182,6 +191,7 @@ export interface FileRouteTypes {
     | '/resellers'
     | '/second-panel'
     | '/settings'
+    | '/updates'
     | '/r/$token'
     | '/api/public/client/create-payment'
     | '/api/public/client/lookup'
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/resellers'
     | '/second-panel'
     | '/settings'
+    | '/updates'
     | '/r/$token'
     | '/api/public/client/create-payment'
     | '/api/public/client/lookup'
@@ -219,6 +230,7 @@ export interface FileRouteTypes {
     | '/_authenticated/resellers'
     | '/_authenticated/second-panel'
     | '/_authenticated/settings'
+    | '/_authenticated/updates'
     | '/r/$token'
     | '/api/public/client/create-payment'
     | '/api/public/client/lookup'
@@ -272,6 +284,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/r/$token'
       preLoaderRoute: typeof RTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/updates': {
+      id: '/_authenticated/updates'
+      path: '/updates'
+      fullPath: '/updates'
+      preLoaderRoute: typeof AuthenticatedUpdatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
@@ -374,6 +393,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedResellersRoute: typeof AuthenticatedResellersRoute
   AuthenticatedSecondPanelRoute: typeof AuthenticatedSecondPanelRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedUpdatesRoute: typeof AuthenticatedUpdatesRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -383,6 +403,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedResellersRoute: AuthenticatedResellersRoute,
   AuthenticatedSecondPanelRoute: AuthenticatedSecondPanelRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedUpdatesRoute: AuthenticatedUpdatesRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
