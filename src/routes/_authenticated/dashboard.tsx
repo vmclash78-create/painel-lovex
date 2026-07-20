@@ -238,9 +238,11 @@ function classifyVersion(v: string | null | undefined): "v19" | "v2" | "unknown"
 function ExtensionVersionCard({
   rows,
   loading,
+  variant = "main",
 }: {
   rows: Array<{ max_version?: string | null; status?: string | null; expires_at?: string | null }>;
   loading: boolean;
+  variant?: "main" | "lp";
 }) {
   const groups = useMemo(() => {
     const now = Date.now();
