@@ -96,7 +96,10 @@ function useLpService(): LicenseService {
       generateKey: () => generateSecondLicenseKey(),
       list: async () => {
         const rows = (await listFn()) as SecondLicense[];
-        return rows as unknown as License[];
+        return rows.map((r) => ({
+          ...r,
+          sold_by: r.sold_by ?? "Dono",
+        })) as unknown as License[];
       },
       update: async (id, patch) => {
         await updateFn({ data: { id, ...(patch as object) } as never });
