@@ -22,6 +22,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as ApiPublicMpWebhookRouteImport } from './routes/api/public/mp/webhook'
 import { Route as ApiPublicMpStatusRouteImport } from './routes/api/public/mp/status'
 import { Route as ApiPublicMpCreatePaymentRouteImport } from './routes/api/public/mp/create-payment'
+import { Route as ApiPublicClientPlansRouteImport } from './routes/api/public/client/plans'
 import { Route as ApiPublicClientLookupRouteImport } from './routes/api/public/client/lookup'
 
 const AuthRoute = AuthRouteImport.update({
@@ -90,6 +91,11 @@ const ApiPublicMpCreatePaymentRoute =
     path: '/api/public/mp/create-payment',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicClientPlansRoute = ApiPublicClientPlansRouteImport.update({
+  id: '/api/public/client/plans',
+  path: '/api/public/client/plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicClientLookupRoute = ApiPublicClientLookupRouteImport.update({
   id: '/api/public/client/lookup',
   path: '/api/public/client/lookup',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/r/$token': typeof RTokenRoute
   '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
+  '/api/public/client/plans': typeof ApiPublicClientPlansRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/r/$token': typeof RTokenRoute
   '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
+  '/api/public/client/plans': typeof ApiPublicClientPlansRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/r/$token': typeof RTokenRoute
   '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
+  '/api/public/client/plans': typeof ApiPublicClientPlansRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/r/$token'
     | '/api/public/client/lookup'
+    | '/api/public/client/plans'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/r/$token'
     | '/api/public/client/lookup'
+    | '/api/public/client/plans'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/r/$token'
     | '/api/public/client/lookup'
+    | '/api/public/client/plans'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -198,6 +210,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   RTokenRoute: typeof RTokenRoute
   ApiPublicClientLookupRoute: typeof ApiPublicClientLookupRoute
+  ApiPublicClientPlansRoute: typeof ApiPublicClientPlansRoute
   ApiPublicMpCreatePaymentRoute: typeof ApiPublicMpCreatePaymentRoute
   ApiPublicMpStatusRoute: typeof ApiPublicMpStatusRoute
   ApiPublicMpWebhookRoute: typeof ApiPublicMpWebhookRoute
@@ -296,6 +309,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMpCreatePaymentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/client/plans': {
+      id: '/api/public/client/plans'
+      path: '/api/public/client/plans'
+      fullPath: '/api/public/client/plans'
+      preLoaderRoute: typeof ApiPublicClientPlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/client/lookup': {
       id: '/api/public/client/lookup'
       path: '/api/public/client/lookup'
@@ -333,6 +353,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   RTokenRoute: RTokenRoute,
   ApiPublicClientLookupRoute: ApiPublicClientLookupRoute,
+  ApiPublicClientPlansRoute: ApiPublicClientPlansRoute,
   ApiPublicMpCreatePaymentRoute: ApiPublicMpCreatePaymentRoute,
   ApiPublicMpStatusRoute: ApiPublicMpStatusRoute,
   ApiPublicMpWebhookRoute: ApiPublicMpWebhookRoute,
