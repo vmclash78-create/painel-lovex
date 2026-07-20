@@ -1629,7 +1629,7 @@ function PlanBadge({ maxVersion }: { maxVersion: string | null }) {
   if (v.startsWith("1.9")) {
     return (
       <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-emerald-500/15 px-1.5 py-0.5 font-medium text-emerald-600 dark:text-emerald-400">
-        1.9 · R$ 80
+        1.9.9 · R$ 80
       </span>
     );
   }
