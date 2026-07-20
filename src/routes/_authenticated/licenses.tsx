@@ -65,6 +65,7 @@ function MainLicensesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(search.status ?? "all");
   const [onlyExpiringSoon, setOnlyExpiringSoon] = useState(search.filter === "expiring");
+  const rows = Array.isArray(data) ? data : [];
 
   useEffect(() => {
     setStatusFilter(search.status ?? "all");
@@ -72,13 +73,11 @@ function MainLicensesPage() {
   }, [search.status, search.filter]);
 
   const expiringSoon = useMemo(() => {
-    const list = data ?? [];
-    return list.filter((l) => isExpiringSoon(l));
-  }, [data]);
+    return rows.filter((l) => isExpiringSoon(l));
+  }, [rows]);
 
   const filtered = useMemo(() => {
-    const list = data ?? [];
-    return list.filter((l) => {
+    return rows.filter((l) => {
       const matchSearch =
         !searchTerm ||
         l.license_key.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -87,7 +86,7 @@ function MainLicensesPage() {
       const matchExpiring = !onlyExpiringSoon || isExpiringSoon(l);
       return matchSearch && matchStatus && matchExpiring;
     });
-  }, [data, searchTerm, statusFilter, onlyExpiringSoon]);
+  }, [rows, searchTerm, statusFilter, onlyExpiringSoon]);
 
   const revoke = useMutation({
     mutationFn: (id: string) => svc.revoke(id),
