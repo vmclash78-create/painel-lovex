@@ -862,7 +862,7 @@ function NewLicenseDialog() {
               id="nmaxver"
               value={maxVersion}
               onChange={(e) => setMaxVersion(e.target.value)}
-              placeholder="ex: 1.9  (vazio = todas)"
+              placeholder="ex: 1.9.9  (vazio = todas)"
               className="font-mono"
             />
           </div>
