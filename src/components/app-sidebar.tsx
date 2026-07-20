@@ -59,9 +59,10 @@ function useExpiringCount(): number {
   const main = useQuery({ ...licensesQueryOptions, enabled: db === "main" });
   const lp = useQuery({ ...lpLicensesQueryOptions, enabled: db === "lp" });
   const data = db === "lp" ? lp.data : main.data;
-  if (!data) return 0;
+  const rows = Array.isArray(data) ? data : [];
+  if (rows.length === 0) return 0;
   const soon = Date.now() + 7 * 86_400_000;
-  return (data as Array<{ expires_at: string | null; status: string | null }>).filter((l) => {
+  return (rows as Array<{ expires_at: string | null; status: string | null }>).filter((l) => {
     if (!l.expires_at) return false;
     const s = db === "lp"
       ? computeLpStatus(l as Parameters<typeof computeLpStatus>[0])

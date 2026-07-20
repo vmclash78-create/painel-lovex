@@ -57,10 +57,14 @@ function DashboardPage() {
   });
 
   const licensesLoading = db === "main" ? mainLicenses.isLoading : lpLicenses.isLoading;
+  const mainRows = Array.isArray(mainLicenses.data) ? mainLicenses.data : [];
+  const lpRows = Array.isArray(lpLicenses.data) ? lpLicenses.data : [];
+  const resellerRows = Array.isArray(resellers.data) ? resellers.data : [];
+  const revenueRows = Array.isArray(revenue.data) ? revenue.data : [];
   // Normalize both shapes to a common minimum used here.
   const list = useMemo(() => {
     if (db === "lp") {
-      return (lpLicenses.data ?? []).map((l) => ({
+      return lpRows.map((l) => ({
         id: l.id,
         license_key: l.license_key,
         user_name: l.user_name,
@@ -71,7 +75,7 @@ function DashboardPage() {
         _status: computeLpStatus(l),
       }));
     }
-    return (mainLicenses.data ?? []).map((l) => ({
+    return mainRows.map((l) => ({
       id: l.id,
       license_key: l.license_key,
       user_name: l.user_name,
@@ -81,7 +85,7 @@ function DashboardPage() {
       created_at: l.created_at,
       _status: computeStatus(l),
     }));
-  }, [db, mainLicenses.data, lpLicenses.data]);
+  }, [db, mainRows, lpRows]);
 
   const stats = useMemo(() => {
     const now = Date.now();
@@ -101,7 +105,7 @@ function DashboardPage() {
     };
   }, [list]);
 
-  const totalRevenue = (revenue.data ?? []).reduce((s, r) => s + Number(r.amount ?? 0), 0);
+  const totalRevenue = revenueRows.reduce((s, r) => s + Number(r.amount ?? 0), 0);
   const isLp = db === "lp";
 
   return (
@@ -128,9 +132,9 @@ function DashboardPage() {
         {!isLp ? (
           <StatCard
           label="Revendedores"
-          value={(resellers.data?.length ?? 0).toString()}
+          value={resellerRows.length.toString()}
           delta={{ value: 5, positiveIsGood: true }}
-          series={buildDailySeries((resellers.data ?? []).map((r) => r.created_at), 14)}
+          series={buildDailySeries(resellerRows.map((r) => r.created_at), 14)}
           icon={Users}
           tone="cyan"
           loading={resellers.isLoading}
@@ -140,8 +144,8 @@ function DashboardPage() {
           <StatCard
           label="Receita total"
           value={totalRevenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-          delta={monthDelta((revenue.data ?? []).map((r) => r.paid_at ?? r.created_at))}
-          series={buildRevenueSeries(revenue.data ?? [], 14)}
+          delta={monthDelta(revenueRows.map((r) => r.paid_at ?? r.created_at))}
+          series={buildRevenueSeries(revenueRows, 14)}
           icon={Wallet}
           tone="pink"
           loading={revenue.isLoading}
