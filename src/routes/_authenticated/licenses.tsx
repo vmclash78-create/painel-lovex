@@ -620,7 +620,7 @@ export function EditLicenseDialog({
                 id="emaxver"
                 value={maxVersion}
                 onChange={(e) => setMaxVersion(e.target.value)}
-                placeholder="ex: 1.9  (vazio = todas as versões)"
+                placeholder="ex: 1.9.9  (vazio = todas as versões)"
                 className="font-mono"
               />
               <Button type="button" variant="outline" size="sm" onClick={() => setMaxVersion("")}>
@@ -628,7 +628,7 @@ export function EditLicenseDialog({
               </Button>
             </div>
             <div className="flex flex-wrap gap-1">
-              {["1.9", "2.0", "2.1"].map((v) => (
+              {["1.9.9", "2.0", "2.1"].map((v) => (
                 <Button
                   key={v}
                   type="button"
@@ -862,7 +862,7 @@ function NewLicenseDialog() {
               id="nmaxver"
               value={maxVersion}
               onChange={(e) => setMaxVersion(e.target.value)}
-              placeholder="ex: 1.9  (vazio = todas)"
+              placeholder="ex: 1.9.9  (vazio = todas)"
               className="font-mono"
             />
           </div>

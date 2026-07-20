@@ -25,8 +25,8 @@ export const CLIENT_PLANS: ClientPlan[] = [
     name: "LoveX 1.9",
     price: 80,
     db: "main",
-    maxVersion: "1.9",
-    description: "Extensão LoveX na versão 1.9.x por 30 dias.",
+    maxVersion: "1.9.9",
+    description: "Extensão LoveX 1.9.x (até 1.9.9) por 30 dias.",
   },
   {
     id: "lovex-2x",
