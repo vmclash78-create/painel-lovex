@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClienteIndexRouteImport } from './routes/cliente.index'
 import { Route as RTokenRouteImport } from './routes/r.$token'
+import { Route as ClienteKeyRouteImport } from './routes/cliente.$key'
 import { Route as AuthenticatedUpdatesRouteImport } from './routes/_authenticated/updates'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSecondPanelRouteImport } from './routes/_authenticated/second-panel'
@@ -52,6 +53,11 @@ const ClienteIndexRoute = ClienteIndexRouteImport.update({
 const RTokenRoute = RTokenRouteImport.update({
   id: '/r/$token',
   path: '/r/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClienteKeyRoute = ClienteKeyRouteImport.update({
+  id: '/cliente/$key',
+  path: '/cliente/$key',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedUpdatesRoute = AuthenticatedUpdatesRouteImport.update({
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/second-panel': typeof AuthenticatedSecondPanelRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/updates': typeof AuthenticatedUpdatesRoute
+  '/cliente/$key': typeof ClienteKeyRoute
   '/r/$token': typeof RTokenRoute
   '/cliente/': typeof ClienteIndexRoute
   '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/second-panel': typeof AuthenticatedSecondPanelRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/updates': typeof AuthenticatedUpdatesRoute
+  '/cliente/$key': typeof ClienteKeyRoute
   '/r/$token': typeof RTokenRoute
   '/cliente': typeof ClienteIndexRoute
   '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/_authenticated/second-panel': typeof AuthenticatedSecondPanelRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/updates': typeof AuthenticatedUpdatesRoute
+  '/cliente/$key': typeof ClienteKeyRoute
   '/r/$token': typeof RTokenRoute
   '/cliente/': typeof ClienteIndexRoute
   '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/second-panel'
     | '/settings'
     | '/updates'
+    | '/cliente/$key'
     | '/r/$token'
     | '/cliente/'
     | '/api/public/client/create-payment'
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/second-panel'
     | '/settings'
     | '/updates'
+    | '/cliente/$key'
     | '/r/$token'
     | '/cliente'
     | '/api/public/client/create-payment'
@@ -253,6 +264,7 @@ export interface FileRouteTypes {
     | '/_authenticated/second-panel'
     | '/_authenticated/settings'
     | '/_authenticated/updates'
+    | '/cliente/$key'
     | '/r/$token'
     | '/cliente/'
     | '/api/public/client/create-payment'
@@ -269,6 +281,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ClienteKeyRoute: typeof ClienteKeyRoute
   RTokenRoute: typeof RTokenRoute
   ClienteIndexRoute: typeof ClienteIndexRoute
   ApiPublicClientCreatePaymentRoute: typeof ApiPublicClientCreatePaymentRoute
@@ -316,6 +329,13 @@ declare module '@tanstack/react-router' {
       path: '/r/$token'
       fullPath: '/r/$token'
       preLoaderRoute: typeof RTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cliente/$key': {
+      id: '/cliente/$key'
+      path: '/cliente/$key'
+      fullPath: '/cliente/$key'
+      preLoaderRoute: typeof ClienteKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/updates': {
@@ -453,6 +473,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ClienteKeyRoute: ClienteKeyRoute,
   RTokenRoute: RTokenRoute,
   ClienteIndexRoute: ClienteIndexRoute,
   ApiPublicClientCreatePaymentRoute: ApiPublicClientCreatePaymentRoute,
