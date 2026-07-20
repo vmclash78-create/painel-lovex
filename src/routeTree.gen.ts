@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ClienteIndexRouteImport } from './routes/cliente.index'
 import { Route as RTokenRouteImport } from './routes/r.$token'
 import { Route as AuthenticatedUpdatesRouteImport } from './routes/_authenticated/updates'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -40,6 +41,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClienteIndexRoute = ClienteIndexRouteImport.update({
+  id: '/cliente/',
+  path: '/cliente/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RTokenRoute = RTokenRouteImport.update({
@@ -132,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/updates': typeof AuthenticatedUpdatesRoute
   '/r/$token': typeof RTokenRoute
+  '/cliente/': typeof ClienteIndexRoute
   '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
   '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
   '/api/public/client/plans': typeof ApiPublicClientPlansRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/updates': typeof AuthenticatedUpdatesRoute
   '/r/$token': typeof RTokenRoute
+  '/cliente': typeof ClienteIndexRoute
   '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
   '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
   '/api/public/client/plans': typeof ApiPublicClientPlansRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/updates': typeof AuthenticatedUpdatesRoute
   '/r/$token': typeof RTokenRoute
+  '/cliente/': typeof ClienteIndexRoute
   '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
   '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
   '/api/public/client/plans': typeof ApiPublicClientPlansRoute
@@ -193,6 +202,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/updates'
     | '/r/$token'
+    | '/cliente/'
     | '/api/public/client/create-payment'
     | '/api/public/client/lookup'
     | '/api/public/client/plans'
@@ -212,6 +222,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/updates'
     | '/r/$token'
+    | '/cliente'
     | '/api/public/client/create-payment'
     | '/api/public/client/lookup'
     | '/api/public/client/plans'
@@ -232,6 +243,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/updates'
     | '/r/$token'
+    | '/cliente/'
     | '/api/public/client/create-payment'
     | '/api/public/client/lookup'
     | '/api/public/client/plans'
@@ -246,6 +258,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   RTokenRoute: typeof RTokenRoute
+  ClienteIndexRoute: typeof ClienteIndexRoute
   ApiPublicClientCreatePaymentRoute: typeof ApiPublicClientCreatePaymentRoute
   ApiPublicClientLookupRoute: typeof ApiPublicClientLookupRoute
   ApiPublicClientPlansRoute: typeof ApiPublicClientPlansRoute
@@ -276,6 +289,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cliente/': {
+      id: '/cliente/'
+      path: '/cliente'
+      fullPath: '/cliente/'
+      preLoaderRoute: typeof ClienteIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/r/$token': {
@@ -414,6 +434,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   RTokenRoute: RTokenRoute,
+  ClienteIndexRoute: ClienteIndexRoute,
   ApiPublicClientCreatePaymentRoute: ApiPublicClientCreatePaymentRoute,
   ApiPublicClientLookupRoute: ApiPublicClientLookupRoute,
   ApiPublicClientPlansRoute: ApiPublicClientPlansRoute,
