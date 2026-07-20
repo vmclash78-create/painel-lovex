@@ -216,11 +216,9 @@ function DashboardPage() {
         </CardContent>
       </Card>
 
-      <ExtensionVersionCard
-        rows={isLp ? lpRows : mainRows}
-        loading={isLp ? lpLicenses.isLoading : mainLicenses.isLoading}
-        variant={isLp ? "lp" : "main"}
-      />
+      {!isLp ? (
+        <ExtensionVersionCard rows={mainRows} loading={mainLicenses.isLoading} />
+      ) : null}
     </section>
   );
 }
