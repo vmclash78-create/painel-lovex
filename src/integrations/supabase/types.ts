@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      client_purchases: {
+        Row: {
+          action: string
+          amount: number
+          created_at: string
+          customer_phone: string | null
+          expires_at: string | null
+          id: string
+          license_db: string | null
+          license_id: string | null
+          license_key: string | null
+          mercadopago_payment_id: string | null
+          new_license_key: string | null
+          paid_at: string | null
+          pix_copy_paste: string | null
+          plan_id: string
+          qr_code: string | null
+          qr_code_base64: string | null
+          status: string
+          target_db: string
+          updated_at: string
+        }
+        Insert: {
+          action: string
+          amount: number
+          created_at?: string
+          customer_phone?: string | null
+          expires_at?: string | null
+          id?: string
+          license_db?: string | null
+          license_id?: string | null
+          license_key?: string | null
+          mercadopago_payment_id?: string | null
+          new_license_key?: string | null
+          paid_at?: string | null
+          pix_copy_paste?: string | null
+          plan_id: string
+          qr_code?: string | null
+          qr_code_base64?: string | null
+          status?: string
+          target_db: string
+          updated_at?: string
+        }
+        Update: {
+          action?: string
+          amount?: number
+          created_at?: string
+          customer_phone?: string | null
+          expires_at?: string | null
+          id?: string
+          license_db?: string | null
+          license_id?: string | null
+          license_key?: string | null
+          mercadopago_payment_id?: string | null
+          new_license_key?: string | null
+          paid_at?: string | null
+          pix_copy_paste?: string | null
+          plan_id?: string
+          qr_code?: string | null
+          qr_code_base64?: string | null
+          status?: string
+          target_db?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       extension_updates: {
         Row: {
           body: string
