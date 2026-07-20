@@ -24,6 +24,7 @@ import { Route as ApiPublicMpStatusRouteImport } from './routes/api/public/mp/st
 import { Route as ApiPublicMpCreatePaymentRouteImport } from './routes/api/public/mp/create-payment'
 import { Route as ApiPublicClientPlansRouteImport } from './routes/api/public/client/plans'
 import { Route as ApiPublicClientLookupRouteImport } from './routes/api/public/client/lookup'
+import { Route as ApiPublicClientCreatePaymentRouteImport } from './routes/api/public/client/create-payment'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -101,6 +102,12 @@ const ApiPublicClientLookupRoute = ApiPublicClientLookupRouteImport.update({
   path: '/api/public/client/lookup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicClientCreatePaymentRoute =
+  ApiPublicClientCreatePaymentRouteImport.update({
+    id: '/api/public/client/create-payment',
+    path: '/api/public/client/create-payment',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/second-panel': typeof AuthenticatedSecondPanelRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/r/$token': typeof RTokenRoute
+  '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
   '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
   '/api/public/client/plans': typeof ApiPublicClientPlansRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
@@ -128,6 +136,7 @@ export interface FileRoutesByTo {
   '/second-panel': typeof AuthenticatedSecondPanelRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/r/$token': typeof RTokenRoute
+  '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
   '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
   '/api/public/client/plans': typeof ApiPublicClientPlansRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
@@ -146,6 +155,7 @@ export interface FileRoutesById {
   '/_authenticated/second-panel': typeof AuthenticatedSecondPanelRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/r/$token': typeof RTokenRoute
+  '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
   '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
   '/api/public/client/plans': typeof ApiPublicClientPlansRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
@@ -164,6 +174,7 @@ export interface FileRouteTypes {
     | '/second-panel'
     | '/settings'
     | '/r/$token'
+    | '/api/public/client/create-payment'
     | '/api/public/client/lookup'
     | '/api/public/client/plans'
     | '/api/public/mp/create-payment'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/second-panel'
     | '/settings'
     | '/r/$token'
+    | '/api/public/client/create-payment'
     | '/api/public/client/lookup'
     | '/api/public/client/plans'
     | '/api/public/mp/create-payment'
@@ -197,6 +209,7 @@ export interface FileRouteTypes {
     | '/_authenticated/second-panel'
     | '/_authenticated/settings'
     | '/r/$token'
+    | '/api/public/client/create-payment'
     | '/api/public/client/lookup'
     | '/api/public/client/plans'
     | '/api/public/mp/create-payment'
@@ -209,6 +222,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   RTokenRoute: typeof RTokenRoute
+  ApiPublicClientCreatePaymentRoute: typeof ApiPublicClientCreatePaymentRoute
   ApiPublicClientLookupRoute: typeof ApiPublicClientLookupRoute
   ApiPublicClientPlansRoute: typeof ApiPublicClientPlansRoute
   ApiPublicMpCreatePaymentRoute: typeof ApiPublicMpCreatePaymentRoute
@@ -323,6 +337,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicClientLookupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/client/create-payment': {
+      id: '/api/public/client/create-payment'
+      path: '/api/public/client/create-payment'
+      fullPath: '/api/public/client/create-payment'
+      preLoaderRoute: typeof ApiPublicClientCreatePaymentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -352,6 +373,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   RTokenRoute: RTokenRoute,
+  ApiPublicClientCreatePaymentRoute: ApiPublicClientCreatePaymentRoute,
   ApiPublicClientLookupRoute: ApiPublicClientLookupRoute,
   ApiPublicClientPlansRoute: ApiPublicClientPlansRoute,
   ApiPublicMpCreatePaymentRoute: ApiPublicMpCreatePaymentRoute,
