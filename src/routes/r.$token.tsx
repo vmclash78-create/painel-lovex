@@ -540,7 +540,6 @@ function ResellerPublicPage() {
               <TableRow className="border-border/50 hover:bg-transparent">
                 <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Chave</TableHead>
                 <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Cliente</TableHead>
-                <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Vendedor</TableHead>
                 <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Status</TableHead>
                 <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Expira em</TableHead>
                 <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Disp.</TableHead>
@@ -552,12 +551,12 @@ function ResellerPublicPage() {
               {licenses.isLoading ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell colSpan={8}><Skeleton className="h-5 w-full" /></TableCell>
+                    <TableCell colSpan={7}><Skeleton className="h-5 w-full" /></TableCell>
                   </TableRow>
                 ))
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="py-14 text-center">
+                  <TableCell colSpan={7} className="py-14 text-center">
                     <div className="flex flex-col items-center gap-2 text-muted-foreground">
                       <div className="grid h-12 w-12 place-items-center rounded-2xl border border-dashed border-border/60 bg-muted/40">
                         <KeyRound className="h-5 w-5 opacity-60" aria-hidden />
@@ -595,16 +594,6 @@ function ResellerPublicPage() {
                         </div>
                         <span className="truncate">{l.user_name ?? "—"}</span>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      {l.sold_by ? (
-                        <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-primary">
-                          <UserRound className="h-3 w-3" aria-hidden />
-                          {l.sold_by}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
                     </TableCell>
                     <TableCell><StatusBadge status={computeStatus(l)} /></TableCell>
                     <TableCell className="text-xs text-muted-foreground tabular-nums">{formatDate(l.expires_at)}</TableCell>
@@ -1166,7 +1155,6 @@ function LpPanel({
             <TableRow className="border-border/50 hover:bg-transparent">
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Chave Lovpro</TableHead>
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Cliente</TableHead>
-              <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Vendedor</TableHead>
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Status</TableHead>
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Expira em</TableHead>
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Plano</TableHead>
@@ -1177,12 +1165,12 @@ function LpPanel({
             {q.isLoading ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell colSpan={7}><Skeleton className="h-5 w-full" /></TableCell>
+                  <TableCell colSpan={6}><Skeleton className="h-5 w-full" /></TableCell>
                 </TableRow>
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-14 text-center">
+                <TableCell colSpan={6} className="py-14 text-center">
                   <div className="flex flex-col items-center gap-2 text-muted-foreground">
                     <div className="grid h-12 w-12 place-items-center rounded-2xl border border-dashed border-border/60 bg-muted/40">
                       <KeyRound className="h-5 w-5 opacity-60" aria-hidden />
@@ -1220,16 +1208,6 @@ function LpPanel({
                       </div>
                       <span className="truncate">{l.user_name ?? "—"}</span>
                     </div>
-                  </TableCell>
-                  <TableCell className="text-xs">
-                    {l.sold_by ? (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-primary">
-                        <UserRound className="h-3 w-3" aria-hidden />
-                        {l.sold_by}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
                   </TableCell>
                   <TableCell><StatusBadge status={(l.status ?? "active") as "active" | "trial" | "expired" | "revoked"} /></TableCell>
                   <TableCell className="text-xs text-muted-foreground tabular-nums">{formatDate(l.expires_at)}</TableCell>
