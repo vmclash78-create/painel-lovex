@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   ArrowUpRight,
   ArrowDownRight,
+  Puzzle,
 } from "lucide-react";
 import {
   ResponsiveContainer,
