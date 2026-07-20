@@ -42,7 +42,22 @@ function mainService(): LicenseService {
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as License[];
+      const rows = (data ?? []) as License[];
+      const ids = Array.from(
+        new Set(rows.map((r) => r.reseller_id).filter((v): v is string => !!v)),
+      );
+      let nameById = new Map<string, string>();
+      if (ids.length) {
+        const { data: rs } = await supabase
+          .from("resellers")
+          .select("id,name")
+          .in("id", ids);
+        nameById = new Map((rs ?? []).map((r: { id: string; name: string }) => [r.id, r.name]));
+      }
+      return rows.map((r) => ({
+        ...r,
+        sold_by: r.sold_by ?? (r.reseller_id ? nameById.get(r.reseller_id) ?? "Revenda" : "Dono"),
+      }));
     },
     update: async (id, patch) => {
       const { error } = await supabase.from("licenses").update(patch).eq("id", id);
