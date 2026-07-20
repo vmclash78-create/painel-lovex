@@ -24,15 +24,24 @@ import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserR
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
 
-const searchSchema = z.object({
-  filter: z.enum(["expiring"]).optional(),
-  status: z.enum(["active", "trial", "expired", "revoked"]).optional(),
-  open: z.enum(["new"]).optional(),
-});
+type LicensesSearch = {
+  filter?: "expiring";
+  status?: "active" | "trial" | "expired" | "revoked";
+  open?: "new";
+};
+
+function validateLicensesSearch(search: Record<string, unknown>): LicensesSearch {
+  const status = ["active", "trial", "expired", "revoked"].includes(String(search.status))
+    ? (search.status as LicensesSearch["status"])
+    : undefined;
+  const filter = search.filter === "expiring" || search.filter === "expired" ? "expiring" : undefined;
+  const open = search.open === "new" || search.open === "true" ? "new" : undefined;
+  return { filter, status, open };
+}
 
 export const Route = createFileRoute("/_authenticated/licenses")({
   head: () => ({ meta: [{ title: "Licenças" }] }),
-  validateSearch: (s) => searchSchema.parse(s),
+  validateSearch: validateLicensesSearch,
   component: LicensesPage,
 });
 
@@ -48,7 +57,12 @@ function MainLicensesPage() {
   const qc = useQueryClient();
   const svc = useLicenseService();
   const search = Route.useSearch();
-  const { data, isLoading } = useQuery({ queryKey: svc.queryKey, queryFn: svc.list });
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: svc.queryKey,
+    queryFn: svc.list,
+    retry: 1,
+    throwOnError: false,
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>(search.status ?? "all");
   const [onlyExpiringSoon, setOnlyExpiringSoon] = useState(search.filter === "expiring");
@@ -158,6 +172,12 @@ function MainLicensesPage() {
                 <BellRing className="h-4 w-4" aria-hidden />
                 {expiringSoon.length} licença(s) expiram em até 15 dias — hora de entrar em contato.
               </div>
+            </div>
+          ) : null}
+
+          {isError ? (
+            <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+              Não foi possível carregar as licenças agora. {error instanceof Error ? error.message : "Tente recarregar."}
             </div>
           ) : null}
 
