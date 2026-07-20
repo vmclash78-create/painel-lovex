@@ -217,7 +217,8 @@ function MainLicensesPage() {
             </div>
           ) : null}
 
-          <div className="overflow-x-auto rounded-md border">
+          {/* Desktop: tabela */}
+          <div className="hidden md:block overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -312,6 +313,79 @@ function MainLicensesPage() {
                 )}
               </TableBody>
             </Table>
+          </div>
+
+          {/* Mobile: cards */}
+          <div className="md:hidden space-y-2">
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-32 w-full rounded-md" />
+              ))
+            ) : filtered.length === 0 ? (
+              <div className="rounded-md border py-8 text-center text-sm text-muted-foreground">
+                Nenhuma licença encontrada.
+              </div>
+            ) : (
+              filtered.map((l) => (
+                <div key={l.id} className="rounded-md border bg-card p-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-mono text-xs break-all leading-tight">{l.license_key}</div>
+                      <div className="mt-1 text-sm font-medium truncate">{l.user_name ?? "—"}</div>
+                    </div>
+                    <StatusBadge status={computeStatus(l)} />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <PhoneCell phone={l.customer_phone ?? null} userName={l.user_name} licenseKey={l.license_key} />
+                    {l.sold_by ? (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 text-primary">
+                        <UserRound className="h-3 w-3" aria-hidden />
+                        {l.sold_by}
+                      </span>
+                    ) : null}
+                    <PlanBadge maxVersion={l.max_version ?? null} />
+                  </div>
+                  <div className="flex items-center justify-between border-t border-border/50 pt-2 text-xs">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <span>{formatDate(l.expires_at)}</span>
+                      {isExpiringSoon(l) ? (
+                        <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">
+                          {daysUntil(l.expires_at)}d
+                        </span>
+                      ) : null}
+                      <span className="text-muted-foreground/70">· {l.max_devices ?? 1} disp.</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <EditLicenseDialog license={l} />
+                      <ResetLicenseDialog
+                        license={l}
+                        invalidateKeys={[svc.queryKey, ["reseller-licenses"]]}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={l.status === "revoked" || revoke.isPending}
+                        onClick={() => revoke.mutate(l.id)}
+                        aria-label="Revogar"
+                      >
+                        <Ban className="h-4 w-4" aria-hidden />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={remove.isPending}
+                        onClick={() => {
+                          if (confirm("Remover esta licença?")) remove.mutate(l.id);
+                        }}
+                        aria-label="Remover"
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" aria-hidden />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
