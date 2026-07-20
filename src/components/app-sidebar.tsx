@@ -10,6 +10,7 @@ import {
   ScrollText,
   Settings,
   Sparkles,
+  Megaphone,
 } from "lucide-react";
 
 import {
@@ -50,6 +51,7 @@ const resellers: Item[] = [
 ];
 
 const system: Item[] = [
+  { label: "Atualizações", to: "/updates", icon: Megaphone },
   { label: "Logs", to: "/logs", icon: ScrollText },
   { label: "Configurações", to: "/settings", icon: Settings },
 ];

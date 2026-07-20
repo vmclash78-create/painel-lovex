@@ -12,7 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ClienteIndexRouteImport } from './routes/cliente.index'
 import { Route as RTokenRouteImport } from './routes/r.$token'
+import { Route as ClienteKeyRouteImport } from './routes/cliente.$key'
+import { Route as AuthenticatedUpdatesRouteImport } from './routes/_authenticated/updates'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSecondPanelRouteImport } from './routes/_authenticated/second-panel'
 import { Route as AuthenticatedResellersRouteImport } from './routes/_authenticated/resellers'
@@ -22,6 +25,11 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as ApiPublicMpWebhookRouteImport } from './routes/api/public/mp/webhook'
 import { Route as ApiPublicMpStatusRouteImport } from './routes/api/public/mp/status'
 import { Route as ApiPublicMpCreatePaymentRouteImport } from './routes/api/public/mp/create-payment'
+import { Route as ApiPublicClientUpdatesRouteImport } from './routes/api/public/client/updates'
+import { Route as ApiPublicClientStatusRouteImport } from './routes/api/public/client/status'
+import { Route as ApiPublicClientPlansRouteImport } from './routes/api/public/client/plans'
+import { Route as ApiPublicClientLookupRouteImport } from './routes/api/public/client/lookup'
+import { Route as ApiPublicClientCreatePaymentRouteImport } from './routes/api/public/client/create-payment'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -37,10 +45,25 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClienteIndexRoute = ClienteIndexRouteImport.update({
+  id: '/cliente/',
+  path: '/cliente/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RTokenRoute = RTokenRouteImport.update({
   id: '/r/$token',
   path: '/r/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ClienteKeyRoute = ClienteKeyRouteImport.update({
+  id: '/cliente/$key',
+  path: '/cliente/$key',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedUpdatesRoute = AuthenticatedUpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
@@ -89,6 +112,32 @@ const ApiPublicMpCreatePaymentRoute =
     path: '/api/public/mp/create-payment',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicClientUpdatesRoute = ApiPublicClientUpdatesRouteImport.update({
+  id: '/api/public/client/updates',
+  path: '/api/public/client/updates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicClientStatusRoute = ApiPublicClientStatusRouteImport.update({
+  id: '/api/public/client/status',
+  path: '/api/public/client/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicClientPlansRoute = ApiPublicClientPlansRouteImport.update({
+  id: '/api/public/client/plans',
+  path: '/api/public/client/plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicClientLookupRoute = ApiPublicClientLookupRouteImport.update({
+  id: '/api/public/client/lookup',
+  path: '/api/public/client/lookup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicClientCreatePaymentRoute =
+  ApiPublicClientCreatePaymentRouteImport.update({
+    id: '/api/public/client/create-payment',
+    path: '/api/public/client/create-payment',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -99,7 +148,15 @@ export interface FileRoutesByFullPath {
   '/resellers': typeof AuthenticatedResellersRoute
   '/second-panel': typeof AuthenticatedSecondPanelRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/updates': typeof AuthenticatedUpdatesRoute
+  '/cliente/$key': typeof ClienteKeyRoute
   '/r/$token': typeof RTokenRoute
+  '/cliente/': typeof ClienteIndexRoute
+  '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
+  '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
+  '/api/public/client/plans': typeof ApiPublicClientPlansRoute
+  '/api/public/client/status': typeof ApiPublicClientStatusRoute
+  '/api/public/client/updates': typeof ApiPublicClientUpdatesRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -113,7 +170,15 @@ export interface FileRoutesByTo {
   '/resellers': typeof AuthenticatedResellersRoute
   '/second-panel': typeof AuthenticatedSecondPanelRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/updates': typeof AuthenticatedUpdatesRoute
+  '/cliente/$key': typeof ClienteKeyRoute
   '/r/$token': typeof RTokenRoute
+  '/cliente': typeof ClienteIndexRoute
+  '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
+  '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
+  '/api/public/client/plans': typeof ApiPublicClientPlansRoute
+  '/api/public/client/status': typeof ApiPublicClientStatusRoute
+  '/api/public/client/updates': typeof ApiPublicClientUpdatesRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -129,7 +194,15 @@ export interface FileRoutesById {
   '/_authenticated/resellers': typeof AuthenticatedResellersRoute
   '/_authenticated/second-panel': typeof AuthenticatedSecondPanelRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/updates': typeof AuthenticatedUpdatesRoute
+  '/cliente/$key': typeof ClienteKeyRoute
   '/r/$token': typeof RTokenRoute
+  '/cliente/': typeof ClienteIndexRoute
+  '/api/public/client/create-payment': typeof ApiPublicClientCreatePaymentRoute
+  '/api/public/client/lookup': typeof ApiPublicClientLookupRoute
+  '/api/public/client/plans': typeof ApiPublicClientPlansRoute
+  '/api/public/client/status': typeof ApiPublicClientStatusRoute
+  '/api/public/client/updates': typeof ApiPublicClientUpdatesRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -145,7 +218,15 @@ export interface FileRouteTypes {
     | '/resellers'
     | '/second-panel'
     | '/settings'
+    | '/updates'
+    | '/cliente/$key'
     | '/r/$token'
+    | '/cliente/'
+    | '/api/public/client/create-payment'
+    | '/api/public/client/lookup'
+    | '/api/public/client/plans'
+    | '/api/public/client/status'
+    | '/api/public/client/updates'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -159,7 +240,15 @@ export interface FileRouteTypes {
     | '/resellers'
     | '/second-panel'
     | '/settings'
+    | '/updates'
+    | '/cliente/$key'
     | '/r/$token'
+    | '/cliente'
+    | '/api/public/client/create-payment'
+    | '/api/public/client/lookup'
+    | '/api/public/client/plans'
+    | '/api/public/client/status'
+    | '/api/public/client/updates'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -174,7 +263,15 @@ export interface FileRouteTypes {
     | '/_authenticated/resellers'
     | '/_authenticated/second-panel'
     | '/_authenticated/settings'
+    | '/_authenticated/updates'
+    | '/cliente/$key'
     | '/r/$token'
+    | '/cliente/'
+    | '/api/public/client/create-payment'
+    | '/api/public/client/lookup'
+    | '/api/public/client/plans'
+    | '/api/public/client/status'
+    | '/api/public/client/updates'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -184,7 +281,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ClienteKeyRoute: typeof ClienteKeyRoute
   RTokenRoute: typeof RTokenRoute
+  ClienteIndexRoute: typeof ClienteIndexRoute
+  ApiPublicClientCreatePaymentRoute: typeof ApiPublicClientCreatePaymentRoute
+  ApiPublicClientLookupRoute: typeof ApiPublicClientLookupRoute
+  ApiPublicClientPlansRoute: typeof ApiPublicClientPlansRoute
+  ApiPublicClientStatusRoute: typeof ApiPublicClientStatusRoute
+  ApiPublicClientUpdatesRoute: typeof ApiPublicClientUpdatesRoute
   ApiPublicMpCreatePaymentRoute: typeof ApiPublicMpCreatePaymentRoute
   ApiPublicMpStatusRoute: typeof ApiPublicMpStatusRoute
   ApiPublicMpWebhookRoute: typeof ApiPublicMpWebhookRoute
@@ -213,12 +317,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cliente/': {
+      id: '/cliente/'
+      path: '/cliente'
+      fullPath: '/cliente/'
+      preLoaderRoute: typeof ClienteIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/r/$token': {
       id: '/r/$token'
       path: '/r/$token'
       fullPath: '/r/$token'
       preLoaderRoute: typeof RTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/cliente/$key': {
+      id: '/cliente/$key'
+      path: '/cliente/$key'
+      fullPath: '/cliente/$key'
+      preLoaderRoute: typeof ClienteKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/updates': {
+      id: '/_authenticated/updates'
+      path: '/updates'
+      fullPath: '/updates'
+      preLoaderRoute: typeof AuthenticatedUpdatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
@@ -283,6 +408,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMpCreatePaymentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/client/updates': {
+      id: '/api/public/client/updates'
+      path: '/api/public/client/updates'
+      fullPath: '/api/public/client/updates'
+      preLoaderRoute: typeof ApiPublicClientUpdatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/client/status': {
+      id: '/api/public/client/status'
+      path: '/api/public/client/status'
+      fullPath: '/api/public/client/status'
+      preLoaderRoute: typeof ApiPublicClientStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/client/plans': {
+      id: '/api/public/client/plans'
+      path: '/api/public/client/plans'
+      fullPath: '/api/public/client/plans'
+      preLoaderRoute: typeof ApiPublicClientPlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/client/lookup': {
+      id: '/api/public/client/lookup'
+      path: '/api/public/client/lookup'
+      fullPath: '/api/public/client/lookup'
+      preLoaderRoute: typeof ApiPublicClientLookupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/client/create-payment': {
+      id: '/api/public/client/create-payment'
+      path: '/api/public/client/create-payment'
+      fullPath: '/api/public/client/create-payment'
+      preLoaderRoute: typeof ApiPublicClientCreatePaymentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -293,6 +453,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedResellersRoute: typeof AuthenticatedResellersRoute
   AuthenticatedSecondPanelRoute: typeof AuthenticatedSecondPanelRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedUpdatesRoute: typeof AuthenticatedUpdatesRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -302,6 +463,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedResellersRoute: AuthenticatedResellersRoute,
   AuthenticatedSecondPanelRoute: AuthenticatedSecondPanelRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedUpdatesRoute: AuthenticatedUpdatesRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -311,7 +473,14 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ClienteKeyRoute: ClienteKeyRoute,
   RTokenRoute: RTokenRoute,
+  ClienteIndexRoute: ClienteIndexRoute,
+  ApiPublicClientCreatePaymentRoute: ApiPublicClientCreatePaymentRoute,
+  ApiPublicClientLookupRoute: ApiPublicClientLookupRoute,
+  ApiPublicClientPlansRoute: ApiPublicClientPlansRoute,
+  ApiPublicClientStatusRoute: ApiPublicClientStatusRoute,
+  ApiPublicClientUpdatesRoute: ApiPublicClientUpdatesRoute,
   ApiPublicMpCreatePaymentRoute: ApiPublicMpCreatePaymentRoute,
   ApiPublicMpStatusRoute: ApiPublicMpStatusRoute,
   ApiPublicMpWebhookRoute: ApiPublicMpWebhookRoute,
@@ -319,13 +488,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

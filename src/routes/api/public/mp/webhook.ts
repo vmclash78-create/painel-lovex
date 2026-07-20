@@ -66,6 +66,47 @@ export const Route = createFileRoute("/api/public/mp/webhook")({
           const externalRef: string | undefined = payment.external_reference;
           if (!externalRef) return new Response("no external_reference", { status: 200 });
 
+          // Client (end-user) purchases use a "c_<uuid>" prefix.
+          if (externalRef.startsWith("c_")) {
+            const cid = externalRef.slice(2);
+            const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+            const { data: cp } = await supabaseAdmin
+              .from("client_purchases")
+              .select("id, action, plan_id, license_key, license_id, license_db, target_db, customer_phone, status")
+              .eq("id", cid)
+              .maybeSingle();
+            if (!cp) return new Response("client purchase not found", { status: 200 });
+
+            if (payment.status === "approved" && cp.status !== "paid") {
+              const { applyClientPurchase } = await import("@/lib/client-purchase.server");
+              const result = await applyClientPurchase({
+                id: String(cp.id),
+                action: cp.action as "renew" | "switch" | "new",
+                plan_id: String(cp.plan_id),
+                license_key: (cp.license_key as string | null) ?? null,
+                license_id: (cp.license_id as string | null) ?? null,
+                license_db: (cp.license_db as "main" | "lp" | null) ?? null,
+                target_db: (cp.target_db as "main" | "lp"),
+                customer_phone: (cp.customer_phone as string | null) ?? null,
+              });
+              await supabaseAdmin
+                .from("client_purchases")
+                .update({
+                  status: "paid",
+                  paid_at: new Date().toISOString(),
+                  mercadopago_payment_id: String(payment.id),
+                  new_license_key: result.new_license_key,
+                })
+                .eq("id", cp.id);
+            } else if (["cancelled", "rejected", "expired", "refunded"].includes(payment.status)) {
+              await supabaseAdmin
+                .from("client_purchases")
+                .update({ status: payment.status === "expired" ? "expired" : "failed" })
+                .eq("id", cp.id);
+            }
+            return new Response("ok", { status: 200 });
+          }
+
           const { getExternalAdmin } = await import("@/lib/external-admin.server");
           const admin = getExternalAdmin();
 
