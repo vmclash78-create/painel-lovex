@@ -35,37 +35,102 @@ function NotFoundComponent() {
   );
 }
 
+function getErrorText(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return "Erro desconhecido.";
+}
+
+function isAuthError(error: unknown): boolean {
+  const text = getErrorText(error).toLowerCase();
+  const status = typeof error === "object" && error !== null && "status" in error
+    ? String((error as { status?: unknown }).status)
+    : "";
+  const statusCode = typeof error === "object" && error !== null && "statusCode" in error
+    ? String((error as { statusCode?: unknown }).statusCode)
+    : "";
+  return status === "401" || statusCode === "401" || text.includes("unauthorized") || text.includes("jwt");
+}
+
+function isStaleChunkError(error: unknown): boolean {
+  const text = getErrorText(error).toLowerCase();
+  return (
+    text.includes("failed to fetch dynamically imported module") ||
+    text.includes("importing a module script failed") ||
+    text.includes("loading chunk") ||
+    text.includes("chunkloaderror")
+  );
+}
+
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    if (isAuthError(error)) {
+      try {
+        window.localStorage.removeItem("external-sb-auth");
+      } catch {
+        /* ignore */
+      }
+      window.location.replace("/auth");
+      return;
+    }
+
+    if (isStaleChunkError(error)) {
+      const key = `lovex:asset-reload:${window.location.pathname}`;
+      if (!window.sessionStorage.getItem(key)) {
+        window.sessionStorage.setItem(key, "1");
+        window.location.reload();
+      }
+    }
+  }, [error]);
+
+  const errorText = getErrorText(error);
+  const staleAsset = isStaleChunkError(error);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          Não consegui abrir esta página
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          {staleAsset
+            ? "O navegador ainda estava com uma versão antiga do painel. Recarregue para buscar a versão nova."
+            : "Algo falhou ao carregar esta tela. Tente recarregar ou volte para o início."}
         </p>
+        <pre className="mt-4 max-h-28 overflow-auto rounded-lg border border-border/60 bg-muted/30 p-3 text-left text-[11px] text-muted-foreground">
+          {errorText}
+        </pre>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
+              if (typeof window !== "undefined") {
+                try {
+                  window.sessionStorage.removeItem(`lovex:asset-reload:${window.location.pathname}`);
+                } catch {
+                  /* ignore */
+                }
+              }
               router.invalidate();
               reset();
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Try again
+            Tentar novamente
           </button>
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Go home
+            Ir para o início
           </a>
         </div>
       </div>
