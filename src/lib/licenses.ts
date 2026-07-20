@@ -13,6 +13,9 @@ export async function fetchLicenses(): Promise<License[]> {
 export const licensesQueryOptions = queryOptions({
   queryKey: ["licenses"],
   queryFn: fetchLicenses,
+  staleTime: 60_000,
+  refetchOnWindowFocus: true,
+  refetchInterval: 60_000,
 });
 
 export function computeStatus(l: License): License["status"] {
