@@ -328,6 +328,67 @@ function formatDate(iso: string | null) {
   }
 }
 
+function classifyPlan(maxVersion: string | null | undefined): "v19" | "v2" | "unknown" {
+  const v = (maxVersion ?? "").trim();
+  if (v.startsWith("1.9")) return "v19";
+  if (v.startsWith("2")) return "v2";
+  return "unknown";
+}
+
+function PlanBadge({ maxVersion }: { maxVersion: string | null }) {
+  const plan = classifyPlan(maxVersion);
+  if (plan === "v19") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 px-1.5 py-0.5 font-medium text-emerald-700 dark:text-emerald-400">
+        1.9 · R$ 80
+      </span>
+    );
+  }
+  if (plan === "v2") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-md bg-primary/15 px-1.5 py-0.5 font-medium text-primary">
+        2.x
+      </span>
+    );
+  }
+  return <span className="text-muted-foreground">Sem versão</span>;
+}
+
+function exportLicensesCsv(rows: License[]) {
+  const header = ["Chave", "Usuário", "Telefone", "Vendedor", "Status", "Expira em", "Dispositivos", "Versão máx.", "Plano"];
+  const planLabel = (v: string | null | undefined) => {
+    const p = classifyPlan(v);
+    return p === "v19" ? "1.9 (R$80)" : p === "v2" ? "2.x" : "Sem versão";
+  };
+  const escape = (s: unknown) => {
+    const str = s === null || s === undefined ? "" : String(s);
+    return /[",\n;]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+  };
+  const lines = [header.join(";")];
+  for (const l of rows) {
+    lines.push([
+      l.license_key,
+      l.user_name ?? "",
+      l.customer_phone ?? "",
+      l.sold_by ?? "",
+      computeStatus(l),
+      l.expires_at ?? "",
+      l.max_devices ?? 1,
+      l.max_version ?? "",
+      planLabel(l.max_version),
+    ].map(escape).join(";"));
+  }
+  const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `licencas-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 function daysUntil(iso: string | null): number | null {
   if (!iso) return null;
   const diff = new Date(iso).getTime() - Date.now();
