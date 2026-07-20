@@ -42,7 +42,7 @@ export const saveExtensionUpdate = createServerFn({ method: "POST" })
     const payload = {
       version: data.version,
       title: data.title,
-      body: data.body ?? null,
+      body: data.body ?? "",
       is_lovepro: data.is_lovepro,
       published_at: data.published_at ?? new Date().toISOString(),
     };
