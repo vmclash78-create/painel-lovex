@@ -339,14 +339,14 @@ function PlanBadge({ maxVersion }: { maxVersion: string | null }) {
   const plan = classifyPlan(maxVersion);
   if (plan === "v19") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 px-1.5 py-0.5 font-medium text-emerald-700 dark:text-emerald-400">
+      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-emerald-500/15 px-1.5 py-0.5 font-medium text-emerald-700 dark:text-emerald-400">
         1.9 · R$ 80
       </span>
     );
   }
   if (plan === "v2") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md bg-primary/15 px-1.5 py-0.5 font-medium text-primary">
+      <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-md bg-primary/15 px-1.5 py-0.5 font-medium text-primary">
         2.x
       </span>
     );
