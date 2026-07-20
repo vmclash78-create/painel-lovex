@@ -11,10 +11,12 @@ export const supabase = createClient(
   EXTERNAL_SUPABASE_PUBLISHABLE_KEY,
   {
     auth: {
-      persistSession: typeof window !== "undefined",
-      autoRefreshToken: true,
-      storage: typeof window !== "undefined" ? window.localStorage : undefined,
-      storageKey: "external-sb-auth",
+      // We never sign users into this external project from the app —
+      // it's used only for anon reads/writes via publishable key + RLS.
+      // Persisting a session here caused stale/broken JWTs to be sent as
+      // Bearer tokens, which PostgREST rejected and returned empty results.
+      persistSession: false,
+      autoRefreshToken: false,
     },
   },
 );
