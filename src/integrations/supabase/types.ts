@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      extension_updates: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_lovepro: boolean
+          published_at: string
+          title: string
+          updated_at: string
+          version: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_lovepro?: boolean
+          published_at?: string
+          title: string
+          updated_at?: string
+          version: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_lovepro?: boolean
+          published_at?: string
+          title?: string
+          updated_at?: string
+          version?: string
+        }
+        Relationships: []
+      }
       licenses: {
         Row: {
           activated_at: string | null
