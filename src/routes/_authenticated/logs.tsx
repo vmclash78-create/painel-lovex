@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/external-supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollText, CreditCard, KeySquare } from "lucide-react";
+import { ScrollText, CreditCard, KeySquare, X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/logs")({
   head: () => ({ meta: [{ title: "Logs — LoveX" }] }),
@@ -15,6 +17,7 @@ type TxRow = { id: string; created_at: string; type: string; quantity: number; d
 type PurRow = { id: string; created_at: string; status: string; amount: number; package_name: string; reseller_id: string };
 
 function LogsPage() {
+  const qc = useQueryClient();
   const tx = useQuery({
     queryKey: ["reseller-tx"],
     queryFn: async () => {
@@ -26,6 +29,22 @@ function LogsPage() {
       if (error) throw error;
       return (data ?? []) as TxRow[];
     },
+  });
+
+  const cancelPending = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("reseller_purchases")
+        .update({ status: "cancelled", updated_at: new Date().toISOString() })
+        .eq("id", id)
+        .eq("status", "pending");
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Compra pendente cancelada");
+      qc.invalidateQueries({ queryKey: ["reseller-purchases-all"] });
+    },
+    onError: (e: unknown) => toast.error(e instanceof Error ? e.message : "Falha ao cancelar"),
   });
   const purchases = useQuery({
     queryKey: ["reseller-purchases-all"],
@@ -98,6 +117,24 @@ function LogsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {m.kind === "pur" ? <StatusPill status={m.row.status} /> : null}
+                    {m.kind === "pur" && m.row.status === "pending" ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 gap-1 border-destructive/40 text-destructive hover:bg-destructive/10"
+                        onClick={() => {
+                          if (confirm("Cancelar esta compra pendente?")) cancelPending.mutate(m.row.id);
+                        }}
+                        disabled={cancelPending.isPending}
+                      >
+                        {cancelPending.isPending && cancelPending.variables === m.row.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <X className="h-3 w-3" />
+                        )}
+                        Cancelar
+                      </Button>
+                    ) : null}
                     <span className="text-xs text-muted-foreground">{fmt(m.at)}</span>
                   </div>
                 </li>
@@ -116,6 +153,7 @@ function StatusPill({ status }: { status: string }) {
     pending: "bg-neon-orange/15 text-neon-orange border-neon-orange/30",
     failed: "bg-destructive/15 text-destructive border-destructive/30",
     expired: "bg-muted text-muted-foreground",
+    cancelled: "bg-muted text-muted-foreground",
   };
   return <Badge variant="outline" className={map[status] ?? "bg-muted"}>{status}</Badge>;
 }
