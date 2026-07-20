@@ -96,9 +96,24 @@ function useLpService(): LicenseService {
       generateKey: () => generateSecondLicenseKey(),
       list: async () => {
         const rows = (await listFn()) as SecondLicense[];
+        const ids = Array.from(
+          new Set(rows.map((r) => r.reseller_id).filter((v): v is string => !!v)),
+        );
+        let nameById = new Map<string, string>();
+        if (ids.length) {
+          const { data: rs } = await supabase
+            .from("resellers")
+            .select("id,name")
+            .in("id", ids);
+          nameById = new Map(
+            (rs ?? []).map((r: { id: string; name: string }) => [r.id, r.name]),
+          );
+        }
         return rows.map((r) => ({
           ...r,
-          sold_by: r.sold_by ?? "Dono",
+          sold_by:
+            r.sold_by ??
+            (r.reseller_id ? nameById.get(r.reseller_id) ?? "Revenda" : "Dono"),
         })) as unknown as License[];
       },
       update: async (id, patch) => {
