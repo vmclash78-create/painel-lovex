@@ -249,9 +249,9 @@ function MainLicensesPage() {
                 ) : (
                   filtered.map((l) => (
                     <TableRow key={l.id}>
-                      <TableCell className="font-mono text-xs">
+                      <TableCell className="font-mono text-xs whitespace-nowrap">
                         <div className="flex items-center gap-1">
-                          <span className="break-all">{l.license_key}</span>
+                          <span>{l.license_key}</span>
                           <CopyKeyButton value={l.license_key} />
                         </div>
                       </TableCell>
