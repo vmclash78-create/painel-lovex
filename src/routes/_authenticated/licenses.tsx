@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing, Download, PhoneOff } from "lucide-react";
+import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing, Download, PhoneOff, Copy } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
 
@@ -249,7 +249,12 @@ function MainLicensesPage() {
                 ) : (
                   filtered.map((l) => (
                     <TableRow key={l.id}>
-                      <TableCell className="font-mono text-xs">{l.license_key}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        <div className="flex items-center gap-1">
+                          <span className="break-all">{l.license_key}</span>
+                          <CopyKeyButton value={l.license_key} />
+                        </div>
+                      </TableCell>
                       <TableCell>{l.user_name ?? "—"}</TableCell>
                       <TableCell className="text-xs">
                         <PhoneCell phone={l.customer_phone ?? null} userName={l.user_name} licenseKey={l.license_key} />
@@ -330,7 +335,10 @@ function MainLicensesPage() {
                 <div key={l.id} className="rounded-md border bg-card p-3 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
-                      <div className="font-mono text-xs break-all leading-tight">{l.license_key}</div>
+                      <div className="flex items-start gap-1">
+                        <div className="font-mono text-xs break-all leading-tight flex-1">{l.license_key}</div>
+                        <CopyKeyButton value={l.license_key} />
+                      </div>
                       <div className="mt-1 text-sm font-medium truncate">{l.user_name ?? "—"}</div>
                     </div>
                     <StatusBadge status={computeStatus(l)} />
@@ -400,6 +408,29 @@ function formatDate(iso: string | null) {
   } catch {
     return iso;
   }
+}
+
+function CopyKeyButton({ value }: { value: string }) {
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="h-6 w-6 shrink-0 p-0"
+      aria-label="Copiar chave"
+      title="Copiar chave"
+      onClick={async (e) => {
+        e.stopPropagation();
+        try {
+          await navigator.clipboard.writeText(value);
+          toast.success("Copiado");
+        } catch {
+          toast.error("Falha ao copiar");
+        }
+      }}
+    >
+      <Copy className="h-3 w-3" aria-hidden />
+    </Button>
+  );
 }
 
 function classifyPlan(maxVersion: string | null | undefined): "v19" | "v2" | "unknown" {
