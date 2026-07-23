@@ -410,6 +410,29 @@ function formatDate(iso: string | null) {
   }
 }
 
+function CopyKeyButton({ value }: { value: string }) {
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="h-6 w-6 shrink-0 p-0"
+      aria-label="Copiar chave"
+      title="Copiar chave"
+      onClick={async (e) => {
+        e.stopPropagation();
+        try {
+          await navigator.clipboard.writeText(value);
+          toast.success("Copiado");
+        } catch {
+          toast.error("Falha ao copiar");
+        }
+      }}
+    >
+      <Copy className="h-3 w-3" aria-hidden />
+    </Button>
+  );
+}
+
 function classifyPlan(maxVersion: string | null | undefined): "v19" | "v2" | "unknown" {
   const v = (maxVersion ?? "").trim();
   if (v.startsWith("1.9")) return "v19";
