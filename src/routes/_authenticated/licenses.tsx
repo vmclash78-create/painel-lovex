@@ -402,10 +402,6 @@ function MainLicensesPage() {
 }
 
 function formatDate(iso: string | null) {
-  return _formatDate(iso);
-}
-
-function _formatDate(iso: string | null) {
   if (!iso) return "—";
   try {
     return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
