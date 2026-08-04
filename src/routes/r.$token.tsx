@@ -1597,6 +1597,8 @@ function NewLpLicenseDialog({
           max_devices: maxDevices,
           duration_minutes: days > 0 ? minutesTotal : null,
           reseller_id: resellerId,
+          max_version: maxVersion.trim() || null,
+          daily_limit: dailyLimit,
         },
       });
     },
