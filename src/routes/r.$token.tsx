@@ -970,6 +970,47 @@ function NewResellerLicenseDialog({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
+              <Label htmlFor="maxver">Versão máxima</Label>
+              <Input
+                id="maxver"
+                value={maxVersion}
+                onChange={(e) => setMaxVersion(e.target.value)}
+                placeholder="ex: 1.9.9"
+                className="font-mono"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dailyLimit">Limite Diário</Label>
+              <Input
+                id="dailyLimit"
+                type="number"
+                min={0}
+                value={dailyLimit}
+                onChange={(e) => setDailyLimit(Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-1">
+              {["1.9.9", "2.0", "2.1"].map((v) => (
+                <Button
+                  key={v}
+                  type="button"
+                  variant={maxVersion === v ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setMaxVersion(v)}
+                >
+                  {v}
+                </Button>
+              ))}
+              <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => setMaxVersion("")}>
+                Liberar todas
+              </Button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
               <Label htmlFor="lstatus">Status</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
                 <SelectTrigger id="lstatus"><SelectValue /></SelectTrigger>
