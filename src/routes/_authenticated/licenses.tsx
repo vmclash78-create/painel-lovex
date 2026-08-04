@@ -1031,3 +1031,37 @@ function NewLicenseDialog() {
     </Dialog>
   );
 }
+function DowntimeCompensationButton() {
+  const apply = useServerFn(applyDowntimeCompensation);
+  const qc = useQueryClient();
+  const [isPending, setIsPending] = useState(false);
+
+  const handleApply = async () => {
+    if (!confirm("Aplicar compensação de 6 dias? \n\n- v1.9: reset para 6 dias e upgrade trial para v2.\n- Recent 2.x (<15d): +6 dias adicionais.")) return;
+    
+    setIsPending(true);
+    try {
+      const result = await apply();
+      toast.success(`${result.count} licenças atualizadas com sucesso!`);
+      qc.invalidateQueries();
+    } catch (e) {
+      toast.error("Erro ao aplicar compensação");
+      console.error(e);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  return (
+    <Button 
+      variant="outline" 
+      size="sm" 
+      className="gap-2 border-primary/50 text-primary hover:bg-primary/10"
+      onClick={handleApply}
+      disabled={isPending}
+    >
+      <Zap className="h-4 w-4" />
+      {isPending ? "Aplicando..." : "Compensar 6 Dias"}
+    </Button>
+  );
+}
