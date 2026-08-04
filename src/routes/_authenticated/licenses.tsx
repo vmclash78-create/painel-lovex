@@ -119,10 +119,11 @@ function MainLicensesPage() {
           <p className="text-xs text-muted-foreground sm:text-sm">Gerencie chaves, validade e dispositivos.</p>
         </div>
         <div className="flex items-center gap-2">
+          <DowntimeCompensationButton />
           <Button
             variant="outline"
             size="sm"
-              onClick={() => qc.invalidateQueries({ queryKey: svc.queryKey })}
+            onClick={() => qc.invalidateQueries({ queryKey: svc.queryKey })}
             aria-label="Recarregar"
           >
             <RefreshCw className="h-4 w-4" aria-hidden />
