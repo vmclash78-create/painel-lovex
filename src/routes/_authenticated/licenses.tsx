@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase, type License } from "@/integrations/external-supabase/client";
 import { computeStatus, generateLicenseKey } from "@/lib/licenses";
+import { applyDowntimeCompensation } from "@/lib/compensation.functions";
 import { LicenseServiceProvider, useLicenseService, useOptionalLicenseService } from "@/lib/license-service";
 import { StatusBadge } from "./dashboard";
 import { Button } from "@/components/ui/button";
@@ -119,10 +121,11 @@ function MainLicensesPage() {
           <p className="text-xs text-muted-foreground sm:text-sm">Gerencie chaves, validade e dispositivos.</p>
         </div>
         <div className="flex items-center gap-2">
+          <DowntimeCompensationButton />
           <Button
             variant="outline"
             size="sm"
-              onClick={() => qc.invalidateQueries({ queryKey: svc.queryKey })}
+            onClick={() => qc.invalidateQueries({ queryKey: svc.queryKey })}
             aria-label="Recarregar"
           >
             <RefreshCw className="h-4 w-4" aria-hidden />
@@ -1026,5 +1029,39 @@ function NewLicenseDialog() {
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+function DowntimeCompensationButton() {
+  const apply = useServerFn(applyDowntimeCompensation);
+  const qc = useQueryClient();
+  const [isPending, setIsPending] = useState(false);
+
+  const handleApply = async () => {
+    if (!confirm("Aplicar compensação de 6 dias? \n\n- v1.9: reset para 6 dias e upgrade trial para v2.\n- Recent 2.x (<15d): +6 dias adicionais.")) return;
+    
+    setIsPending(true);
+    try {
+      const result = await apply();
+      toast.success(`${result.count} licenças atualizadas com sucesso!`);
+      qc.invalidateQueries();
+    } catch (e) {
+      toast.error("Erro ao aplicar compensação");
+      console.error(e);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  return (
+    <Button 
+      variant="outline" 
+      size="sm" 
+      className="gap-2 border-primary/50 text-primary hover:bg-primary/10"
+      onClick={handleApply}
+      disabled={isPending}
+    >
+      <Zap className="h-4 w-4" />
+      {isPending ? "Aplicando..." : "Compensar 6 Dias"}
+    </Button>
   );
 }
