@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing, Download, PhoneOff, Copy } from "lucide-react";
+import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing, Download, PhoneOff, Copy, Zap, Info } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
 
@@ -230,6 +230,7 @@ function MainLicensesPage() {
                   <TableHead>Expira em</TableHead>
                   <TableHead>Dispositivos</TableHead>
                   <TableHead>Plano</TableHead>
+                  <TableHead>Comandos</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -283,6 +284,18 @@ function MainLicensesPage() {
                       <TableCell className="text-sm">{l.max_devices ?? 1}</TableCell>
                       <TableCell className="text-xs">
                         <PlanBadge maxVersion={l.max_version ?? null} />
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <div className="flex flex-col gap-0.5">
+                          <span className={l.daily_prompts_used && l.daily_limit && l.daily_prompts_used >= l.daily_limit ? "text-destructive font-bold" : ""}>
+                            {l.daily_prompts_used ?? 0} / {l.daily_limit ?? 100}
+                          </span>
+                          {l.last_prompt_date && (
+                            <span className="text-[10px] text-muted-foreground italic">
+                              Último: {new Date(l.last_prompt_date).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
@@ -352,6 +365,10 @@ function MainLicensesPage() {
                       </span>
                     ) : null}
                     <PlanBadge maxVersion={l.max_version ?? null} />
+                    <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 ${l.daily_prompts_used && l.daily_limit && l.daily_prompts_used >= l.daily_limit ? "bg-destructive/20 text-destructive" : "bg-muted text-muted-foreground"}`}>
+                      <Zap className="h-3 w-3" />
+                      {l.daily_prompts_used ?? 0}/{l.daily_limit ?? 100} cmd
+                    </span>
                   </div>
                   <div className="flex items-center justify-between border-t border-border/50 pt-2 text-xs">
                     <div className="flex items-center gap-2 text-muted-foreground">

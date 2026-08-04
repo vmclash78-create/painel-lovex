@@ -20,6 +20,9 @@ export type SecondLicense = {
   sold_by: string | null;
   max_version?: string | null;
   customer_phone?: string | null;
+  daily_prompts_used?: number | null;
+  last_prompt_date?: string | null;
+  daily_limit?: number | null;
 };
 
 export const listSecondLicenses = createServerFn({ method: "GET" })
@@ -67,6 +70,7 @@ const createSchema = z.object({
   sold_by: z.string().nullable().optional(),
   max_version: z.string().nullable().optional(),
   customer_phone: z.string().nullable().optional(),
+  daily_limit: z.number().int().min(0).nullable().optional(),
 });
 
 export const createSecondLicense = createServerFn({ method: "POST" })
@@ -92,6 +96,7 @@ export const createSecondLicense = createServerFn({ method: "POST" })
       sold_by: data.sold_by ?? null,
       max_version: data.max_version ?? null,
       customer_phone: data.customer_phone ?? null,
+      daily_limit: data.daily_limit ?? 100,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
@@ -114,6 +119,9 @@ export const updateSecondLicense = createServerFn({ method: "POST" })
       max_version: z.string().nullable().optional(),
       customer_phone: z.string().nullable().optional(),
       sold_by: z.string().nullable().optional(),
+      daily_limit: z.number().int().min(0).nullable().optional(),
+      daily_prompts_used: z.number().int().min(0).nullable().optional(),
+      last_prompt_date: z.string().nullable().optional(),
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -139,6 +147,9 @@ export const updateSecondLicense = createServerFn({ method: "POST" })
     if (data.max_version !== undefined) patch.max_version = data.max_version;
     if (data.customer_phone !== undefined) patch.customer_phone = data.customer_phone;
     if (data.sold_by !== undefined) patch.sold_by = data.sold_by;
+    if (data.daily_limit !== undefined) patch.daily_limit = data.daily_limit;
+    if (data.daily_prompts_used !== undefined) patch.daily_prompts_used = data.daily_prompts_used;
+    if (data.last_prompt_date !== undefined) patch.last_prompt_date = data.last_prompt_date;
     const { error } = await supabase.from("licenses").update(patch).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
