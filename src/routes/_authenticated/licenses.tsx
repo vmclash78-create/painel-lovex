@@ -738,20 +738,31 @@ export function EditLicenseDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="emaxver">Versão máxima permitida</Label>
-            <div className="flex gap-2">
-              <Input
-                id="emaxver"
-                value={maxVersion}
-                onChange={(e) => setMaxVersion(e.target.value)}
-                placeholder="ex: 1.9.9  (vazio = todas as versões)"
-                className="font-mono"
-              />
-              <Button type="button" variant="outline" size="sm" onClick={() => setMaxVersion("")}>
-                Liberar todas
-              </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="emaxver">Versão máxima</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="emaxver"
+                  value={maxVersion}
+                  onChange={(e) => setMaxVersion(e.target.value)}
+                  placeholder="ex: 1.9.9"
+                  className="font-mono"
+                />
+              </div>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="edailyLimit">Limite Diário</Label>
+              <Input
+                id="edailyLimit"
+                type="number"
+                min={0}
+                value={dailyLimit}
+                onChange={(e) => setDailyLimit(Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
             <div className="flex flex-wrap gap-1">
               {["1.9.9", "2.0", "2.1"].map((v) => (
                 <Button
@@ -765,9 +776,12 @@ export function EditLicenseDialog({
                   {v}
                 </Button>
               ))}
+              <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => setMaxVersion("")}>
+                Liberar todas
+              </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Bloqueia o uso em versões superiores. Deixe vazio para permitir qualquer versão.
+              Limite diário padrão é 100. Defina como 0 para ilimitado se o banco suportar.
             </p>
           </div>
 
