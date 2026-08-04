@@ -544,6 +544,7 @@ function ResellerPublicPage() {
                 <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Expira em</TableHead>
                 <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Disp.</TableHead>
                 <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Plano</TableHead>
+                <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Comandos</TableHead>
                 <TableHead className="text-right text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Ações</TableHead>
               </TableRow>
             </TableHeader>
