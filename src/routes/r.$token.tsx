@@ -1360,6 +1360,8 @@ function EditSecondLicenseDialog({ license, iconOnly = false }: { license: Secon
           setStatus((license.status ?? "active") as "active" | "trial" | "expired" | "revoked" | "paused" | "inactive");
           setMaxDevices(license.max_devices ?? 1);
           setExpiresAt(license.expires_at ? toLocalInput(license.expires_at) : "");
+          setMaxVersion((license as any).max_version ?? "");
+          setDailyLimit((license as any).daily_limit ?? 100);
         }
       }}
     >
