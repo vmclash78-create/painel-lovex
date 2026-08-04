@@ -544,6 +544,7 @@ function ResellerPublicPage() {
                 <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Expira em</TableHead>
                 <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Disp.</TableHead>
                 <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Plano</TableHead>
+                <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Comandos</TableHead>
                 <TableHead className="text-right text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Ações</TableHead>
               </TableRow>
             </TableHeader>
@@ -600,6 +601,13 @@ function ResellerPublicPage() {
                     <TableCell className="text-xs tabular-nums">{l.max_devices ?? 1}</TableCell>
                     <TableCell className="text-xs">
                       <PlanBadge maxVersion={l.max_version ?? null} />
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      <div className="flex flex-col gap-0.5 tabular-nums">
+                        <span className={l.daily_prompts_used && l.daily_limit && l.daily_prompts_used >= l.daily_limit ? "text-destructive font-bold" : "text-muted-foreground"}>
+                          {l.daily_prompts_used ?? 0} / {l.daily_limit ?? 100}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="inline-flex items-center rounded-lg border border-border/60 bg-background/60 p-0.5">
@@ -815,6 +823,8 @@ function NewResellerLicenseDialog({
   const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
   const [maxDevices, setMaxDevices] = useState<number>(1);
   const [key, setKey] = useState<string>("");
+  const [maxVersion, setMaxVersion] = useState<string>("");
+  const [dailyLimit, setDailyLimit] = useState<number>(100);
 
   const applyPreset = (
     nextStatus: NonNullable<License["status"]>,
@@ -854,6 +864,8 @@ function NewResellerLicenseDialog({
         max_devices: maxDevices,
         duration_minutes: days > 0 ? minutesTotal : null,
         reseller_id: resellerId,
+        max_version: maxVersion.trim() || null,
+        daily_limit: dailyLimit,
       });
       if (error) throw error;
     },
@@ -955,6 +967,47 @@ function NewResellerLicenseDialog({
           <div className="space-y-2">
             <Label htmlFor="uname">Cliente</Label>
             <Input id="uname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do cliente" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="maxver">Versão máxima</Label>
+              <Input
+                id="maxver"
+                value={maxVersion}
+                onChange={(e) => setMaxVersion(e.target.value)}
+                placeholder="ex: 1.9.9"
+                className="font-mono"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dailyLimit">Limite Diário</Label>
+              <Input
+                id="dailyLimit"
+                type="number"
+                min={0}
+                value={dailyLimit}
+                onChange={(e) => setDailyLimit(Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-1">
+              {["1.9.9", "2.0", "2.1"].map((v) => (
+                <Button
+                  key={v}
+                  type="button"
+                  variant={maxVersion === v ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setMaxVersion(v)}
+                >
+                  {v}
+                </Button>
+              ))}
+              <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => setMaxVersion("")}>
+                Liberar todas
+              </Button>
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
@@ -1158,6 +1211,7 @@ function LpPanel({
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Status</TableHead>
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Expira em</TableHead>
               <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Plano</TableHead>
+              <TableHead className="text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Comandos</TableHead>
               <TableHead className="text-right text-[10px] uppercase tracking-wider text-muted-foreground/80 font-semibold">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -1211,9 +1265,16 @@ function LpPanel({
                   </TableCell>
                   <TableCell><StatusBadge status={(l.status ?? "active") as "active" | "trial" | "expired" | "revoked"} /></TableCell>
                   <TableCell className="text-xs text-muted-foreground tabular-nums">{formatDate(l.expires_at)}</TableCell>
-                  <TableCell className="text-xs">
-                    <PlanBadge maxVersion={(l as { max_version?: string | null }).max_version ?? null} />
-                  </TableCell>
+                    <TableCell className="text-xs">
+                      <PlanBadge maxVersion={(l as { max_version?: string | null }).max_version ?? null} />
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      <div className="flex flex-col gap-0.5 tabular-nums">
+                        <span className={l.daily_prompts_used && l.daily_limit && l.daily_prompts_used >= l.daily_limit ? "text-destructive font-bold" : "text-muted-foreground"}>
+                          {l.daily_prompts_used ?? 0} / {l.daily_limit ?? 100}
+                        </span>
+                      </div>
+                    </TableCell>
                   <TableCell className="text-right">
                     <div className="inline-flex items-center rounded-lg border border-border/60 bg-background/60 p-0.5">
                       <EditSecondLicenseDialog license={l} iconOnly />
@@ -1263,6 +1324,8 @@ function EditSecondLicenseDialog({ license, iconOnly = false }: { license: Secon
   );
   const [maxDevices, setMaxDevices] = useState<number>(license.max_devices ?? 1);
   const [expiresAt, setExpiresAt] = useState<string>(license.expires_at ? toLocalInput(license.expires_at) : "");
+  const [maxVersion, setMaxVersion] = useState<string>((license as any).max_version ?? "");
+  const [dailyLimit, setDailyLimit] = useState<number>((license as any).daily_limit ?? 100);
 
   const save = useMutation({
     mutationFn: () => updateFn({
@@ -1273,6 +1336,8 @@ function EditSecondLicenseDialog({ license, iconOnly = false }: { license: Secon
         status,
         max_devices: maxDevices,
         expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+        max_version: maxVersion.trim() || null,
+        daily_limit: dailyLimit,
         is_active: status !== "revoked" && status !== "inactive" && status !== "paused",
       },
     }),
@@ -1295,6 +1360,8 @@ function EditSecondLicenseDialog({ license, iconOnly = false }: { license: Secon
           setStatus((license.status ?? "active") as "active" | "trial" | "expired" | "revoked" | "paused" | "inactive");
           setMaxDevices(license.max_devices ?? 1);
           setExpiresAt(license.expires_at ? toLocalInput(license.expires_at) : "");
+          setMaxVersion((license as any).max_version ?? "");
+          setDailyLimit((license as any).daily_limit ?? 100);
         }
       }}
     >
@@ -1346,6 +1413,47 @@ function EditSecondLicenseDialog({ license, iconOnly = false }: { license: Secon
             <div className="flex gap-2">
               <Input id="lp-edit-expiry" type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} />
               <Button type="button" variant="outline" size="sm" onClick={() => setExpiresAt("")}>Sem validade</Button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="lp-edit-maxver">Versão máxima</Label>
+              <Input
+                id="lp-edit-maxver"
+                value={maxVersion}
+                onChange={(e) => setMaxVersion(e.target.value)}
+                placeholder="ex: 1.9.9"
+                className="font-mono"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lp-edit-dailyLimit">Limite Diário</Label>
+              <Input
+                id="lp-edit-dailyLimit"
+                type="number"
+                min={0}
+                value={dailyLimit}
+                onChange={(e) => setDailyLimit(Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-1">
+              {["1.9.9", "2.0", "2.1"].map((v) => (
+                <Button
+                  key={v}
+                  type="button"
+                  variant={maxVersion === v ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setMaxVersion(v)}
+                >
+                  {v}
+                </Button>
+              ))}
+              <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => setMaxVersion("")}>
+                Liberar todas
+              </Button>
             </div>
           </div>
           <DialogFooter>
@@ -1454,6 +1562,8 @@ function NewLpLicenseDialog({
   const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
   const [maxDevices, setMaxDevices] = useState<number>(1);
   const [key, setKey] = useState<string>("");
+  const [maxVersion, setMaxVersion] = useState<string>("");
+  const [dailyLimit, setDailyLimit] = useState<number>(100);
 
   useEffect(() => {
     if (open) setKey(generateSecondLicenseKey());
@@ -1487,6 +1597,8 @@ function NewLpLicenseDialog({
           max_devices: maxDevices,
           duration_minutes: days > 0 ? minutesTotal : null,
           reseller_id: resellerId,
+          max_version: maxVersion.trim() || null,
+          daily_limit: dailyLimit,
         },
       });
     },
@@ -1609,6 +1721,47 @@ function NewLpLicenseDialog({
                 <SelectItem value="days">Dias</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="lp-maxver">Versão máxima</Label>
+              <Input
+                id="lp-maxver"
+                value={maxVersion}
+                onChange={(e) => setMaxVersion(e.target.value)}
+                placeholder="ex: 1.9.9"
+                className="font-mono"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lp-dailyLimit">Limite Diário</Label>
+              <Input
+                id="lp-dailyLimit"
+                type="number"
+                min={0}
+                value={dailyLimit}
+                onChange={(e) => setDailyLimit(Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-1">
+              {["1.9.9", "2.0", "2.1"].map((v) => (
+                <Button
+                  key={v}
+                  type="button"
+                  variant={maxVersion === v ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setMaxVersion(v)}
+                >
+                  {v}
+                </Button>
+              ))}
+              <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => setMaxVersion("")}>
+                Liberar todas
+              </Button>
+            </div>
           </div>
           <p className="text-xs text-muted-foreground">Use 0 para sem expiração.</p>
           {quotaReached && status !== "trial" ? (
