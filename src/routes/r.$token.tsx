@@ -1722,6 +1722,47 @@ function NewLpLicenseDialog({
               </SelectContent>
             </Select>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="lp-maxver">Versão máxima</Label>
+              <Input
+                id="lp-maxver"
+                value={maxVersion}
+                onChange={(e) => setMaxVersion(e.target.value)}
+                placeholder="ex: 1.9.9"
+                className="font-mono"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lp-dailyLimit">Limite Diário</Label>
+              <Input
+                id="lp-dailyLimit"
+                type="number"
+                min={0}
+                value={dailyLimit}
+                onChange={(e) => setDailyLimit(Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-1">
+              {["1.9.9", "2.0", "2.1"].map((v) => (
+                <Button
+                  key={v}
+                  type="button"
+                  variant={maxVersion === v ? "default" : "outline"}
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setMaxVersion(v)}
+                >
+                  {v}
+                </Button>
+              ))}
+              <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => setMaxVersion("")}>
+                Liberar todas
+              </Button>
+            </div>
+          </div>
           <p className="text-xs text-muted-foreground">Use 0 para sem expiração.</p>
           {quotaReached && status !== "trial" ? (
             <p className="text-xs text-destructive">Cota Lovpro esgotada — só é possível gerar Trial.</p>
