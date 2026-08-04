@@ -117,12 +117,17 @@ export type Database = {
         Row: {
           activated_at: string | null
           created_at: string
+          customer_phone: string | null
+          daily_limit: number | null
+          daily_prompts_used: number | null
           device_id: string | null
           duration_minutes: number | null
           expires_at: string | null
           id: string
+          last_prompt_date: string | null
           license_key: string
           max_devices: number | null
+          max_version: string | null
           reseller_id: string | null
           session_id: string | null
           status: string | null
@@ -132,12 +137,17 @@ export type Database = {
         Insert: {
           activated_at?: string | null
           created_at?: string
+          customer_phone?: string | null
+          daily_limit?: number | null
+          daily_prompts_used?: number | null
           device_id?: string | null
           duration_minutes?: number | null
           expires_at?: string | null
           id?: string
+          last_prompt_date?: string | null
           license_key: string
           max_devices?: number | null
+          max_version?: string | null
           reseller_id?: string | null
           session_id?: string | null
           status?: string | null
@@ -147,12 +157,17 @@ export type Database = {
         Update: {
           activated_at?: string | null
           created_at?: string
+          customer_phone?: string | null
+          daily_limit?: number | null
+          daily_prompts_used?: number | null
           device_id?: string | null
           duration_minutes?: number | null
           expires_at?: string | null
           id?: string
+          last_prompt_date?: string | null
           license_key?: string
           max_devices?: number | null
+          max_version?: string | null
           reseller_id?: string | null
           session_id?: string | null
           status?: string | null
