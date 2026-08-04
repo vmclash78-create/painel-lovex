@@ -1336,6 +1336,8 @@ function EditSecondLicenseDialog({ license, iconOnly = false }: { license: Secon
         status,
         max_devices: maxDevices,
         expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
+        max_version: maxVersion.trim() || null,
+        daily_limit: dailyLimit,
         is_active: status !== "revoked" && status !== "inactive" && status !== "paused",
       },
     }),
