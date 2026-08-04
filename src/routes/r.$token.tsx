@@ -1324,6 +1324,8 @@ function EditSecondLicenseDialog({ license, iconOnly = false }: { license: Secon
   );
   const [maxDevices, setMaxDevices] = useState<number>(license.max_devices ?? 1);
   const [expiresAt, setExpiresAt] = useState<string>(license.expires_at ? toLocalInput(license.expires_at) : "");
+  const [maxVersion, setMaxVersion] = useState<string>((license as any).max_version ?? "");
+  const [dailyLimit, setDailyLimit] = useState<number>((license as any).daily_limit ?? 100);
 
   const save = useMutation({
     mutationFn: () => updateFn({
