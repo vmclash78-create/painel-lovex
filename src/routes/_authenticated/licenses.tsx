@@ -113,22 +113,6 @@ function MainLicensesPage() {
 
   return (
     <section className="space-y-4">
-      <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm shadow-sm">
-        <div className="flex items-start gap-3">
-          <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <h3 className="font-semibold text-primary">Compensação de 6 Dias Aplicada</h3>
-            <p className="text-muted-foreground leading-relaxed">
-              Como o sistema ficou offline, adicionamos automaticamente <strong>6 dias extras</strong> a todas as chaves ativas e expiradas.
-            </p>
-            <ul className="grid gap-1 mt-2 text-xs list-disc list-inside text-muted-foreground/80">
-              <li>Novas assinaturas (últimos 15 dias) receberam acesso à v2.x + 6 dias.</li>
-              <li>Usuários da v1.9 ganharam 6 dias de teste na v2.x (upgrade disponível).</li>
-              <li>Usuários da v2.x seguem com atualizações normais e o bônus de 6 dias.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
       <header className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">Licenças</h1>
