@@ -585,6 +585,7 @@ export function EditLicenseDialog({
   );
   const [maxVersion, setMaxVersion] = useState<string>(license.max_version ?? "");
   const [customerPhone, setCustomerPhone] = useState<string>(license.customer_phone ?? "");
+  const [dailyLimit, setDailyLimit] = useState<number>(license.daily_limit ?? 100);
   const [clearDevice, setClearDevice] = useState(false);
   const [resetSession, setResetSession] = useState(false);
 
@@ -598,6 +599,7 @@ export function EditLicenseDialog({
         expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
         max_version: maxVersion.trim() ? maxVersion.trim() : null,
         customer_phone: customerPhone.trim() ? customerPhone.trim() : null,
+        daily_limit: dailyLimit,
         updated_at: new Date().toISOString(),
       };
       if (clearDevice) {
@@ -641,6 +643,7 @@ export function EditLicenseDialog({
           setExpiresAt(license.expires_at ? toLocalInput(license.expires_at) : "");
           setMaxVersion(license.max_version ?? "");
           setCustomerPhone(license.customer_phone ?? "");
+          setDailyLimit(license.daily_limit ?? 100);
           setClearDevice(false);
           setResetSession(false);
         }
@@ -837,6 +840,7 @@ function NewLicenseDialog() {
   const [key, setKey] = useState<string>(svc.generateKey());
   const [maxVersion, setMaxVersion] = useState<string>("");
   const [customerPhone, setCustomerPhone] = useState<string>("");
+  const [dailyLimit, setDailyLimit] = useState<number>(100);
 
   const updateStatus = (nextStatus: NonNullable<License["status"]>) => {
     setStatus(nextStatus);
@@ -871,6 +875,7 @@ function NewLicenseDialog() {
         duration_minutes: days > 0 ? minutesTotal : null,
         max_version: maxVersion.trim() ? maxVersion.trim() : null,
         customer_phone: customerPhone.trim() ? customerPhone.trim() : null,
+        daily_limit: dailyLimit,
       });
     },
     onSuccess: () => {
@@ -978,15 +983,27 @@ function NewLicenseDialog() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground">Use 0 para sem expiração. Trial = chave com tempo limitado.</p>
-          <div className="space-y-2">
-            <Label htmlFor="nmaxver">Versão máxima (opcional)</Label>
-            <Input
-              id="nmaxver"
-              value={maxVersion}
-              onChange={(e) => setMaxVersion(e.target.value)}
-              placeholder="ex: 1.9.9  (vazio = todas)"
-              className="font-mono"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="nmaxver">Versão máxima</Label>
+              <Input
+                id="nmaxver"
+                value={maxVersion}
+                onChange={(e) => setMaxVersion(e.target.value)}
+                placeholder="ex: 1.9.9"
+                className="font-mono"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ndailyLimit">Limite Diário</Label>
+              <Input
+                id="ndailyLimit"
+                type="number"
+                min={0}
+                value={dailyLimit}
+                onChange={(e) => setDailyLimit(Number(e.target.value))}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
