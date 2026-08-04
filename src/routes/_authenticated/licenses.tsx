@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing, Download, PhoneOff, Copy, Zap, Info } from "lucide-react";
+import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing, Download, PhoneOff, Copy, Zap, Info, Clock, CheckCircle2 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
 
@@ -119,10 +119,62 @@ function MainLicensesPage() {
           <p className="text-xs text-muted-foreground sm:text-sm">Gerencie chaves, validade e dispositivos.</p>
         </div>
         <div className="flex items-center gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10">
+                <Info className="h-4 w-4" />
+                Compensação
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-primary" />
+                  Plano de Compensação (6 dias)
+                </DialogTitle>
+                <DialogDescription>
+                  Entenda como foi aplicada a compensação pelo período offline.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <div className="mt-0.5 rounded-full bg-emerald-500/20 p-1 text-emerald-600 dark:text-emerald-400">
+                      <CheckCircle2 className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Assinaturas Recentes (menos de 15 dias)</p>
+                      <p className="text-xs text-muted-foreground">
+                        Receberam a Key Normal com acesso à v2.x. Os 6 dias foram somados à validade original.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <div className="mt-0.5 rounded-full bg-primary/20 p-1 text-primary">
+                      <Zap className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold">Assinaturas Antigas (mais de 15 dias)</p>
+                      <p className="text-xs text-muted-foreground">
+                        Receberam acesso à v2.x liberado por exatamente 6 dias como bônus de teste.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-muted-foreground italic">
+                  * A compensação foi aplicada automaticamente em ambos os bancos (LoveX e LovePro).
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button
             variant="outline"
             size="sm"
-              onClick={() => qc.invalidateQueries({ queryKey: svc.queryKey })}
+            onClick={() => qc.invalidateQueries({ queryKey: svc.queryKey })}
             aria-label="Recarregar"
           >
             <RefreshCw className="h-4 w-4" aria-hidden />
