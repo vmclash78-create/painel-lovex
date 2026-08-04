@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing, Download, PhoneOff, Copy } from "lucide-react";
+import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing, Download, PhoneOff, Copy, Zap, Info } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
 
@@ -230,6 +230,7 @@ function MainLicensesPage() {
                   <TableHead>Expira em</TableHead>
                   <TableHead>Dispositivos</TableHead>
                   <TableHead>Plano</TableHead>
+                  <TableHead>Comandos</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -283,6 +284,18 @@ function MainLicensesPage() {
                       <TableCell className="text-sm">{l.max_devices ?? 1}</TableCell>
                       <TableCell className="text-xs">
                         <PlanBadge maxVersion={l.max_version ?? null} />
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        <div className="flex flex-col gap-0.5">
+                          <span className={l.daily_prompts_used && l.daily_limit && l.daily_prompts_used >= l.daily_limit ? "text-destructive font-bold" : ""}>
+                            {l.daily_prompts_used ?? 0} / {l.daily_limit ?? 100}
+                          </span>
+                          {l.last_prompt_date && (
+                            <span className="text-[10px] text-muted-foreground italic">
+                              Último: {new Date(l.last_prompt_date).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
@@ -352,6 +365,10 @@ function MainLicensesPage() {
                       </span>
                     ) : null}
                     <PlanBadge maxVersion={l.max_version ?? null} />
+                    <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 ${l.daily_prompts_used && l.daily_limit && l.daily_prompts_used >= l.daily_limit ? "bg-destructive/20 text-destructive" : "bg-muted text-muted-foreground"}`}>
+                      <Zap className="h-3 w-3" />
+                      {l.daily_prompts_used ?? 0}/{l.daily_limit ?? 100} cmd
+                    </span>
                   </div>
                   <div className="flex items-center justify-between border-t border-border/50 pt-2 text-xs">
                     <div className="flex items-center gap-2 text-muted-foreground">
@@ -568,6 +585,7 @@ export function EditLicenseDialog({
   );
   const [maxVersion, setMaxVersion] = useState<string>(license.max_version ?? "");
   const [customerPhone, setCustomerPhone] = useState<string>(license.customer_phone ?? "");
+  const [dailyLimit, setDailyLimit] = useState<number>(license.daily_limit ?? 100);
   const [clearDevice, setClearDevice] = useState(false);
   const [resetSession, setResetSession] = useState(false);
 
@@ -581,6 +599,7 @@ export function EditLicenseDialog({
         expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
         max_version: maxVersion.trim() ? maxVersion.trim() : null,
         customer_phone: customerPhone.trim() ? customerPhone.trim() : null,
+        daily_limit: dailyLimit,
         updated_at: new Date().toISOString(),
       };
       if (clearDevice) {
@@ -624,6 +643,7 @@ export function EditLicenseDialog({
           setExpiresAt(license.expires_at ? toLocalInput(license.expires_at) : "");
           setMaxVersion(license.max_version ?? "");
           setCustomerPhone(license.customer_phone ?? "");
+          setDailyLimit(license.daily_limit ?? 100);
           setClearDevice(false);
           setResetSession(false);
         }
@@ -718,20 +738,31 @@ export function EditLicenseDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="emaxver">Versão máxima permitida</Label>
-            <div className="flex gap-2">
-              <Input
-                id="emaxver"
-                value={maxVersion}
-                onChange={(e) => setMaxVersion(e.target.value)}
-                placeholder="ex: 1.9.9  (vazio = todas as versões)"
-                className="font-mono"
-              />
-              <Button type="button" variant="outline" size="sm" onClick={() => setMaxVersion("")}>
-                Liberar todas
-              </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="emaxver">Versão máxima</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="emaxver"
+                  value={maxVersion}
+                  onChange={(e) => setMaxVersion(e.target.value)}
+                  placeholder="ex: 1.9.9"
+                  className="font-mono"
+                />
+              </div>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="edailyLimit">Limite Diário</Label>
+              <Input
+                id="edailyLimit"
+                type="number"
+                min={0}
+                value={dailyLimit}
+                onChange={(e) => setDailyLimit(Number(e.target.value))}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
             <div className="flex flex-wrap gap-1">
               {["1.9.9", "2.0", "2.1"].map((v) => (
                 <Button
@@ -745,9 +776,12 @@ export function EditLicenseDialog({
                   {v}
                 </Button>
               ))}
+              <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => setMaxVersion("")}>
+                Liberar todas
+              </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Bloqueia o uso em versões superiores. Deixe vazio para permitir qualquer versão.
+              Limite diário padrão é 100. Defina como 0 para ilimitado se o banco suportar.
             </p>
           </div>
 
@@ -820,6 +854,7 @@ function NewLicenseDialog() {
   const [key, setKey] = useState<string>(svc.generateKey());
   const [maxVersion, setMaxVersion] = useState<string>("");
   const [customerPhone, setCustomerPhone] = useState<string>("");
+  const [dailyLimit, setDailyLimit] = useState<number>(100);
 
   const updateStatus = (nextStatus: NonNullable<License["status"]>) => {
     setStatus(nextStatus);
@@ -854,6 +889,7 @@ function NewLicenseDialog() {
         duration_minutes: days > 0 ? minutesTotal : null,
         max_version: maxVersion.trim() ? maxVersion.trim() : null,
         customer_phone: customerPhone.trim() ? customerPhone.trim() : null,
+        daily_limit: dailyLimit,
       });
     },
     onSuccess: () => {
@@ -961,15 +997,27 @@ function NewLicenseDialog() {
             </div>
           </div>
           <p className="text-xs text-muted-foreground">Use 0 para sem expiração. Trial = chave com tempo limitado.</p>
-          <div className="space-y-2">
-            <Label htmlFor="nmaxver">Versão máxima (opcional)</Label>
-            <Input
-              id="nmaxver"
-              value={maxVersion}
-              onChange={(e) => setMaxVersion(e.target.value)}
-              placeholder="ex: 1.9.9  (vazio = todas)"
-              className="font-mono"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="nmaxver">Versão máxima</Label>
+              <Input
+                id="nmaxver"
+                value={maxVersion}
+                onChange={(e) => setMaxVersion(e.target.value)}
+                placeholder="ex: 1.9.9"
+                className="font-mono"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ndailyLimit">Limite Diário</Label>
+              <Input
+                id="ndailyLimit"
+                type="number"
+                min={0}
+                value={dailyLimit}
+                onChange={(e) => setDailyLimit(Number(e.target.value))}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>

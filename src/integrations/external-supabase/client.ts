@@ -31,6 +31,9 @@ export type License = {
   device_id: string | null;
   session_id: string | null;
   max_devices: number | null;
+  daily_prompts_used?: number | null;
+  last_prompt_date?: string | null;
+  daily_limit?: number | null;
   created_at: string | null;
   updated_at: string | null;
   duration_minutes: number | null;
