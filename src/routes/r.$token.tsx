@@ -1220,9 +1220,16 @@ function LpPanel({
                   </TableCell>
                   <TableCell><StatusBadge status={(l.status ?? "active") as "active" | "trial" | "expired" | "revoked"} /></TableCell>
                   <TableCell className="text-xs text-muted-foreground tabular-nums">{formatDate(l.expires_at)}</TableCell>
-                  <TableCell className="text-xs">
-                    <PlanBadge maxVersion={(l as { max_version?: string | null }).max_version ?? null} />
-                  </TableCell>
+                    <TableCell className="text-xs">
+                      <PlanBadge maxVersion={(l as { max_version?: string | null }).max_version ?? null} />
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      <div className="flex flex-col gap-0.5 tabular-nums">
+                        <span className={l.daily_prompts_used && l.daily_limit && l.daily_prompts_used >= l.daily_limit ? "text-destructive font-bold" : "text-muted-foreground"}>
+                          {l.daily_prompts_used ?? 0} / {l.daily_limit ?? 100}
+                        </span>
+                      </div>
+                    </TableCell>
                   <TableCell className="text-right">
                     <div className="inline-flex items-center rounded-lg border border-border/60 bg-background/60 p-0.5">
                       <EditSecondLicenseDialog license={l} iconOnly />
