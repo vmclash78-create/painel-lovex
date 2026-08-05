@@ -113,6 +113,7 @@ function Hero() {
   return (
     <section id="top" className="relative px-4 pt-16 pb-20 sm:pt-24 sm:pb-28">
       <div className="mx-auto max-w-4xl text-center">
+        {/* oi */}
         <Badge variant="outline" className="mb-5 border-primary/40 bg-primary/10 text-primary">
           <Sparkles className="mr-1 h-3 w-3" aria-hidden /> Ativação instantânea via Pix
         </Badge>
