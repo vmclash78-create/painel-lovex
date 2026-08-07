@@ -290,11 +290,14 @@ function MainLicensesPage() {
                           <span className={l.daily_prompts_used && l.daily_limit && l.daily_prompts_used >= l.daily_limit ? "text-destructive font-bold" : ""}>
                             {l.daily_prompts_used ?? 0} / {l.daily_limit ?? 100}
                           </span>
-                          {l.last_prompt_date && (
-                            <span className="text-[10px] text-muted-foreground italic">
-                              Último: {new Date(l.last_prompt_date).toLocaleDateString()}
-                            </span>
-                          )}
+                          <span className="text-[10px] text-muted-foreground italic flex flex-col">
+                            {l.last_active && (
+                              <span>Visto: {new Date(l.last_active).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
+                            )}
+                            {l.last_prompt_date && (
+                              <span>Comando: {new Date(l.last_prompt_date).toLocaleDateString("pt-BR")}</span>
+                            )}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
@@ -369,6 +372,12 @@ function MainLicensesPage() {
                       <Zap className="h-3 w-3" />
                       {l.daily_prompts_used ?? 0}/{l.daily_limit ?? 100} cmd
                     </span>
+                    {l.last_active && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-muted-foreground">
+                        <Monitor className="h-3 w-3" />
+                        Visto: {new Date(l.last_active).toLocaleDateString("pt-BR")}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between border-t border-border/50 pt-2 text-xs">
                     <div className="flex items-center gap-2 text-muted-foreground">
