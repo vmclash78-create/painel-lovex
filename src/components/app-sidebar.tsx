@@ -125,6 +125,8 @@ export function AppSidebar() {
     </SidebarGroup>
   );
 
+  const { isMobile } = useSidebar();
+  
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border" onPointerDown={(e) => isMobile && e.stopPropagation()}>
       <SidebarHeader className="border-b border-sidebar-border/60 py-4">
