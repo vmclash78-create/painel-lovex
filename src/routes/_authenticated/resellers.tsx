@@ -47,6 +47,8 @@ function ResellersPage() {
     queries: (data ?? []).map((r) => ({
       queryKey: ["reseller-count", r.id],
       queryFn: () => countResellerLicenses(r.id),
+      staleTime: 10 * 60_000,
+      gcTime: 20 * 60_000,
     })),
   });
 
