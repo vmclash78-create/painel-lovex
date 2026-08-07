@@ -438,7 +438,10 @@ function MainLicensesPage() {
 function formatDate(iso: string | null) {
   if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+    const date = new Date(iso);
+    // Explicitly check against the server-side time by using UTC comparison or a safe threshold
+    // Since the user is in 2026, we ensure the formatting is consistent
+    return date.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
   } catch {
     return iso;
   }

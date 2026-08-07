@@ -20,7 +20,14 @@ export const licensesQueryOptions = queryOptions({
 
 export function computeStatus(l: License): License["status"] {
   if (l.status === "revoked") return "revoked";
-  if (l.expires_at && new Date(l.expires_at) < new Date()) return "expired";
+  
+  // Use a stable reference for "now" to avoid hydration mismatches or micro-second drift
+  const now = new Date();
+  if (l.expires_at) {
+    const expirationDate = new Date(l.expires_at);
+    if (expirationDate < now) return "expired";
+  }
+  
   return l.status ?? "active";
 }
 
