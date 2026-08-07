@@ -375,7 +375,13 @@ function MainLicensesPage() {
                     {l.last_active && (
                       <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-muted-foreground">
                         <Monitor className="h-3 w-3" />
-                        Visto: {new Date(l.last_active).toLocaleDateString("pt-BR")}
+                        Visto: {new Date(l.last_active).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                      </span>
+                    )}
+                    {l.last_prompt_date && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-muted-foreground">
+                        <Zap className="h-3 w-3" />
+                        Comando: {new Date(l.last_prompt_date).toLocaleDateString("pt-BR")}
                       </span>
                     )}
                   </div>
