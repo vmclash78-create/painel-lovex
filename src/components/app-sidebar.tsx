@@ -76,7 +76,7 @@ function useExpiringCount(): number {
 }
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, setOpenMobile, isMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const { db } = useDb();
   const location = useRouterState({ select: (s) => s.location });
