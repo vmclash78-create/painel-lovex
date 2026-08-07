@@ -38,7 +38,7 @@ import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
   Activity, UserRound, Package, FileText, Pencil, RotateCcw,
   CheckCircle2, FlaskConical, XCircle, CalendarClock, MessageCircle,
-  Clock, AlertTriangle, ArrowUpRight, Wallet,
+  Clock, AlertTriangle, ArrowUpRight, Wallet, Zap, Monitor,
 } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
