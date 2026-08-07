@@ -125,8 +125,10 @@ export function AppSidebar() {
     </SidebarGroup>
   );
 
+  const { isMobile } = useSidebar();
+  
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border" onPointerDown={(e) => isMobile && e.stopPropagation()}>
       <SidebarHeader className="border-b border-sidebar-border/60 py-4">
         <Link to="/dashboard" className="flex items-center gap-2.5 px-2">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl gradient-primary text-primary-foreground shadow-neon">
