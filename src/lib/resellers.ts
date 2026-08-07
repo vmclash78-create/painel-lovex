@@ -32,7 +32,21 @@ export async function fetchResellerLicenses(resellerId: string): Promise<License
     .eq("reseller_id", resellerId)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []) as License[];
+  
+  const rows = (data ?? []) as License[];
+  
+  const { data: res } = await supabase
+    .from("resellers")
+    .select("name")
+    .eq("id", resellerId)
+    .single();
+
+  const resellerName = res?.name || "Revendedor";
+
+  return rows.map(r => ({
+    ...r,
+    sold_by: r.sold_by || resellerName
+  }));
 }
 
 export async function countResellerLicenses(resellerId: string): Promise<number> {

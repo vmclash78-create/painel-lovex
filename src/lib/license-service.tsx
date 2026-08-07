@@ -61,7 +61,7 @@ function mainService(): LicenseService {
       const anyResellerMap = new Map((allResellers ?? []).map((r: { id: string; name: string }) => [r.id, r.name]));
 
       return rows.map((r) => {
-        let seller: string | null = r.sold_by ?? null;
+        let seller: string | null = r.sold_by && r.sold_by !== "—" ? r.sold_by : null;
         if (!seller && r.reseller_id) {
           seller = nameById.get(r.reseller_id) || anyResellerMap.get(r.reseller_id) || null;
         }
@@ -127,7 +127,7 @@ function useLpService(): LicenseService {
         const anyResellerMap = new Map((allResellers ?? []).map((r: { id: string; name: string }) => [r.id, r.name]));
 
         return rows.map((r) => {
-          let seller: string | null = r.sold_by ?? null;
+          let seller: string | null = r.sold_by && r.sold_by !== "—" ? r.sold_by : null;
           if (!seller && r.reseller_id) {
             seller = nameById.get(r.reseller_id) || anyResellerMap.get(r.reseller_id) || null;
           }
