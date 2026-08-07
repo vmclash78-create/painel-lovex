@@ -28,6 +28,7 @@ export type License = {
   status: "active" | "trial" | "expired" | "revoked" | null;
   expires_at: string | null;
   activated_at: string | null;
+  last_active?: string | null;
   device_id: string | null;
   session_id: string | null;
   max_devices: number | null;
