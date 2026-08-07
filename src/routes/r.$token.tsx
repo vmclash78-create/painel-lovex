@@ -607,6 +607,11 @@ function ResellerPublicPage() {
                         <span className={l.daily_prompts_used && l.daily_limit && l.daily_prompts_used >= l.daily_limit ? "text-destructive font-bold" : "text-muted-foreground"}>
                           {l.daily_prompts_used ?? 0} / {l.daily_limit ?? 100}
                         </span>
+                        <span className="text-[10px] text-muted-foreground/70 italic flex flex-col">
+                          {l.last_active && (
+                            <span>Visto: {new Date(l.last_active).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
+                          )}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
@@ -1273,6 +1278,11 @@ function LpPanel({
                         <span className={l.daily_prompts_used && l.daily_limit && l.daily_prompts_used >= l.daily_limit ? "text-destructive font-bold" : "text-muted-foreground"}>
                           {l.daily_prompts_used ?? 0} / {l.daily_limit ?? 100}
                         </span>
+                        {(l as any).last_active && (
+                          <span className="text-[10px] text-muted-foreground/70 italic">
+                            Visto: {new Date((l as any).last_active).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                          </span>
+                        )}
                       </div>
                     </TableCell>
                   <TableCell className="text-right">
