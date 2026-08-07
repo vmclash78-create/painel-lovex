@@ -40,9 +40,9 @@ type UpdateInput = {
 export const lpLicensesQueryOptions = queryOptions({
   queryKey: ["lp-licenses"],
   queryFn: () => listSecondLicenses(),
-  staleTime: 60_000,
-  refetchOnWindowFocus: true,
-  refetchInterval: 60_000,
+  staleTime: 5 * 60_000,
+  refetchOnWindowFocus: false,
+  refetchInterval: 5 * 60_000,
 });
 
 export function computeLpStatus(l: SecondLicense): string {
