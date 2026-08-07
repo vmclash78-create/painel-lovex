@@ -152,7 +152,13 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={currentPath === "/dashboard"} tooltip="Dashboard">
-                  <Link to="/dashboard" className="gap-2">
+                  <Link 
+                    to="/dashboard" 
+                    className="gap-2"
+                    onClick={() => {
+                      if (isMobile) setOpenMobile(false);
+                    }}
+                  >
                     <LayoutDashboard className="h-4 w-4 shrink-0" aria-hidden />
                     <span>Dashboard</span>
                   </Link>
