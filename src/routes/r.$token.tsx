@@ -662,6 +662,87 @@ function ResellerPublicPage() {
             </TableBody>
           </Table>
         </div>
+        {/* Mobile: cards */}
+        <div className="md:hidden space-y-2.5">
+          {licenses.isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+            ))
+          ) : filtered.length === 0 ? (
+            <div className="rounded-2xl border border-border/60 bg-card px-4 py-8 text-center text-muted-foreground">
+              Nenhuma licença encontrada.
+            </div>
+          ) : (
+            filtered.map((l) => (
+              <div key={l.id} className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start gap-1.5">
+                      <div className="font-mono text-xs break-all leading-tight flex-1 bg-muted/40 p-1.5 rounded-lg border border-border/60">
+                        {l.license_key}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 shrink-0"
+                        onClick={async () => {
+                          try { await navigator.clipboard.writeText(l.license_key); toast.success("Copiado"); }
+                          catch { toast.error("Falha ao copiar"); }
+                        }}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    <div className="mt-2 flex items-center gap-2">
+                      <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-[10px] font-bold text-primary uppercase">
+                        {(l.user_name ?? "?").slice(0, 1)}
+                      </div>
+                      <span className="text-sm font-semibold truncate">{l.user_name ?? "—"}</span>
+                    </div>
+                  </div>
+                  <StatusBadge status={computeStatus(l)} />
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-2 border-t border-border/40 pt-3">
+                  <PlanBadge maxVersion={l.max_version ?? null} />
+                  <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${l.daily_prompts_used && l.daily_limit && l.daily_prompts_used >= l.daily_limit ? "bg-destructive/15 text-destructive" : "bg-muted text-muted-foreground"}`}>
+                    <Zap className="h-3 w-3" />
+                    {l.daily_prompts_used ?? 0}/{l.daily_limit ?? 100} cmd
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    <Monitor className="h-3 w-3" />
+                    {l.max_devices ?? 1} disp.
+                  </span>
+                  {l.last_active && (
+                    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      Visto: {new Date(l.last_active).toLocaleDateString("pt-BR")}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between border-t border-border/40 pt-3">
+                  <div className="text-[11px] text-muted-foreground">
+                    <span className="block text-[9px] uppercase tracking-wider opacity-60">Expira em</span>
+                    <span className="font-medium">{formatDate(l.expires_at)}</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <EditLicenseDialog
+                      license={l}
+                      resellerId={reseller.data!.id}
+                      invalidateKeys={[["reseller-licenses", reseller.data!.id]]}
+                    />
+                    <ResetLicenseDialog
+                      license={l}
+                      resellerId={reseller.data!.id}
+                      invalidateKeys={[["reseller-licenses", reseller.data!.id]]}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </>
     );
   }
@@ -1318,6 +1399,79 @@ function LpPanel({
             )}
           </TableBody>
         </Table>
+      </div>
+      {/* Mobile: cards */}
+      <div className="md:hidden space-y-2.5">
+        {q.isLoading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+          ))
+        ) : filtered.length === 0 ? (
+          <div className="rounded-2xl border border-border/60 bg-card px-4 py-8 text-center text-muted-foreground">
+            Nenhuma licença Lovpro encontrada.
+          </div>
+        ) : (
+          filtered.map((l) => (
+            <div key={l.id} className="rounded-2xl border border-border/60 bg-card p-4 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start gap-1.5">
+                    <div className="font-mono text-xs break-all leading-tight flex-1 bg-muted/40 p-1.5 rounded-lg border border-border/60">
+                      {l.license_key}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 shrink-0"
+                      onClick={async () => {
+                        try { await navigator.clipboard.writeText(l.license_key); toast.success("Copiado"); }
+                        catch { toast.error("Falha ao copiar"); }
+                      }}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/10 text-[10px] font-bold text-primary uppercase">
+                      {(l.user_name ?? "?").slice(0, 1)}
+                    </div>
+                    <span className="text-sm font-semibold truncate">{l.user_name ?? "—"}</span>
+                  </div>
+                </div>
+                <StatusBadge status={(l.status ?? "active") as any} />
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-2 border-t border-border/40 pt-3">
+                <PlanBadge maxVersion={(l as any).max_version ?? null} />
+                <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${l.daily_prompts_used && l.daily_limit && l.daily_prompts_used >= l.daily_limit ? "bg-destructive/15 text-destructive" : "bg-muted text-muted-foreground"}`}>
+                  <Zap className="h-3 w-3" />
+                  {l.daily_prompts_used ?? 0}/{l.daily_limit ?? 100} cmd
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  <Monitor className="h-3 w-3" />
+                  {l.max_devices ?? 1} disp.
+                </span>
+                {(l as any).last_active && (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    Visto: {new Date((l as any).last_active).toLocaleDateString("pt-BR")}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between border-t border-border/40 pt-3">
+                <div className="text-[11px] text-muted-foreground">
+                  <span className="block text-[9px] uppercase tracking-wider opacity-60">Expira em</span>
+                  <span className="font-medium">{formatDate(l.expires_at)}</span>
+                </div>
+                <div className="flex gap-1">
+                  <EditSecondLicenseDialog license={l} iconOnly />
+                  <ResetSecondLicenseDialog license={l} iconOnly />
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </>
   );
