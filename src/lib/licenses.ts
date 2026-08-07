@@ -21,8 +21,10 @@ export const licensesQueryOptions = queryOptions({
 export function computeStatus(l: License): License["status"] {
   if (l.status === "revoked") return "revoked";
   
-  // Use a stable reference for "now" to avoid hydration mismatches or micro-second drift
+  // Se o relógio do PC estiver atrasado, a comparação local pode mostrar a key como ativa 
+  // mesmo que já tenha expirado no servidor. O ideal é sempre confiar na data do banco.
   const now = new Date();
+  
   if (l.expires_at) {
     const expirationDate = new Date(l.expires_at);
     if (expirationDate < now) return "expired";
