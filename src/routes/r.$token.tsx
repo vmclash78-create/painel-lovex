@@ -107,6 +107,8 @@ function ResellerPublicPage() {
     queryKey: ["reseller-licenses", reseller.data?.id],
     queryFn: () => fetchResellerLicenses(reseller.data!.id),
     enabled: !!reseller.data?.id && authed,
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
   });
 
   const [search, setSearch] = useState("");

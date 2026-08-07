@@ -31,14 +31,24 @@ export const Route = createFileRoute("/_authenticated/resellers")({
 
 function ResellersPage() {
   const qc = useQueryClient();
-  const { data, isLoading } = useQuery(resellersQueryOptions);
-  const licenses = useQuery(licensesQueryOptions);
+  const { data, isLoading } = useQuery({ 
+    ...resellersQueryOptions,
+    staleTime: 10 * 60_000,
+    gcTime: 20 * 60_000,
+  });
+  const licenses = useQuery({
+    ...licensesQueryOptions,
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
+  });
   const topSellers = (licenses.data ? rankSellers(licenses.data) : []).slice(0, 8);
 
   const counts = useQueries({
     queries: (data ?? []).map((r) => ({
       queryKey: ["reseller-count", r.id],
       queryFn: () => countResellerLicenses(r.id),
+      staleTime: 10 * 60_000,
+      gcTime: 20 * 60_000,
     })),
   });
 

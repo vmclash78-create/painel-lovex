@@ -44,7 +44,8 @@ export function DbSwitcher() {
               onSelect={() => {
                 if (isActive) return;
                 setDb(db.id);
-                qc.invalidateQueries();
+                // Invalidate all queries to force data refresh when switching databases
+                qc.invalidateQueries().catch(() => {});
                 toast.success(`Banco ativo: ${db.label}`);
               }}
               className="flex items-start gap-2 py-2"
