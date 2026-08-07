@@ -54,10 +54,22 @@ function mainService(): LicenseService {
           .in("id", ids);
         nameById = new Map((rs ?? []).map((r: { id: string; name: string }) => [r.id, r.name]));
       }
-      return rows.map((r) => ({
-        ...r,
-        sold_by: r.sold_by ?? (r.reseller_id ? nameById.get(r.reseller_id) ?? "Revenda" : "Dono"),
-      }));
+      
+      const { data: allResellers } = await supabase
+        .from("resellers")
+        .select("id,name");
+      const anyResellerMap = new Map((allResellers ?? []).map((r: { id: string; name: string }) => [r.id, r.name]));
+
+      return rows.map((r) => {
+        let seller = r.sold_by;
+        if (!seller && r.reseller_id) {
+          seller = nameById.get(r.reseller_id) || anyResellerMap.get(r.reseller_id);
+        }
+        return {
+          ...r,
+          sold_by: seller || "Dono",
+        };
+      });
     },
     update: async (id, patch) => {
       const { error } = await supabase.from("licenses").update(patch).eq("id", id);
@@ -109,12 +121,21 @@ function useLpService(): LicenseService {
             (rs ?? []).map((r: { id: string; name: string }) => [r.id, r.name]),
           );
         }
-        return rows.map((r) => ({
-          ...r,
-          sold_by:
-            r.sold_by ??
-            (r.reseller_id ? nameById.get(r.reseller_id) ?? "Revenda" : "Dono"),
-        })) as unknown as License[];
+        const { data: allResellers } = await supabase
+          .from("resellers")
+          .select("id,name");
+        const anyResellerMap = new Map((allResellers ?? []).map((r: { id: string; name: string }) => [r.id, r.name]));
+
+        return rows.map((r) => {
+          let seller = r.sold_by;
+          if (!seller && r.reseller_id) {
+            seller = nameById.get(r.reseller_id) || anyResellerMap.get(r.reseller_id);
+          }
+          return {
+            ...r,
+            sold_by: seller || "Dono",
+          };
+        }) as unknown as License[];
       },
       update: async (id, patch) => {
         await updateFn({ data: { id, ...(patch as object) } as never });
