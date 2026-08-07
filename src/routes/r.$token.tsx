@@ -701,6 +701,12 @@ function ResellerPublicPage() {
                       </div>
                       <span className="text-sm font-semibold truncate">{l.user_name ?? "—"}</span>
                     </div>
+                    {l.sold_by && (
+                      <div className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground ml-8">
+                        <UserRound className="h-3 w-3" />
+                        <span>Vendido por: {l.sold_by}</span>
+                      </div>
+                    )}
                   </div>
                   <StatusBadge status={computeStatus(l)} />
                 </div>
