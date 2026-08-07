@@ -76,7 +76,7 @@ function useExpiringCount(): number {
 }
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, setOpenMobile, isMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const { db } = useDb();
   const location = useRouterState({ select: (s) => s.location });
@@ -107,6 +107,9 @@ export function AppSidebar() {
                     to={item.to}
                     search={item.search ?? {}}
                     className="gap-2"
+                    onClick={() => {
+                      if (isMobile) setOpenMobile(false);
+                    }}
                   >
                     <item.icon className="h-4 w-4 shrink-0" aria-hidden />
                     <span>{item.label}</span>
@@ -125,7 +128,6 @@ export function AppSidebar() {
     </SidebarGroup>
   );
 
-  const { isMobile } = useSidebar();
   
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border" onPointerDown={(e) => isMobile && e.stopPropagation()}>
@@ -150,7 +152,13 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={currentPath === "/dashboard"} tooltip="Dashboard">
-                  <Link to="/dashboard" className="gap-2">
+                  <Link 
+                    to="/dashboard" 
+                    className="gap-2"
+                    onClick={() => {
+                      if (isMobile) setOpenMobile(false);
+                    }}
+                  >
                     <LayoutDashboard className="h-4 w-4 shrink-0" aria-hidden />
                     <span>Dashboard</span>
                   </Link>
