@@ -107,6 +107,9 @@ export function AppSidebar() {
                     to={item.to}
                     search={item.search ?? {}}
                     className="gap-2"
+                    onClick={() => {
+                      if (isMobile) setOpenMobile(false);
+                    }}
                   >
                     <item.icon className="h-4 w-4 shrink-0" aria-hidden />
                     <span>{item.label}</span>
