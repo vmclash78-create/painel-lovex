@@ -61,9 +61,9 @@ function mainService(): LicenseService {
       const anyResellerMap = new Map((allResellers ?? []).map((r: { id: string; name: string }) => [r.id, r.name]));
 
       return rows.map((r) => {
-        let seller = r.sold_by;
+        let seller: string | null = r.sold_by ?? null;
         if (!seller && r.reseller_id) {
-          seller = nameById.get(r.reseller_id) || anyResellerMap.get(r.reseller_id);
+          seller = nameById.get(r.reseller_id) || anyResellerMap.get(r.reseller_id) || null;
         }
         return {
           ...r,
