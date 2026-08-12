@@ -156,7 +156,7 @@ export async function applyClientPurchase(purchase: {
   const currentExp = existing?.expires_at ? new Date(String(existing.expires_at)) : null;
   const base =
     currentExp && currentExp.getTime() > now.getTime() ? currentExp : now;
-  const newExp = new Date(base.getTime() + thirtyDays).toISOString();
+  const newExp = new Date(base.getTime() + thirtyDaysMillis).toISOString();
 
   const patch: Record<string, unknown> = {
     expires_at: newExp,
