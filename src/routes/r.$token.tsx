@@ -600,7 +600,7 @@ function ResellerPublicPage() {
                       </div>
                     </TableCell>
                     <TableCell><StatusBadge status={computeStatus(l)} /></TableCell>
-                    <TableCell className="text-xs text-muted-foreground tabular-nums">{formatDate(l.expires_at)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground tabular-nums"><div className="flex flex-col gap-1"><span>{formatDate(l.expires_at)}</span><ActivationHint license={l as never} /></div></TableCell>
                     <TableCell className="text-xs tabular-nums">{l.max_devices ?? 1}</TableCell>
                     <TableCell className="text-xs">
                       <PlanBadge maxVersion={l.max_version ?? null} />
@@ -734,6 +734,7 @@ function ResellerPublicPage() {
                   <div className="text-[11px] text-muted-foreground">
                     <span className="block text-[9px] uppercase tracking-wider opacity-60">Expira em</span>
                     <span className="font-medium">{formatDate(l.expires_at)}</span>
+                    <ActivationHint license={l as never} />
                   </div>
                   <div className="flex gap-1">
                     <EditLicenseDialog
@@ -755,6 +756,20 @@ function ResellerPublicPage() {
       </>
     );
   }
+}
+
+function ActivationHint({ license }: { license: { status?: string | null; created_at?: string | null; activated_at?: string | null; last_active?: string | null } }) {
+  const label = activationLabel(license);
+  if (!label) return null;
+  const pending = label.startsWith("Aguardando");
+  return (
+    <span
+      title={`O cliente tem ${ACTIVATION_GRACE_HOURS}h para o 1\u00ba acesso sem gastar plano. Depois disso o tempo come\u00e7a a contar.`}
+      className={`inline-flex w-fit items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-[10px] font-medium ${pending ? "bg-amber-500/15 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}
+    >
+      {label}
+    </span>
+  );
 }
 
 function formatDate(iso: string | null) {
@@ -1359,7 +1374,7 @@ function LpPanel({
                     </div>
                   </TableCell>
                   <TableCell><StatusBadge status={(l.status ?? "active") as "active" | "trial" | "expired" | "revoked"} /></TableCell>
-                  <TableCell className="text-xs text-muted-foreground tabular-nums">{formatDate(l.expires_at)}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground tabular-nums"><div className="flex flex-col gap-1"><span>{formatDate(l.expires_at)}</span><ActivationHint license={l as never} /></div></TableCell>
                     <TableCell className="text-xs">
                       <PlanBadge maxVersion={(l as { max_version?: string | null }).max_version ?? null} />
                     </TableCell>
@@ -1472,6 +1487,7 @@ function LpPanel({
                 <div className="text-[11px] text-muted-foreground">
                   <span className="block text-[9px] uppercase tracking-wider opacity-60">Expira em</span>
                   <span className="font-medium">{formatDate(l.expires_at)}</span>
+                    <ActivationHint license={l as never} />
                 </div>
                 <div className="flex gap-1">
                   <EditSecondLicenseDialog license={l} iconOnly />

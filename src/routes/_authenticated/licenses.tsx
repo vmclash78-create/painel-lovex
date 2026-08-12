@@ -277,6 +277,7 @@ function MainLicensesPage() {
                       <TableCell className="text-sm">
                         <div className="flex items-center gap-2">
                           <span>{formatDate(l.expires_at)}</span>
+                          <ActivationHint license={l} />
                           {isExpiringSoon(l) ? (
                             <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">
                               {daysUntil(l.expires_at)}d
@@ -391,6 +392,7 @@ function MainLicensesPage() {
                   <div className="flex items-center justify-between border-t border-border/50 pt-2 text-xs">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <span>{formatDate(l.expires_at)}</span>
+                          <ActivationHint license={l} />
                       {isExpiringSoon(l) ? (
                         <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">
                           {daysUntil(l.expires_at)}d
@@ -530,6 +532,20 @@ function exportLicensesCsv(rows: License[]) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+function ActivationHint({ license }: { license: License }) {
+  const label = activationLabel(license);
+  if (!label) return null;
+  const pending = label.startsWith("Aguardando");
+  return (
+    <span
+      title={`O cliente tem ${ACTIVATION_GRACE_HOURS}h para o 1\u00ba acesso sem gastar plano. Depois disso o tempo come\u00e7a a contar.`}
+      className={`inline-flex w-fit items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-[10px] font-medium ${pending ? "bg-amber-500/15 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}
+    >
+      {label}
+    </span>
+  );
 }
 
 function daysUntil(iso: string | null): number | null {
