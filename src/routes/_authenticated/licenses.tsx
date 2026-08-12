@@ -72,6 +72,23 @@ function MainLicensesPage() {
   const [onlyNoPhone, setOnlyNoPhone] = useState(false);
   const rows = Array.isArray(data) ? data : [];
 
+  // Quando a extensão registra o 1º acesso, a validade passa a contar dali
+  // (remove a carência embutida). Roda em background ao abrir a tela.
+  const reconcile = useServerFn(reconcileActivations);
+  useEffect(() => {
+    let cancelled = false;
+    reconcile({ data: { db: svc.id } })
+      .then((r) => {
+        if (!cancelled && r && (r as { fixed: number }).fixed > 0) {
+          qc.invalidateQueries({ queryKey: svc.queryKey });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [svc.id]);
+
   useEffect(() => {
     setStatusFilter(search.status ?? "all");
     setOnlyExpiringSoon(search.filter === "expiring");
