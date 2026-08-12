@@ -104,6 +104,10 @@ export async function applyClientPurchase(purchase: {
   if (purchase.action === "new") {
     const key =
       purchase.target_db === "lp" ? generateSecondLicenseKey() : generateLicenseKey();
+    // Carência de 48h para o 1º acesso: se o cliente entrar antes, o painel
+    // reconcilia a validade para "1º acesso + 30 dias". Se não entrar, o tempo
+    // começa a contar do fim da carência.
+    const expires = initialExpiryFromNow(thirtyDaysMillis);
 
     if (purchase.target_db === "main") {
       const { getExternalAdmin } = await import("@/lib/external-admin.server");
@@ -112,7 +116,8 @@ export async function applyClientPurchase(purchase: {
         license_key: key,
         user_name: "Cliente",
         status: "active",
-        expires_at: null, // Start counting only after first login
+        expires_at: expires,
+        duration_minutes: 30 * 24 * 60,
         max_devices: 1,
         max_version: plan.maxVersion ?? null,
         customer_phone: purchase.customer_phone ?? null,
@@ -126,7 +131,8 @@ export async function applyClientPurchase(purchase: {
         license_key: key,
         user_name: "Cliente",
         status: "active",
-        expires_at: null, // Start counting only after first login
+        expires_at: expires,
+        duration_minutes: 30 * 24 * 60,
         max_devices: 1,
         customer_phone: purchase.customer_phone ?? null,
         sold_by: "Cliente (auto)",
