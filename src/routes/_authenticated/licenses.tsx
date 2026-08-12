@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing, Download, PhoneOff, Copy, Zap, Info } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
+import { initialExpiryFromNow, activationLabel, ACTIVATION_GRACE_HOURS } from "@/lib/activation";
 
 type LicensesSearch = {
   filter?: "expiring";
@@ -899,7 +900,7 @@ function NewLicenseDialog() {
       if (status === "trial" && (minutesTotal <= 0 || minutesTotal > 15)) {
         throw new Error("Trial: máximo 15 minutos.");
       }
-      const expires_at = (status === "active" && days > 0) ? null : (days > 0 ? new Date(Date.now() + days * factor).toISOString() : null);
+      const expires_at = initialExpiryFromNow(days * factor, { trial: status === "trial" });
       await svc.insert({
         license_key: key,
         user_name: userName || "Usuário",
