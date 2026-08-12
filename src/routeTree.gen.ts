@@ -9,65 +9,60 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ClienteIndexRouteImport } from './routes/cliente.index'
-import { Route as RTokenRouteImport } from './routes/r.$token'
-import { Route as ClienteKeyRouteImport } from './routes/cliente.$key'
-import { Route as AuthenticatedUpdatesRouteImport } from './routes/_authenticated/updates'
-import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedSecondPanelRouteImport } from './routes/_authenticated/second-panel'
-import { Route as AuthenticatedResellersRouteImport } from './routes/_authenticated/resellers'
-import { Route as AuthenticatedLogsRouteImport } from './routes/_authenticated/logs'
-import { Route as AuthenticatedLicensesRouteImport } from './routes/_authenticated/licenses'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as ApiPublicMpWebhookRouteImport } from './routes/api/public/mp/webhook'
-import { Route as ApiPublicMpStatusRouteImport } from './routes/api/public/mp/status'
-import { Route as ApiPublicMpCreatePaymentRouteImport } from './routes/api/public/mp/create-payment'
-import { Route as ApiPublicClientUpdatesRouteImport } from './routes/api/public/client/updates'
-import { Route as ApiPublicClientStatusRouteImport } from './routes/api/public/client/status'
-import { Route as ApiPublicClientPlansRouteImport } from './routes/api/public/client/plans'
-import { Route as ApiPublicClientLookupRouteImport } from './routes/api/public/client/lookup'
+import { Route as AuthenticatedLicensesRouteImport } from './routes/_authenticated/licenses'
+import { Route as AuthenticatedLogsRouteImport } from './routes/_authenticated/logs'
+import { Route as AuthenticatedResellersRouteImport } from './routes/_authenticated/resellers'
+import { Route as AuthenticatedSecondPanelRouteImport } from './routes/_authenticated/second-panel'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedUpdatesRouteImport } from './routes/_authenticated/updates'
+import { Route as ClienteIndexRouteImport } from './routes/cliente.index'
+import { Route as ClienteKeyRouteImport } from './routes/cliente.$key'
+import { Route as RTokenRouteImport } from './routes/r.$token'
 import { Route as ApiPublicClientCreatePaymentRouteImport } from './routes/api/public/client/create-payment'
+import { Route as ApiPublicClientLookupRouteImport } from './routes/api/public/client/lookup'
+import { Route as ApiPublicClientPlansRouteImport } from './routes/api/public/client/plans'
+import { Route as ApiPublicClientStatusRouteImport } from './routes/api/public/client/status'
+import { Route as ApiPublicClientUpdatesRouteImport } from './routes/api/public/client/updates'
+import { Route as ApiPublicMpCreatePaymentRouteImport } from './routes/api/public/mp/create-payment'
+import { Route as ApiPublicMpStatusRouteImport } from './routes/api/public/mp/status'
+import { Route as ApiPublicMpWebhookRouteImport } from './routes/api/public/mp/webhook'
 
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ClienteIndexRoute = ClienteIndexRouteImport.update({
-  id: '/cliente/',
-  path: '/cliente/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RTokenRoute = RTokenRouteImport.update({
-  id: '/r/$token',
-  path: '/r/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClienteKeyRoute = ClienteKeyRouteImport.update({
-  id: '/cliente/$key',
-  path: '/cliente/$key',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedUpdatesRoute = AuthenticatedUpdatesRouteImport.update({
-  id: '/updates',
-  path: '/updates',
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const AuthenticatedLicensesRoute = AuthenticatedLicensesRouteImport.update({
+  id: '/licenses',
+  path: '/licenses',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLogsRoute = AuthenticatedLogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedResellersRoute = AuthenticatedResellersRouteImport.update({
+  id: '/resellers',
+  path: '/resellers',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSecondPanelRoute =
@@ -76,60 +71,29 @@ const AuthenticatedSecondPanelRoute =
     path: '/second-panel',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedResellersRoute = AuthenticatedResellersRouteImport.update({
-  id: '/resellers',
-  path: '/resellers',
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedLogsRoute = AuthenticatedLogsRouteImport.update({
-  id: '/logs',
-  path: '/logs',
+const AuthenticatedUpdatesRoute = AuthenticatedUpdatesRouteImport.update({
+  id: '/updates',
+  path: '/updates',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedLicensesRoute = AuthenticatedLicensesRouteImport.update({
-  id: '/licenses',
-  path: '/licenses',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const ApiPublicMpWebhookRoute = ApiPublicMpWebhookRouteImport.update({
-  id: '/api/public/mp/webhook',
-  path: '/api/public/mp/webhook',
+const ClienteIndexRoute = ClienteIndexRouteImport.update({
+  id: '/cliente/',
+  path: '/cliente/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicMpStatusRoute = ApiPublicMpStatusRouteImport.update({
-  id: '/api/public/mp/status',
-  path: '/api/public/mp/status',
+const ClienteKeyRoute = ClienteKeyRouteImport.update({
+  id: '/cliente/$key',
+  path: '/cliente/$key',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicMpCreatePaymentRoute =
-  ApiPublicMpCreatePaymentRouteImport.update({
-    id: '/api/public/mp/create-payment',
-    path: '/api/public/mp/create-payment',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicClientUpdatesRoute = ApiPublicClientUpdatesRouteImport.update({
-  id: '/api/public/client/updates',
-  path: '/api/public/client/updates',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicClientStatusRoute = ApiPublicClientStatusRouteImport.update({
-  id: '/api/public/client/status',
-  path: '/api/public/client/status',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicClientPlansRoute = ApiPublicClientPlansRouteImport.update({
-  id: '/api/public/client/plans',
-  path: '/api/public/client/plans',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicClientLookupRoute = ApiPublicClientLookupRouteImport.update({
-  id: '/api/public/client/lookup',
-  path: '/api/public/client/lookup',
+const RTokenRoute = RTokenRouteImport.update({
+  id: '/r/$token',
+  path: '/r/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicClientCreatePaymentRoute =
@@ -138,6 +102,42 @@ const ApiPublicClientCreatePaymentRoute =
     path: '/api/public/client/create-payment',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicClientLookupRoute = ApiPublicClientLookupRouteImport.update({
+  id: '/api/public/client/lookup',
+  path: '/api/public/client/lookup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicClientPlansRoute = ApiPublicClientPlansRouteImport.update({
+  id: '/api/public/client/plans',
+  path: '/api/public/client/plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicClientStatusRoute = ApiPublicClientStatusRouteImport.update({
+  id: '/api/public/client/status',
+  path: '/api/public/client/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicClientUpdatesRoute = ApiPublicClientUpdatesRouteImport.update({
+  id: '/api/public/client/updates',
+  path: '/api/public/client/updates',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicMpCreatePaymentRoute =
+  ApiPublicMpCreatePaymentRouteImport.update({
+    id: '/api/public/mp/create-payment',
+    path: '/api/public/mp/create-payment',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicMpStatusRoute = ApiPublicMpStatusRouteImport.update({
+  id: '/api/public/mp/status',
+  path: '/api/public/mp/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicMpWebhookRoute = ApiPublicMpWebhookRouteImport.update({
+  id: '/api/public/mp/webhook',
+  path: '/api/public/mp/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -296,11 +296,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -310,67 +310,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/cliente/': {
-      id: '/cliente/'
-      path: '/cliente'
-      fullPath: '/cliente/'
-      preLoaderRoute: typeof ClienteIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/r/$token': {
-      id: '/r/$token'
-      path: '/r/$token'
-      fullPath: '/r/$token'
-      preLoaderRoute: typeof RTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cliente/$key': {
-      id: '/cliente/$key'
-      path: '/cliente/$key'
-      fullPath: '/cliente/$key'
-      preLoaderRoute: typeof ClienteKeyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/updates': {
-      id: '/_authenticated/updates'
-      path: '/updates'
-      fullPath: '/updates'
-      preLoaderRoute: typeof AuthenticatedUpdatesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/second-panel': {
-      id: '/_authenticated/second-panel'
-      path: '/second-panel'
-      fullPath: '/second-panel'
-      preLoaderRoute: typeof AuthenticatedSecondPanelRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/resellers': {
-      id: '/_authenticated/resellers'
-      path: '/resellers'
-      fullPath: '/resellers'
-      preLoaderRoute: typeof AuthenticatedResellersRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/logs': {
-      id: '/_authenticated/logs'
-      path: '/logs'
-      fullPath: '/logs'
-      preLoaderRoute: typeof AuthenticatedLogsRouteImport
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/licenses': {
@@ -380,53 +331,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLicensesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+    '/_authenticated/logs': {
+      id: '/_authenticated/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof AuthenticatedLogsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/mp/webhook': {
-      id: '/api/public/mp/webhook'
-      path: '/api/public/mp/webhook'
-      fullPath: '/api/public/mp/webhook'
-      preLoaderRoute: typeof ApiPublicMpWebhookRouteImport
+    '/_authenticated/resellers': {
+      id: '/_authenticated/resellers'
+      path: '/resellers'
+      fullPath: '/resellers'
+      preLoaderRoute: typeof AuthenticatedResellersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/second-panel': {
+      id: '/_authenticated/second-panel'
+      path: '/second-panel'
+      fullPath: '/second-panel'
+      preLoaderRoute: typeof AuthenticatedSecondPanelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/updates': {
+      id: '/_authenticated/updates'
+      path: '/updates'
+      fullPath: '/updates'
+      preLoaderRoute: typeof AuthenticatedUpdatesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/cliente/': {
+      id: '/cliente/'
+      path: '/cliente'
+      fullPath: '/cliente/'
+      preLoaderRoute: typeof ClienteIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/mp/status': {
-      id: '/api/public/mp/status'
-      path: '/api/public/mp/status'
-      fullPath: '/api/public/mp/status'
-      preLoaderRoute: typeof ApiPublicMpStatusRouteImport
+    '/cliente/$key': {
+      id: '/cliente/$key'
+      path: '/cliente/$key'
+      fullPath: '/cliente/$key'
+      preLoaderRoute: typeof ClienteKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/mp/create-payment': {
-      id: '/api/public/mp/create-payment'
-      path: '/api/public/mp/create-payment'
-      fullPath: '/api/public/mp/create-payment'
-      preLoaderRoute: typeof ApiPublicMpCreatePaymentRouteImport
+    '/r/$token': {
+      id: '/r/$token'
+      path: '/r/$token'
+      fullPath: '/r/$token'
+      preLoaderRoute: typeof RTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/client/updates': {
-      id: '/api/public/client/updates'
-      path: '/api/public/client/updates'
-      fullPath: '/api/public/client/updates'
-      preLoaderRoute: typeof ApiPublicClientUpdatesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/client/status': {
-      id: '/api/public/client/status'
-      path: '/api/public/client/status'
-      fullPath: '/api/public/client/status'
-      preLoaderRoute: typeof ApiPublicClientStatusRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/client/plans': {
-      id: '/api/public/client/plans'
-      path: '/api/public/client/plans'
-      fullPath: '/api/public/client/plans'
-      preLoaderRoute: typeof ApiPublicClientPlansRouteImport
+    '/api/public/client/create-payment': {
+      id: '/api/public/client/create-payment'
+      path: '/api/public/client/create-payment'
+      fullPath: '/api/public/client/create-payment'
+      preLoaderRoute: typeof ApiPublicClientCreatePaymentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/client/lookup': {
@@ -436,11 +401,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicClientLookupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/client/create-payment': {
-      id: '/api/public/client/create-payment'
-      path: '/api/public/client/create-payment'
-      fullPath: '/api/public/client/create-payment'
-      preLoaderRoute: typeof ApiPublicClientCreatePaymentRouteImport
+    '/api/public/client/plans': {
+      id: '/api/public/client/plans'
+      path: '/api/public/client/plans'
+      fullPath: '/api/public/client/plans'
+      preLoaderRoute: typeof ApiPublicClientPlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/client/status': {
+      id: '/api/public/client/status'
+      path: '/api/public/client/status'
+      fullPath: '/api/public/client/status'
+      preLoaderRoute: typeof ApiPublicClientStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/client/updates': {
+      id: '/api/public/client/updates'
+      path: '/api/public/client/updates'
+      fullPath: '/api/public/client/updates'
+      preLoaderRoute: typeof ApiPublicClientUpdatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/mp/create-payment': {
+      id: '/api/public/mp/create-payment'
+      path: '/api/public/mp/create-payment'
+      fullPath: '/api/public/mp/create-payment'
+      preLoaderRoute: typeof ApiPublicMpCreatePaymentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/mp/status': {
+      id: '/api/public/mp/status'
+      path: '/api/public/mp/status'
+      fullPath: '/api/public/mp/status'
+      preLoaderRoute: typeof ApiPublicMpStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/mp/webhook': {
+      id: '/api/public/mp/webhook'
+      path: '/api/public/mp/webhook'
+      fullPath: '/api/public/mp/webhook'
+      preLoaderRoute: typeof ApiPublicMpWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
