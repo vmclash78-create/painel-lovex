@@ -22,6 +22,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserRound, Phone, BellRing, Download, PhoneOff, Copy, Zap, Info } from "lucide-react";
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
+import { initialExpiryFromNow, activationLabel, ACTIVATION_GRACE_HOURS } from "@/lib/activation";
+import { useServerFn } from "@tanstack/react-start";
+import { reconcileActivations } from "@/lib/activation.functions";
 
 type LicensesSearch = {
   filter?: "expiring";
@@ -70,6 +73,23 @@ function MainLicensesPage() {
   const [planFilter, setPlanFilter] = useState<string>("all");
   const [onlyNoPhone, setOnlyNoPhone] = useState(false);
   const rows = Array.isArray(data) ? data : [];
+
+  // Quando a extensão registra o 1º acesso, a validade passa a contar dali
+  // (remove a carência embutida). Roda em background ao abrir a tela.
+  const reconcile = useServerFn(reconcileActivations);
+  useEffect(() => {
+    let cancelled = false;
+    reconcile({ data: { db: svc.id } })
+      .then((r: unknown) => {
+        if (!cancelled && r && (r as { fixed: number }).fixed > 0) {
+          qc.invalidateQueries({ queryKey: svc.queryKey });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [svc.id]);
 
   useEffect(() => {
     setStatusFilter(search.status ?? "all");
@@ -276,6 +296,7 @@ function MainLicensesPage() {
                       <TableCell className="text-sm">
                         <div className="flex items-center gap-2">
                           <span>{formatDate(l.expires_at)}</span>
+                          <ActivationHint license={l} />
                           {isExpiringSoon(l) ? (
                             <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">
                               {daysUntil(l.expires_at)}d
@@ -390,6 +411,7 @@ function MainLicensesPage() {
                   <div className="flex items-center justify-between border-t border-border/50 pt-2 text-xs">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <span>{formatDate(l.expires_at)}</span>
+                          <ActivationHint license={l} />
                       {isExpiringSoon(l) ? (
                         <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">
                           {daysUntil(l.expires_at)}d
@@ -529,6 +551,20 @@ function exportLicensesCsv(rows: License[]) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+function ActivationHint({ license }: { license: License }) {
+  const label = activationLabel(license);
+  if (!label) return null;
+  const pending = label.startsWith("Aguardando");
+  return (
+    <span
+      title={`O cliente tem ${ACTIVATION_GRACE_HOURS}h para o 1\u00ba acesso sem gastar plano. Depois disso o tempo come\u00e7a a contar.`}
+      className={`inline-flex w-fit items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-[10px] font-medium ${pending ? "bg-amber-500/15 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}
+    >
+      {label}
+    </span>
+  );
 }
 
 function daysUntil(iso: string | null): number | null {
@@ -899,7 +935,7 @@ function NewLicenseDialog() {
       if (status === "trial" && (minutesTotal <= 0 || minutesTotal > 15)) {
         throw new Error("Trial: máximo 15 minutos.");
       }
-      const expires_at = (status === "active" && days > 0) ? null : (days > 0 ? new Date(Date.now() + days * factor).toISOString() : null);
+      const expires_at = initialExpiryFromNow(days * factor, { trial: status === "trial" });
       await svc.insert({
         license_key: key,
         user_name: userName || "Usuário",
