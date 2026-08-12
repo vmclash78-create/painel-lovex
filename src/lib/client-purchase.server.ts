@@ -3,6 +3,7 @@
 // files that route/components load — always dynamic-import inside handlers.
 
 import { CLIENT_PLANS, findClientPlan } from "@/lib/client-plans";
+import { initialExpiryFromNow } from "@/lib/activation";
 import { generateLicenseKey } from "@/lib/licenses";
 import { generateSecondLicenseKey } from "@/lib/second-licenses.functions";
 
