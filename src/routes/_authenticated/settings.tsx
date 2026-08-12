@@ -151,6 +151,39 @@ function SettingsPage() {
           </CardContent>
         </Card>
 
+        {/* WhatsApp e Suporte */}
+        <Card className="shadow-soft border-border/60 overflow-hidden">
+          <CardHeader className="bg-muted/30">
+            <div className="flex items-center gap-2">
+              <Smartphone className="h-5 w-5 text-emerald-500" />
+              <div>
+                <CardTitle>Canais de Atendimento</CardTitle>
+                <CardDescription>Configure os links de suporte via WhatsApp.</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="wa-number">Número WhatsApp (Internacional)</Label>
+                <Input 
+                  id="wa-number" 
+                  defaultValue={settings?.whatsappNumber ?? ""} 
+                  placeholder="5588992361465"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="wa-display">Texto de Exibição</Label>
+                <Input 
+                  id="wa-display" 
+                  defaultValue={settings?.whatsappDisplay ?? ""} 
+                  placeholder="(88) 99236-1465"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Infraestrutura e Segurança */}
         <div className="grid gap-6 md:grid-cols-2">
           <Card className="shadow-soft border-border/60">
