@@ -254,6 +254,8 @@ function SettingsPage() {
                 updateSettings.mutate({
                   ...settings,
                   activationGraceHours: Number(graceInput.value),
+                  whatsappNumber: (document.getElementById('wa-number') as HTMLInputElement).value,
+                  whatsappDisplay: (document.getElementById('wa-display') as HTMLInputElement).value,
                 });
               }
             }}
