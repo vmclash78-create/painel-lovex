@@ -949,7 +949,7 @@ function NewResellerLicenseDialog({
       const factor = unit === "minutes" ? 60_000 : unit === "hours" ? 3_600_000 : 86_400_000;
       const minutesTotal =
         unit === "minutes" ? days : unit === "hours" ? days * 60 : days * 24 * 60;
-      const expires_at = days > 0 ? new Date(Date.now() + days * factor).toISOString() : null;
+      const expires_at = (status === "active" && days > 0) ? null : (days > 0 ? new Date(Date.now() + days * factor).toISOString() : null);
       const { error } = await supabase.from("licenses").insert({
         license_key: key,
         user_name: userName || "Cliente",
@@ -1759,7 +1759,7 @@ function NewLpLicenseDialog({
       const factor = unit === "minutes" ? 60_000 : unit === "hours" ? 3_600_000 : 86_400_000;
       const minutesTotal =
         unit === "minutes" ? days : unit === "hours" ? days * 60 : days * 24 * 60;
-      const expires_at = days > 0 ? new Date(Date.now() + days * factor).toISOString() : null;
+      const expires_at = (status === "active" && days > 0) ? null : (days > 0 ? new Date(Date.now() + days * factor).toISOString() : null);
       await createFn({
         data: {
           license_key: key,
