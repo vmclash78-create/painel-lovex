@@ -23,6 +23,8 @@ import { Plus, Search, RefreshCw, Ban, Trash2, Pencil, Monitor, RotateCcw, UserR
 import { ResetLicenseDialog } from "@/components/reset-license-dialog";
 import { toast } from "sonner";
 import { initialExpiryFromNow, activationLabel, ACTIVATION_GRACE_HOURS } from "@/lib/activation";
+import { useServerFn } from "@tanstack/react-start";
+import { reconcileActivations } from "@/lib/activation.functions";
 
 type LicensesSearch = {
   filter?: "expiring";
@@ -78,7 +80,7 @@ function MainLicensesPage() {
   useEffect(() => {
     let cancelled = false;
     reconcile({ data: { db: svc.id } })
-      .then((r) => {
+      .then((r: unknown) => {
         if (!cancelled && r && (r as { fixed: number }).fixed > 0) {
           qc.invalidateQueries({ queryKey: svc.queryKey });
         }
