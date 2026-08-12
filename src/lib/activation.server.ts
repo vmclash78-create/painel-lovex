@@ -42,11 +42,12 @@ export async function reconcile(db: "main" | "lp"): Promise<{ fixed: number }> {
 
     const created = new Date(r.created_at).getTime();
     const access = new Date(firstAccess).getTime();
+    const graceMs = ACTIVATION_GRACE_MS();
     // Só reconcilia chaves que ainda carregam a carência embutida.
-    const hadGrace = new Date(r.expires_at).getTime() >= created + duration + ACTIVATION_GRACE_MS - TOLERANCE_MS;
+    const hadGrace = new Date(r.expires_at).getTime() >= created + duration + graceMs - TOLERANCE_MS;
     if (!hadGrace) continue;
     // Acesso após a carência: o tempo já estava correndo, nada a fazer.
-    if (access > created + ACTIVATION_GRACE_MS) continue;
+    if (access > created + graceMs) continue;
 
     const target = new Date(access + duration).toISOString();
     const { error: uErr } = await admin
