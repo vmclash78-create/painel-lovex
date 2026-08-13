@@ -16,28 +16,22 @@ type ActivationLike = {
 
 /**
  * Define a expiração inicial.
- * - Trial: Começa a contar na hora (from + duration).
- * - Normal: expires_at fica null até o primeiro acesso.
+ * - Tanto Trial quanto Normal: expires_at fica null até o primeiro acesso.
  */
 export function initialExpiryFromNow(
   durationMs: number,
   opts: { status?: string | null; from?: Date } = {},
 ): string | null {
   if (durationMs <= 0) return null;
-  const from = opts.from ?? new Date();
   
-  // Trial: Expiração imediata (proteção contra farm)
-  if (opts.status === "trial") {
-    return new Date(from.getTime() + durationMs).toISOString();
-  }
-  
-  // Normal: Sem expiração definida até o primeiro acesso
+  // Agora tanto trial quanto normal esperam o 1º acesso para contar.
+  // Isso permite que o revendedor gere a key e o tempo só conte quando o cliente usar.
   return null;
 }
 
 export function isPendingActivation(l: ActivationLike): boolean {
-  if (l.status === "revoked" || l.status === "trial" || l.status === "expired") return false;
-  // Pendente se for normal e ainda não tiver expiração definida (não ativado)
+  if (l.status === "revoked" || l.status === "expired") return false;
+  // Pendente se ainda não tiver expiração definida (não ativado)
   return !l.expires_at && !l.activated_at && !l.last_active;
 }
 

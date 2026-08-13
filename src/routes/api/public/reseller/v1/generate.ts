@@ -10,6 +10,7 @@ const generateSchema = z.object({
   max_version: z.string().max(20).optional(),
   daily_limit: z.number().int().min(0).optional(),
   max_devices: z.number().int().min(1).max(10).default(1),
+  status: z.enum(["active", "trial"]).optional(),
 });
 
 export const Route = createFileRoute("/api/public/reseller/v1/generate")({
@@ -110,7 +111,7 @@ export const Route = createFileRoute("/api/public/reseller/v1/generate")({
           const { generateSecondLicenseKey } = await import("@/lib/second-licenses.functions");
           const licenseKey = isLp ? generateSecondLicenseKey() : generateLicenseKey();
           
-          const expiresAt = initialExpiryFromNow(days * 86_400_000, { status: "active" });
+          const expiresAt = null; // Sempre null inicialmente para ativar no 1º acesso
           const durationMinutes = days > 0 ? days * 24 * 60 : null;
 
           if (isLp) {
@@ -119,7 +120,7 @@ export const Route = createFileRoute("/api/public/reseller/v1/generate")({
              const { error: insErr } = await lpAdmin.from("licenses").insert({
                license_key: licenseKey,
                user_name: user_name || "API Client",
-               status: "active",
+                status: validation.data.status || "active",
                expires_at: expiresAt,
                max_devices: max_devices,
                duration_minutes: durationMinutes,
@@ -133,7 +134,7 @@ export const Route = createFileRoute("/api/public/reseller/v1/generate")({
             const { error: insErr } = await admin.from("licenses").insert({
               license_key: licenseKey,
               user_name: user_name || "API Client",
-              status: "active",
+              status: validation.data.status || "active",
               expires_at: expiresAt,
               max_devices: max_devices,
               duration_minutes: durationMinutes,
