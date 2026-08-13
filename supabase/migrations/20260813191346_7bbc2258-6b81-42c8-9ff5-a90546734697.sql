@@ -1,0 +1,2 @@
+ALTER TABLE public.reseller_api_keys DROP CONSTRAINT IF EXISTS reseller_api_keys_reseller_id_fkey;
+CREATE INDEX IF NOT EXISTS reseller_api_keys_reseller_id_idx ON public.reseller_api_keys (reseller_id);
