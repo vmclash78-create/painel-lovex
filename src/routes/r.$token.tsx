@@ -386,7 +386,7 @@ function ResellerPublicPage() {
                       <TableRow>
                         <TableCell colSpan={3} className="text-center py-8">
                           <p className="text-xs text-muted-foreground">Você ainda não tem chaves de API.</p>
-                          <p className="text-[10px] text-muted-foreground mt-1">Solicite ao administrador para gerar uma chave para você.</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">boa, so q oq eu tenho q fazer ? me ajdue ai a deixar certinho tudo</p>
                         </TableCell>
                       </TableRow>
                     ) : (
