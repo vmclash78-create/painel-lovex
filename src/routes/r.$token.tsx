@@ -21,7 +21,7 @@ import { EditLicenseDialog } from "./_authenticated/licenses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -34,6 +34,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import {
   KeyRound, Plus, Search, RefreshCw, Ban, Trash2, ShieldAlert, Loader2, Copy,
   Activity, UserRound, Package, FileText, Pencil, RotateCcw,
@@ -54,6 +55,7 @@ import {
   generateSecondLicenseKey,
   type SecondLicense,
 } from "@/lib/second-licenses.functions";
+import { listResellerApiKeys } from "@/lib/reseller-api.functions";
 
 export const Route = createFileRoute("/r/$token")({
   ssr: false,
