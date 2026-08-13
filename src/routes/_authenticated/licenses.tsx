@@ -559,7 +559,7 @@ function ActivationHint({ license }: { license: License }) {
   const pending = label.startsWith("Aguardando");
   return (
     <span
-      title={`O cliente tem ${ACTIVATION_GRACE_HOURS}h para o 1\u00ba acesso sem gastar plano. Depois disso o tempo come\u00e7a a contar.`}
+      title={license.status === "trial" ? "Keys de Trial expiram imediatamente após o prazo definido." : `O cliente tem ${ACTIVATION_GRACE_HOURS}h para o 1\u00ba acesso sem gastar plano. Depois disso o tempo come\u00e7a a contar.`}
       className={`inline-flex w-fit items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-[10px] font-medium ${pending ? "bg-amber-500/15 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}
     >
       {label}
@@ -935,7 +935,7 @@ function NewLicenseDialog() {
       if (status === "trial" && (minutesTotal <= 0 || minutesTotal > 15)) {
         throw new Error("Trial: máximo 15 minutos.");
       }
-      const expires_at = initialExpiryFromNow(days * factor, { trial: status === "trial" });
+      const expires_at = initialExpiryFromNow(days * factor, { status });
       await svc.insert({
         license_key: key,
         user_name: userName || "Usuário",

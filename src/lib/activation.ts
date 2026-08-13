@@ -17,11 +17,16 @@ type ActivationLike = {
 
 export function initialExpiryFromNow(
   durationMs: number,
-  opts: { trial?: boolean; from?: Date } = {},
+  opts: { status?: string | null; from?: Date } = {},
 ): string | null {
   if (durationMs <= 0) return null;
   const from = opts.from ?? new Date();
-  const grace = opts.trial ? 0 : ACTIVATION_GRACE_MS();
+  
+  // As keys de trial (ou qualquer uma com validade definida) começam a contar na hora.
+  // As keys normais (active) têm a janela de carência.
+  const isTrial = opts.status === "trial";
+  const grace = isTrial ? 0 : ACTIVATION_GRACE_MS();
+  
   return new Date(from.getTime() + grace + durationMs).toISOString();
 }
 

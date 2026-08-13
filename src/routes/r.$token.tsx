@@ -764,7 +764,7 @@ function ActivationHint({ license }: { license: { status?: string | null; create
   const pending = label.startsWith("Aguardando");
   return (
     <span
-      title={`O cliente tem ${ACTIVATION_GRACE_HOURS}h para o 1\u00ba acesso sem gastar plano. Depois disso o tempo come\u00e7a a contar.`}
+      title={license.status === "trial" ? "Keys de Trial expiram imediatamente após o prazo definido." : `O cliente tem ${ACTIVATION_GRACE_HOURS}h para o 1\u00ba acesso sem gastar plano. Depois disso o tempo come\u00e7a a contar.`}
       className={`inline-flex w-fit items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-[10px] font-medium ${pending ? "bg-amber-500/15 text-amber-600 dark:text-amber-400" : "bg-muted text-muted-foreground"}`}
     >
       {label}
@@ -965,7 +965,7 @@ function NewResellerLicenseDialog({
       const factor = unit === "minutes" ? 60_000 : unit === "hours" ? 3_600_000 : 86_400_000;
       const minutesTotal =
         unit === "minutes" ? days : unit === "hours" ? days * 60 : days * 24 * 60;
-      const expires_at = initialExpiryFromNow(days * factor, { trial: status === "trial" });
+      const expires_at = initialExpiryFromNow(days * factor, { status });
       const { error } = await supabase.from("licenses").insert({
         license_key: key,
         user_name: userName || "Cliente",
@@ -1776,7 +1776,7 @@ function NewLpLicenseDialog({
       const factor = unit === "minutes" ? 60_000 : unit === "hours" ? 3_600_000 : 86_400_000;
       const minutesTotal =
         unit === "minutes" ? days : unit === "hours" ? days * 60 : days * 24 * 60;
-      const expires_at = initialExpiryFromNow(days * factor, { trial: status === "trial" });
+      const expires_at = initialExpiryFromNow(days * factor, { status });
       await createFn({
         data: {
           license_key: key,
