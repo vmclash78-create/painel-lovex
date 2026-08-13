@@ -360,7 +360,7 @@ function PlanEditDialog({
       id: "",
       name: "",
       price: 0,
-      db: "main",
+      db: "main" as const,
       description: "",
       maxVersion: "2.1",
       badge: ""
@@ -394,7 +394,7 @@ function PlanEditDialog({
               <Input 
                 id="plan-id" 
                 value={formData.id} 
-                onChange={(e) => setFormData(prev => ({ ...prev, id: e.target.value }))}
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, id: e.target.value }))}
                 placeholder="ex: lovex-pro"
                 disabled={!!plan}
               />
@@ -404,7 +404,7 @@ function PlanEditDialog({
               <Input 
                 id="plan-name" 
                 value={formData.name} 
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, name: e.target.value }))}
                 placeholder="ex: LoveX 2.x"
               />
             </div>
@@ -416,14 +416,14 @@ function PlanEditDialog({
                 id="plan-price" 
                 type="number"
                 value={formData.price} 
-                onChange={(e) => setFormData(prev => ({ ...prev, price: Number(e.target.value) }))}
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, price: Number(e.target.value) }))}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="plan-db">Banco de Dados</Label>
               <Select 
                 value={formData.db} 
-                onValueChange={(v) => setFormData(prev => ({ ...prev, db: v as "main" | "lp" }))}
+                onValueChange={(v) => setFormData((prev: any) => ({ ...prev, db: v as "main" | "lp" }))}
               >
                 <SelectTrigger id="plan-db">
                   <SelectValue />
@@ -441,7 +441,7 @@ function PlanEditDialog({
               <Input 
                 id="plan-ver" 
                 value={formData.maxVersion} 
-                onChange={(e) => setFormData(prev => ({ ...prev, maxVersion: e.target.value }))}
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, maxVersion: e.target.value }))}
                 placeholder="ex: 2.1"
               />
             </div>
@@ -450,7 +450,7 @@ function PlanEditDialog({
               <Input 
                 id="plan-badge" 
                 value={formData.badge} 
-                onChange={(e) => setFormData(prev => ({ ...prev, badge: e.target.value }))}
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, badge: e.target.value }))}
                 placeholder="ex: Destaque"
               />
             </div>
@@ -460,7 +460,7 @@ function PlanEditDialog({
             <Textarea 
               id="plan-desc" 
               value={formData.description} 
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, description: e.target.value }))}
               placeholder="Descreva os benefícios do plano..."
               rows={3}
             />
