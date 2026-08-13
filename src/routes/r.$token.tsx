@@ -121,7 +121,8 @@ function ResellerPublicPage() {
       const okSearch = !search ||
         l.license_key.toLowerCase().includes(search.toLowerCase()) ||
         (l.user_name ?? "").toLowerCase().includes(search.toLowerCase());
-      const okStatus = statusFilter === "all" || computeStatus(l) === statusFilter;
+      const status = computeStatus(l);
+      const okStatus = statusFilter === "all" || status === statusFilter || (statusFilter === "waiting" && !l.expires_at);
       return okSearch && okStatus;
     });
   }, [licenses.data, search, statusFilter]);
@@ -348,6 +349,10 @@ function ResellerPublicPage() {
       })
       .filter((x) => x.days >= 0 && x.days <= 15)
       .sort((a, b) => a.days - b.days);
+
+    const expiredLicenses = (licenses.data ?? [])
+      .filter((l) => computeStatus(l) === "expired")
+      .sort((a, b) => new Date(b.expires_at!).getTime() - new Date(a.expires_at!).getTime());
     return (
       <>
         {/* Stats — same layout as admin dashboard */}
@@ -399,36 +404,81 @@ function ResellerPublicPage() {
         {/* Quota bar — premium */}
         <QuotaBar used={used} max={max} pct={pct} remaining={remaining} />
 
-        {/* Licenças próximas de expirar — mesmo estilo do dashboard */}
-        <Card className="border-border/60 shadow-soft">
-          <div className="flex items-center justify-between gap-2 border-b border-border/50 px-5 py-3.5">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-neon-orange/15 text-neon-orange">
-                <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
-              </span>
-              <h2 className="truncate text-sm font-semibold">
-                Licenças próximas de expirar
-                <span className="ml-2 text-xs font-normal text-muted-foreground">(até 15 dias)</span>
-              </h2>
-            </div>
-            {expiringSoon.length > 0 ? (
-              <span className="text-xs text-muted-foreground tabular-nums">{expiringSoon.length}</span>
-            ) : null}
-          </div>
-          <CardContent className="p-2 sm:p-3">
-            {licenses.isLoading ? (
-              <div className="space-y-2 py-2">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-14 w-full" />
-                ))}
+        {/* Licenças Próximas de Expirar / Já Expiradas */}
+        <div className="grid gap-5 md:grid-cols-2">
+          <Card className="border-border/60 shadow-soft">
+            <div className="flex items-center justify-between gap-2 border-b border-border/50 px-5 py-3.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-neon-orange/15 text-neon-orange">
+                  <AlertTriangle className="h-3.5 w-3.5" aria-hidden />
+                </span>
+                <h2 className="truncate text-sm font-semibold">
+                  Renovações
+                  <span className="ml-2 text-xs font-normal text-muted-foreground">(até 15 dias)</span>
+                </h2>
               </div>
-            ) : expiringSoon.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                Nenhuma licença vencendo nos próximos 15 dias.
-              </p>
-            ) : (
-              <ul className="divide-y divide-border/50">
-                {expiringSoon.map(({ l }) => {
+              {expiringSoon.length > 0 ? (
+                <span className="text-xs text-muted-foreground tabular-nums">{expiringSoon.length}</span>
+              ) : null}
+            </div>
+            <CardContent className="p-2 sm:p-3 h-[300px] overflow-y-auto custom-scrollbar">
+              {licenses.isLoading ? (
+                <div className="space-y-2 py-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-14 w-full" />
+                  ))}
+                </div>
+              ) : expiringSoon.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center space-y-2">
+                  <CheckCircle2 className="h-8 w-8 text-muted-foreground/20" />
+                  <p className="text-sm text-muted-foreground">Nenhuma renovação pendente.</p>
+                </div>
+              ) : (
+                <ul className="divide-y divide-border/50">
+                  {expiringSoon.map(({ l }) => (
+                    <LicenseListItem key={l.id} license={l} />
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/60 shadow-soft">
+            <div className="flex items-center justify-between gap-2 border-b border-border/50 px-5 py-3.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-destructive/15 text-destructive">
+                  <XCircle className="h-3.5 w-3.5" aria-hidden />
+                </span>
+                <h2 className="truncate text-sm font-semibold">
+                  Keys Expiradas
+                </h2>
+              </div>
+              {expiredLicenses.length > 0 ? (
+                <span className="text-xs text-muted-foreground tabular-nums">{expiredLicenses.length}</span>
+              ) : null}
+            </div>
+            <CardContent className="p-2 sm:p-3 h-[300px] overflow-y-auto custom-scrollbar">
+              {licenses.isLoading ? (
+                <div className="space-y-2 py-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-14 w-full" />
+                  ))}
+                </div>
+              ) : expiredLicenses.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center space-y-2">
+                  <Activity className="h-8 w-8 text-muted-foreground/20" />
+                  <p className="text-sm text-muted-foreground">Nenhuma key expirada.</p>
+                </div>
+              ) : (
+                <ul className="divide-y divide-border/50">
+                  {expiredLicenses.map((l) => (
+                    <LicenseListItem key={l.id} license={l} />
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </div>
                   const remaining = timeUntil(l.expires_at);
                   const pct = progressPct(l.activated_at, l.expires_at);
                   const phone = (l.customer_phone ?? "").replace(/\D+/g, "");
