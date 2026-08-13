@@ -294,14 +294,22 @@ function MainLicensesPage() {
                       </TableCell>
                       <TableCell><StatusBadge status={computeStatus(l)} /></TableCell>
                       <TableCell className="text-sm">
-                        <div className="flex items-center gap-2">
-                          <span>{formatDate(l.expires_at)}</span>
-                          <ActivationHint license={l} />
-                          {isExpiringSoon(l) ? (
-                            <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">
-                              {daysUntil(l.expires_at)}d
-                            </span>
-                          ) : null}
+                        <div className="flex flex-col gap-1">
+                          {l.expires_at ? (
+                            <div className="flex items-center gap-2">
+                              <span>{formatDate(l.expires_at)}</span>
+                              {isExpiringSoon(l) ? (
+                                <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">
+                                  {daysUntil(l.expires_at)}d
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground italic">Pendente</span>
+                              <ActivationHint license={l} />
+                            </div>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="text-sm">{l.max_devices ?? 1}</TableCell>
