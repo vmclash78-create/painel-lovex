@@ -10,12 +10,19 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/external-supabase/client";
 import { 
   LogOut, Mail, ShieldCheck, Database, Settings as SettingsIcon, 
-  Clock, CreditCard, Save, Plus, Trash2, Smartphone
+  Clock, CreditCard, Save, Plus, Trash2, Smartphone, Pencil
 } from "lucide-react";
 import { toast } from "sonner";
 import { getGlobalSettings, updateGlobalSettings, type GlobalSettings } from "@/lib/settings.functions";
 import { useServerFn } from "@tanstack/react-start";
-import { formatBRL } from "@/lib/client-plans";
+import { formatBRL, type ClientPlan } from "@/lib/client-plans";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Configurações — LoveX" }] }),
@@ -107,9 +114,16 @@ function SettingsPage() {
                 <CardDescription>Configure os planos visíveis para os clientes na landing page.</CardDescription>
               </div>
             </div>
-            <Button size="sm" variant="outline" className="gap-2">
-              <Plus className="h-4 w-4" /> Novo Plano
-            </Button>
+            <PlanEditDialog
+              onSave={(plan) => {
+                if (settings) {
+                  updateSettings.mutate({
+                    ...settings,
+                    plans: [...settings.plans, plan as any],
+                  });
+                }
+              }}
+            />
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -140,9 +154,34 @@ function SettingsPage() {
                       <td className="px-4 py-3 font-mono text-xs">{plan.maxVersion || '—'}</td>
                       <td className="px-4 py-3 font-medium">{formatBRL(plan.price)}</td>
                       <td className="px-4 py-3 text-right">
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        <div className="flex justify-end gap-1">
+                          <PlanEditDialog
+                            plan={plan as any}
+                            onSave={(updated) => {
+                              if (settings) {
+                                updateSettings.mutate({
+                                  ...settings,
+                                  plans: settings.plans.map(p => p.id === plan.id ? (updated as any) : p),
+                                });
+                              }
+                            }}
+                          />
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 w-8 p-0"
+                            onClick={() => {
+                              if (settings && confirm("Remover este plano?")) {
+                                updateSettings.mutate({
+                                  ...settings,
+                                  plans: settings.plans.filter(p => p.id !== plan.id),
+                                });
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -305,5 +344,136 @@ function SettingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function PlanEditDialog({ 
+  plan, 
+  onSave 
+}: { 
+  plan?: any, 
+  onSave: (p: any) => void 
+}) {
+  const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState<any>(
+    plan ?? {
+      id: "",
+      name: "",
+      price: 0,
+      db: "main" as const,
+      description: "",
+      maxVersion: "2.1",
+      badge: ""
+    }
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {plan ? (
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <Pencil className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Button size="sm" variant="outline" className="gap-2">
+            <Plus className="h-4 w-4" /> Novo Plano
+          </Button>
+        )}
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{plan ? "Editar Plano" : "Novo Plano"}</DialogTitle>
+          <DialogDescription>
+            Defina as características do plano que será exibido na landing page.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="plan-id">ID do Plano</Label>
+              <Input 
+                id="plan-id" 
+                value={formData.id} 
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, id: e.target.value }))}
+                placeholder="ex: lovex-pro"
+                disabled={!!plan}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="plan-name">Nome Exibido</Label>
+              <Input 
+                id="plan-name" 
+                value={formData.name} 
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, name: e.target.value }))}
+                placeholder="ex: LoveX 2.x"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="plan-price">Preço (R$)</Label>
+              <Input 
+                id="plan-price" 
+                type="number"
+                value={formData.price} 
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, price: Number(e.target.value) }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="plan-db">Banco de Dados</Label>
+              <Select 
+                value={formData.db} 
+                onValueChange={(v) => setFormData((prev: any) => ({ ...prev, db: v as "main" | "lp" }))}
+              >
+                <SelectTrigger id="plan-db">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="main">LoveX (Main)</SelectItem>
+                  <SelectItem value="lp">LovPro (Second)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="plan-ver">Versão Máx</Label>
+              <Input 
+                id="plan-ver" 
+                value={formData.maxVersion} 
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, maxVersion: e.target.value }))}
+                placeholder="ex: 2.1"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="plan-badge">Badge (Opcional)</Label>
+              <Input 
+                id="plan-badge" 
+                value={formData.badge} 
+                onChange={(e) => setFormData((prev: any) => ({ ...prev, badge: e.target.value }))}
+                placeholder="ex: Destaque"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="plan-desc">Descrição</Label>
+            <Textarea 
+              id="plan-desc" 
+              value={formData.description} 
+              onChange={(e) => setFormData((prev: any) => ({ ...prev, description: e.target.value }))}
+              placeholder="Descreva os benefícios do plano..."
+              rows={3}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button onClick={() => {
+            onSave(formData);
+            setOpen(false);
+          }}>Salvar Plano</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

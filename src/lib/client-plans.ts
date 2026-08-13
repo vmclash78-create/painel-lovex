@@ -1,4 +1,4 @@
-export type ClientPlanId = "lovepro" | "lovex-19" | "lovex-2x";
+export type ClientPlanId = string;
 
 export type ClientPlan = {
   id: ClientPlanId;
