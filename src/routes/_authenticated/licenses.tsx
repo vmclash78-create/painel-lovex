@@ -173,6 +173,7 @@ function MainLicensesPage() {
               <SelectContent>
                 <SelectItem value="all">Todos os status</SelectItem>
                 <SelectItem value="active">Ativas</SelectItem>
+                <SelectItem value="waiting">Aguardando</SelectItem>
                 <SelectItem value="trial">Trial</SelectItem>
                 <SelectItem value="expired">Expiradas</SelectItem>
                 <SelectItem value="revoked">Revogadas</SelectItem>
