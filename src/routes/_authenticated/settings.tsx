@@ -351,11 +351,11 @@ function PlanEditDialog({
   plan, 
   onSave 
 }: { 
-  plan?: ClientPlan, 
-  onSave: (p: Partial<ClientPlan>) => void 
+  plan?: any, 
+  onSave: (p: any) => void 
 }) {
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<Partial<ClientPlan>>(
+  const [formData, setFormData] = useState<any>(
     plan ?? {
       id: "",
       name: "",
