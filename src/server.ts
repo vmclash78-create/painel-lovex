@@ -7,6 +7,24 @@ type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
 
+function isExpectedClientDisconnect(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+
+  const cause = "cause" in error ? error.cause : undefined;
+  const causeCode =
+    typeof cause === "object" && cause !== null && "code" in cause
+      ? String(cause.code)
+      : "";
+  const errorCode =
+    "code" in error && typeof error.code === "string" ? error.code : "";
+
+  return (
+    causeCode === "ECONNRESET" ||
+    errorCode === "ECONNRESET" ||
+    error.message.toLowerCase() === "aborted"
+  );
+}
+
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
 async function getServerEntry(): Promise<ServerEntry> {
@@ -30,7 +48,15 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
     return response;
   }
 
-  console.error(consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`));
+  const capturedError = consumeLastCapturedError();
+
+  // Navigating or reloading can close an in-flight SSR request. Node reports
+  // that normal client cancellation as `Error: aborted`/ECONNRESET. It must not
+  // be surfaced as an application crash or the preview replaces the next page
+  // with a blank runtime-error screen.
+  if (isExpectedClientDisconnect(capturedError)) return response;
+
+  console.error(capturedError ?? new Error(`h3 swallowed SSR error: ${body}`));
   return new Response(renderErrorPage(), {
     status: 500,
     headers: { "content-type": "text/html; charset=utf-8" },
@@ -44,6 +70,9 @@ export default {
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
+      if (isExpectedClientDisconnect(error)) {
+        return new Response(null, { status: 499 });
+      }
       console.error(error);
       return new Response(renderErrorPage(), {
         status: 500,
