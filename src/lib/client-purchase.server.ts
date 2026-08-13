@@ -108,7 +108,7 @@ export async function applyClientPurchase(purchase: {
     // Carência de 48h para o 1º acesso: se o cliente entrar antes, o painel
     // reconcilia a validade para "1º acesso + 30 dias". Se não entrar, o tempo
     // começa a contar do fim da carência.
-    const expires = initialExpiryFromNow(thirtyDaysMillis);
+    const expires = initialExpiryFromNow(thirtyDaysMillis, { status: "active" });
 
     if (purchase.target_db === "main") {
       const { getExternalAdmin } = await import("@/lib/external-admin.server");
