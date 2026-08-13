@@ -389,11 +389,6 @@ function ResellerPublicPage() {
           </div>
         </li>
       );
-    }
-
-    const expiredLicenses = (licenses.data ?? [])
-      .filter((l) => computeStatus(l) === "expired")
-      .sort((a, b) => new Date(b.expires_at!).getTime() - new Date(a.expires_at!).getTime());
     return (
       <>
         {/* Stats — same layout as admin dashboard */}
