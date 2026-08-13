@@ -1,0 +1,4 @@
+ls: cannot access 'src/entry-*': No such file or directory
+ls: cannot access 'src/ssr-*': No such file or directory
+ls: cannot access 'src/app.tsx': No such file or directory
+ls: cannot access 'src/App.tsx': No such file or directory
