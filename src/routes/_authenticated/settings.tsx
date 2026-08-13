@@ -89,7 +89,8 @@ function SettingsPage() {
                   <span className="text-sm text-muted-foreground">horas</span>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Tempo que o cliente tem para o 1º acesso antes que a validade comece a contar automaticamente.
+                  Tempo que o cliente tem para o 1º acesso antes que a validade comece a contar automaticamente. 
+                  (Aplicado apenas a keys normais; Trials expiram imediatamente após o prazo definido).
                 </p>
               </div>
             </div>
