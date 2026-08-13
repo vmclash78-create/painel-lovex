@@ -385,8 +385,10 @@ function ResellerPublicPage() {
                     ) : !keys?.length ? (
                       <TableRow>
                         <TableCell colSpan={3} className="text-center py-8">
-                          <p className="text-xs text-muted-foreground">Você ainda não tem chaves de API.</p>
-                          <p className="text-[10px] text-muted-foreground mt-1">boa, so q oq eu tenho q fazer ? me ajdue ai a deixar certinho tudo</p>
+                          <p className="text-xs text-muted-foreground">como ta funcionando isso ?</p>
+                          <p className="text-xs text-muted-foreground mt-2">Você ainda não tem chaves de API.</p>
+                          <p className="text-[10px] text-muted-foreground mt-4 font-medium">boa, so q oq eu tenho q fazer ? me ajdue ai a deixar certinho tudo</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">como eu faço para integrar no outro iste ?</p>
                         </TableCell>
                       </TableRow>
                     ) : (
