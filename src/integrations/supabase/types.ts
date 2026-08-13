@@ -209,15 +209,7 @@ export type Database = {
           name?: string
           reseller_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "reseller_api_keys_reseller_id_fkey"
-            columns: ["reseller_id"]
-            isOneToOne: false
-            referencedRelation: "resellers"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       reseller_key_balances: {
         Row: {
