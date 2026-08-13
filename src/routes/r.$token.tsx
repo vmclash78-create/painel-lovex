@@ -319,6 +319,13 @@ function ResellerPublicPage() {
                     {r.max_keys_lp ?? 0}
                   </span>
                 </TabsTrigger>
+                <TabsTrigger
+                  value="api"
+                  className="h-9 min-w-0 gap-1.5 rounded-full px-2 text-xs sm:gap-2 sm:px-4 sm:text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-[0_8px_24px_-8px_color-mix(in_oklab,var(--primary)_60%,transparent)]"
+                >
+                  <Monitor className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                  <span className="truncate">API</span>
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="lp" className="space-y-4 mt-0">
             <LpPanel
@@ -330,10 +337,136 @@ function ResellerPublicPage() {
               <TabsContent value="main" className="space-y-4 mt-0">
                 <MainPanelBody />
               </TabsContent>
+              <TabsContent value="api" className="space-y-4 mt-0">
+                <ApiIntegrationPanel resellerId={r.id} />
+              </TabsContent>
         </Tabs>
       </div>
     );
   }
+
+  function ApiIntegrationPanel({ resellerId }: { resellerId: string }) {
+    const { data: keys, isLoading } = useQuery({
+      queryKey: ["reseller-api-keys", resellerId],
+      queryFn: () => listResellerApiKeys({ data: { reseller_id: resellerId } }),
+    });
+
+    const apiUrl = typeof window !== "undefined" ? `${window.location.origin}/api/public/reseller/v1/generate` : "";
+
+    return (
+      <div className="space-y-5">
+        <Card className="border-border/60 shadow-soft">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-primary" />
+              Integração via API
+            </CardTitle>
+            <CardDescription>
+              Use suas chaves de API para automatizar a geração de licenças no seu site externo.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold">Suas Chaves</h3>
+              <div className="rounded-xl border border-border/60 bg-muted/20 overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="hover:bg-transparent">
+                      <TableHead className="text-[10px] uppercase">Nome</TableHead>
+                      <TableHead className="text-[10px] uppercase">Token</TableHead>
+                      <TableHead className="text-[10px] uppercase">Último Uso</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      <TableRow><TableCell colSpan={3} className="text-center py-4 text-xs">Carregando...</TableCell></TableRow>
+                    ) : !keys?.length ? (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center py-8">
+                          <p className="text-xs text-muted-foreground">Você ainda não tem chaves de API.</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">Solicite ao administrador para gerar uma chave para você.</p>
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      keys.map((k) => (
+                        <TableRow key={k.id} className="text-xs">
+                          <TableCell className="font-medium">{k.name}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1.5 font-mono text-[10px] bg-background/50 px-2 py-1 rounded border">
+                              <span className="truncate max-w-[120px]">{k.api_key}</span>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-5 w-5 p-0"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(k.api_key);
+                                  toast.success("Copiado");
+                                }}
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">
+                            {k.last_used_at ? new Date(k.last_used_at).toLocaleDateString("pt-BR") : "Nunca"}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+
+            <Separator className="bg-border/40" />
+
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />
+                Documentação Rápida
+              </h3>
+              
+              <div className="space-y-4 text-xs leading-relaxed">
+                <div>
+                  <p className="font-medium text-foreground mb-1.5">Endpoint (POST)</p>
+                  <code className="block bg-muted p-2 rounded border font-mono text-[10px] break-all">
+                    {apiUrl}
+                  </code>
+                </div>
+
+                <div>
+                  <p className="font-medium text-foreground mb-1.5">Headers Necessários</p>
+                  <code className="block bg-muted p-2 rounded border font-mono text-[10px]">
+                    X-Reseller-API-Key: SUA_CHAVE_AQUI<br />
+                    Content-Type: application/json
+                  </code>
+                </div>
+
+                <div>
+                  <p className="font-medium text-foreground mb-1.5">Corpo da Requisição (Exemplo JSON)</p>
+                  <pre className="block bg-muted p-2 rounded border font-mono text-[10px] overflow-x-auto">
+{`{
+  "type": "lovex", 
+  "user_name": "Nome do Cliente",
+  "days": 30,
+  "max_version": "2.1"
+}`}
+                  </pre>
+                  <p className="text-[10px] text-muted-foreground mt-2">
+                    * <code>type</code>: use "lovex" ou "lovpro" conforme seu plano.<br />
+                    * <code>days</code>: validade em dias (0 = indefinido).
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+import { listResellerApiKeys } from "@/lib/reseller-api.functions";
+
 
   function MainPanelBody() {
     const r = reseller.data!;
