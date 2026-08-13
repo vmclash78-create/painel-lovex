@@ -424,7 +424,7 @@ function MainLicensesPage() {
                         <span className="italic">Aguardando ativação</span>
                       )}
                       <ActivationHint license={l} />
-                      {isExpiringSoon(l) ? (
+                      {l.expires_at && isExpiringSoon(l) ? (
                         <span className="rounded-md bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">
                           {daysUntil(l.expires_at)}d
                         </span>
