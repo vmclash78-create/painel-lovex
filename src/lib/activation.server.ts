@@ -22,13 +22,12 @@ export async function reconcile(db: "main" | "lp"): Promise<{ fixed: number }> {
       ? (await import("./second-supabase.server")).getSecondAdmin()
       : (await import("./external-admin.server")).getExternalAdmin();
 
-  // Buscamos chaves normais sem expires_at mas com registro de acesso
+  // Buscamos chaves sem expires_at mas com registro de acesso
   const { data, error } = await admin
     .from("licenses")
     .select("id, expires_at, activated_at, last_active, duration_minutes, status")
     .is("expires_at", null)
     .neq("status", "revoked")
-    .neq("status", "trial")
     .or("activated_at.not.is.null,last_active.not.is.null");
 
   if (error) throw new Error(error.message);
