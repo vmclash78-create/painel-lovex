@@ -30,6 +30,7 @@ import { Route as ApiPublicClientUpdatesRouteImport } from './routes/api/public/
 import { Route as ApiPublicMpCreatePaymentRouteImport } from './routes/api/public/mp/create-payment'
 import { Route as ApiPublicMpStatusRouteImport } from './routes/api/public/mp/status'
 import { Route as ApiPublicMpWebhookRouteImport } from './routes/api/public/mp/webhook'
+import { Route as ApiPublicResellerV1GenerateRouteImport } from './routes/api/public/reseller/v1/generate'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -138,6 +139,12 @@ const ApiPublicMpWebhookRoute = ApiPublicMpWebhookRouteImport.update({
   path: '/api/public/mp/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicResellerV1GenerateRoute =
+  ApiPublicResellerV1GenerateRouteImport.update({
+    id: '/api/public/reseller/v1/generate',
+    path: '/api/public/reseller/v1/generate',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
+  '/api/public/reseller/v1/generate': typeof ApiPublicResellerV1GenerateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -182,6 +190,7 @@ export interface FileRoutesByTo {
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
+  '/api/public/reseller/v1/generate': typeof ApiPublicResellerV1GenerateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -206,6 +215,7 @@ export interface FileRoutesById {
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
+  '/api/public/reseller/v1/generate': typeof ApiPublicResellerV1GenerateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
+    | '/api/public/reseller/v1/generate'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
+    | '/api/public/reseller/v1/generate'
   id:
     | '__root__'
     | '/'
@@ -275,6 +287,7 @@ export interface FileRouteTypes {
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
+    | '/api/public/reseller/v1/generate'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -292,6 +305,7 @@ export interface RootRouteChildren {
   ApiPublicMpCreatePaymentRoute: typeof ApiPublicMpCreatePaymentRoute
   ApiPublicMpStatusRoute: typeof ApiPublicMpStatusRoute
   ApiPublicMpWebhookRoute: typeof ApiPublicMpWebhookRoute
+  ApiPublicResellerV1GenerateRoute: typeof ApiPublicResellerV1GenerateRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -443,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMpWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/reseller/v1/generate': {
+      id: '/api/public/reseller/v1/generate'
+      path: '/api/public/reseller/v1/generate'
+      fullPath: '/api/public/reseller/v1/generate'
+      preLoaderRoute: typeof ApiPublicResellerV1GenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -484,6 +505,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMpCreatePaymentRoute: ApiPublicMpCreatePaymentRoute,
   ApiPublicMpStatusRoute: ApiPublicMpStatusRoute,
   ApiPublicMpWebhookRoute: ApiPublicMpWebhookRoute,
+  ApiPublicResellerV1GenerateRoute: ApiPublicResellerV1GenerateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

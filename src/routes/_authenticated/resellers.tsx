@@ -21,7 +21,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Copy, Trash2, Pencil, ExternalLink, RefreshCw, Trophy, Medal, UserRound } from "lucide-react";
+import { Plus, Copy, Trash2, Pencil, ExternalLink, RefreshCw, Trophy, Medal, UserRound, Key } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/resellers")({
@@ -154,6 +154,7 @@ function ResellersPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">
+                            <ResellerApiDialog resellerId={r.id} resellerName={r.name} />
                             <ResellerDialog mode="edit" reseller={r} />
                             <Button
                               variant="ghost"
@@ -454,3 +455,122 @@ function ResellerDialog({ mode, reseller }: { mode: "create" | "edit"; reseller?
     </Dialog>
   );
 }
+
+function ResellerApiDialog({ resellerId, resellerName }: { resellerId: string; resellerName: string }) {
+  const [open, setOpen] = useState(false);
+  const [newKeyName, setNewKeyName] = useState("");
+  const { data: keys, isLoading, refetch } = useQuery({
+    queryKey: ["reseller-api-keys", resellerId],
+    queryFn: () => listResellerApiKeys({ data: { reseller_id: resellerId } }),
+    enabled: open,
+  });
+
+  const create = useMutation({
+    mutationFn: (name: string) => createResellerApiKey({ data: { reseller_id: resellerId, name } }),
+    onSuccess: () => {
+      toast.success("API Key gerada");
+      setNewKeyName("");
+      refetch();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const remove = useMutation({
+    mutationFn: (id: string) => deleteResellerApiKey({ data: { id } }),
+    onSuccess: () => {
+      toast.success("API Key removida");
+      refetch();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" aria-label="API Keys">
+          <Key className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>API Keys — {resellerName}</DialogTitle>
+          <DialogDescription>Tokens para integração programática com o site do revendedor.</DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-6 py-4">
+          <div className="flex gap-2">
+            <Input 
+              placeholder="Nome da chave (ex: Site Oficial)" 
+              value={newKeyName}
+              onChange={(e) => setNewKeyName(e.target.value)}
+            />
+            <Button disabled={!newKeyName || create.isPending} onClick={() => create.mutate(newKeyName)}>
+              Gerar Chave
+            </Button>
+          </div>
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Token (rk_...)</TableHead>
+                  <TableHead>Último Uso</TableHead>
+                  <TableHead className="text-right">Ação</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow><TableCell colSpan={4} className="text-center py-4">Carregando...</TableCell></TableRow>
+                ) : !keys?.length ? (
+                  <TableRow><TableCell colSpan={4} className="text-center py-4 text-muted-foreground text-xs">Nenhuma chave gerada.</TableCell></TableRow>
+                ) : (
+                  keys.map((k) => (
+                    <TableRow key={k.id}>
+                      <TableCell className="font-medium text-xs">{k.name}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5 font-mono text-[10px] bg-muted px-2 py-1 rounded">
+                          <span className="truncate max-w-[150px]">{k.api_key}</span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-5 w-5 p-0"
+                            onClick={() => {
+                              navigator.clipboard.writeText(k.api_key);
+                              toast.success("Copiado");
+                            }}
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-[10px] text-muted-foreground">
+                        {k.last_used_at ? new Date(k.last_used_at).toLocaleString("pt-BR") : "Nunca"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0"
+                          onClick={() => {
+                            if (confirm("Revogar esta chave? O site externo perderá o acesso.")) {
+                              remove.mutate(k.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+import { listResellerApiKeys, createResellerApiKey, deleteResellerApiKey } from "@/lib/reseller-api.functions";
