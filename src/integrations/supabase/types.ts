@@ -184,6 +184,41 @@ export type Database = {
           },
         ]
       }
+      reseller_api_keys: {
+        Row: {
+          api_key: string
+          created_at: string
+          id: string
+          last_used_at: string | null
+          name: string
+          reseller_id: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          name?: string
+          reseller_id: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          name?: string
+          reseller_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reseller_api_keys_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reseller_key_balances: {
         Row: {
           balance: number
