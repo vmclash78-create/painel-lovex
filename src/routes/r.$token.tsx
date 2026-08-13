@@ -350,9 +350,6 @@ function ResellerPublicPage() {
       .filter((x) => x.days >= 0 && x.days <= 15)
       .sort((a, b) => a.days - b.days);
 
-    const expiredLicenses = (licenses.data ?? [])
-      .filter((l) => computeStatus(l) === "expired")
-      .sort((a, b) => new Date(b.expires_at!).getTime() - new Date(a.expires_at!).getTime());
 
     function LicenseListItem({ license: l }: { license: License }) {
       const remaining = l.expires_at ? timeUntil(l.expires_at) : "Aguardando";
@@ -389,6 +386,11 @@ function ResellerPublicPage() {
           </div>
         </li>
       );
+    }
+
+    const expiredLicenses = (licenses.data ?? [])
+      .filter((l) => computeStatus(l) === "expired")
+      .sort((a, b) => new Date(b.expires_at!).getTime() - new Date(a.expires_at!).getTime());
     return (
       <>
         {/* Stats — same layout as admin dashboard */}
