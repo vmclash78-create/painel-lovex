@@ -935,7 +935,7 @@ function NewLicenseDialog() {
       if (status === "trial" && (minutesTotal <= 0 || minutesTotal > 15)) {
         throw new Error("Trial: máximo 15 minutos.");
       }
-      const expires_at = initialExpiryFromNow(days * factor, { trial: status === "trial" });
+      const expires_at = initialExpiryFromNow(days * factor, { status });
       await svc.insert({
         license_key: key,
         user_name: userName || "Usuário",
