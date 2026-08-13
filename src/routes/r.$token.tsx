@@ -479,48 +479,6 @@ function ResellerPublicPage() {
             </CardContent>
           </Card>
         </div>
-                  const remaining = timeUntil(l.expires_at);
-                  const pct = progressPct(l.activated_at, l.expires_at);
-                  const phone = (l.customer_phone ?? "").replace(/\D+/g, "");
-                  const days = Math.max(0, Math.ceil((new Date(l.expires_at!).getTime() - Date.now()) / 86_400_000));
-                  const msg = encodeURIComponent(
-                    `Olá${l.user_name ? ` ${l.user_name}` : ""}! Sua licença ${l.license_key} vence em ${days} dia${days === 1 ? "" : "s"}. Podemos já fazer sua renovação?`,
-                  );
-                  return (
-                    <li
-                      key={l.id}
-                      className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg px-3 py-3 hover:bg-muted/30"
-                    >
-                      <DashAvatar name={l.user_name ?? "?"} />
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold">{l.user_name ?? "—"}</div>
-                        <div className="truncate font-mono text-[11px] text-muted-foreground">{l.license_key}</div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="text-right leading-tight">
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Expira em</div>
-                          <div className="text-sm font-semibold">{remaining}</div>
-                        </div>
-                        <RingPct pct={pct} />
-                        {phone ? (
-                          <a
-                            href={`https://wa.me/${phone}?text=${msg}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="grid h-8 w-8 place-items-center rounded-lg border border-neon-lime/40 text-neon-lime hover:bg-neon-lime/10"
-                            aria-label="Enviar WhatsApp"
-                          >
-                            <MessageCircle className="h-4 w-4" aria-hidden />
-                          </a>
-                        ) : null}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Licenses toolbar */}
         <div className="grid gap-2.5 sm:flex sm:items-center sm:gap-3">
