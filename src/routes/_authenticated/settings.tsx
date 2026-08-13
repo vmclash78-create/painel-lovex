@@ -90,7 +90,7 @@ function SettingsPage() {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Tempo que o cliente tem para o 1º acesso antes que a validade comece a contar automaticamente. 
-                  (Aplicado apenas a keys normais; Trials expiram imediatamente após o prazo definido).
+                  (Aplicado apenas a keys de <strong>Trial</strong>; Keys normais aguardam indefinidamente).
                 </p>
               </div>
             </div>
