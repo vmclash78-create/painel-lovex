@@ -1,11 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { randomBytes } from "crypto";
 
 export const listResellerApiKeys = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ reseller_id: z.string().uuid() }).parse(input))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: keys, error } = await supabaseAdmin
       .from("reseller_api_keys")
       .select("*")
@@ -22,6 +22,7 @@ export const createResellerApiKey = createServerFn({ method: "POST" })
     name: z.string().min(1).max(100)
   }).parse(input))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const key = `rk_${randomBytes(24).toString("hex")}`;
     const { data: row, error } = await supabaseAdmin
       .from("reseller_api_keys")
@@ -40,6 +41,7 @@ export const createResellerApiKey = createServerFn({ method: "POST" })
 export const deleteResellerApiKey = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("reseller_api_keys")
       .delete()
