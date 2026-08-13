@@ -14,28 +14,13 @@ export type ClientPlan = {
 
 export const CLIENT_PLANS: ClientPlan[] = [
   {
-    id: "lovepro",
-    name: "LovePro",
-    price: 50,
-    db: "lp",
-    description: "Acesso completo à extensão LovePro por 30 dias.",
-  },
-  {
-    id: "lovex-19",
-    name: "LoveX 1.9",
-    price: 80,
-    db: "main",
-    maxVersion: "2.1",
-    description: "Extensão LoveX 1.9.x (até 2.1) por 30 dias.",
-  },
-  {
     id: "lovex-2x",
     name: "LoveX 2.x",
-    price: 90,
+    price: 95,
     db: "main",
     maxVersion: "2.1",
     description: "Extensão LoveX na versão 2.x (mais nova) por 30 dias.",
-    badge: "Promoção",
+    badge: "Principal",
   },
 ];
 
@@ -47,10 +32,7 @@ export function planForLicense(input: {
   db: "main" | "lp";
   maxVersion: string | null | undefined;
 }): ClientPlan {
-  if (input.db === "lp") return CLIENT_PLANS[0];
-  const v = (input.maxVersion ?? "").trim();
-  if (v.startsWith("2")) return CLIENT_PLANS[2];
-  return CLIENT_PLANS[1];
+  return CLIENT_PLANS[0];
 }
 
 export function formatBRL(n: number) {
