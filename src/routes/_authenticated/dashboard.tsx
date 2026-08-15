@@ -465,6 +465,7 @@ export function StatCard({
                 stroke={t.stroke}
                 strokeWidth={2}
                 fill={`url(#${t.grad})`}
+                isAnimationActive={false}
               />
             </AreaChart>
           </ResponsiveContainer>
