@@ -942,6 +942,9 @@ function NewLicenseDialog() {
 
   const create = useMutation({
     mutationFn: async () => {
+      if (!userName.trim() || !customerPhone.trim()) {
+        throw new Error("Nome e celular são obrigatórios.");
+      }
       const factor = unit === "minutes" ? 60_000 : unit === "hours" ? 3_600_000 : 86_400_000;
       const minutesTotal =
         unit === "minutes" ? days : unit === "hours" ? days * 60 : days * 24 * 60;
@@ -951,13 +954,13 @@ function NewLicenseDialog() {
       const expires_at = initialExpiryFromNow(days * factor, { status });
       await svc.insert({
         license_key: key,
-        user_name: userName || "Usuário",
+        user_name: userName.trim(),
         status,
         expires_at,
         max_devices: maxDevices,
         duration_minutes: days > 0 ? minutesTotal : null,
         max_version: maxVersion.trim() ? maxVersion.trim() : null,
-        customer_phone: customerPhone.trim() ? customerPhone.trim() : null,
+        customer_phone: customerPhone.trim(),
         daily_limit: dailyLimit,
       });
     },
@@ -1017,17 +1020,18 @@ function NewLicenseDialog() {
             <p className="text-xs text-muted-foreground">Formato: AA-12345678-ABCDEF01</p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="uname">Usuário</Label>
-            <Input id="uname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do usuário" />
+            <Label htmlFor="uname">Usuário *</Label>
+            <Input id="uname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do usuário" required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="uphone">Contato (WhatsApp)</Label>
+            <Label htmlFor="uphone">Contato (WhatsApp) *</Label>
             <Input
               id="uphone"
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
               placeholder="Ex: 5511999999999 (com DDI)"
               inputMode="tel"
+              required
             />
           </div>
           <div className="grid grid-cols-2 gap-3">

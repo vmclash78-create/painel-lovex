@@ -1185,6 +1185,7 @@ function NewResellerLicenseDialog({
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [status, setStatus] = useState<NonNullable<License["status"]>>("active");
   const [days, setDays] = useState<number>(30);
   const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
@@ -1209,6 +1210,9 @@ function NewResellerLicenseDialog({
 
   const create = useMutation({
     mutationFn: async () => {
+      if (!userName.trim() || !customerPhone.trim()) {
+        throw new Error("Nome e celular são obrigatórios.");
+      }
       if (status !== "trial") {
         const { count, error: cErr } = await supabase
           .from("licenses")
@@ -1225,13 +1229,14 @@ function NewResellerLicenseDialog({
       const expires_at = initialExpiryFromNow(days * factor, { status });
       const { error } = await supabase.from("licenses").insert({
         license_key: key,
-        user_name: userName || "Cliente",
+        user_name: userName.trim(),
         status,
         expires_at,
         max_devices: maxDevices,
         duration_minutes: days > 0 ? minutesTotal : null,
         reseller_id: resellerId,
         max_version: maxVersion.trim() || null,
+        customer_phone: customerPhone.trim(),
         daily_limit: dailyLimit,
       });
       if (error) throw error;
@@ -1242,6 +1247,7 @@ function NewResellerLicenseDialog({
       setOpen(false);
       setKey(generateLicenseKey());
       setUserName("");
+      setCustomerPhone("");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -1332,8 +1338,19 @@ function NewResellerLicenseDialog({
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="uname">Cliente</Label>
-            <Input id="uname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do cliente" />
+            <Label htmlFor="uname">Cliente *</Label>
+            <Input id="uname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do cliente" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="uphone">Contato (WhatsApp) *</Label>
+            <Input
+              id="uphone"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              placeholder="Ex: 5511999999999 (com DDI)"
+              inputMode="tel"
+              required
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
@@ -2003,6 +2020,7 @@ function NewLpLicenseDialog({
   const createFn = useServerFn(createSecondLicense);
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [status, setStatus] = useState<"active" | "trial">("active");
   const [days, setDays] = useState<number>(30);
   const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
@@ -2027,6 +2045,9 @@ function NewLpLicenseDialog({
 
   const create = useMutation({
     mutationFn: async () => {
+      if (!userName.trim() || !customerPhone.trim()) {
+        throw new Error("Nome e celular são obrigatórios.");
+      }
       if (status !== "trial" && currentCount >= maxKeys) {
         throw new Error("Cota Lovpro esgotada.");
       }
@@ -2037,13 +2058,14 @@ function NewLpLicenseDialog({
       await createFn({
         data: {
           license_key: key,
-          user_name: userName || "Cliente",
+          user_name: userName.trim(),
           status,
           expires_at,
           max_devices: maxDevices,
           duration_minutes: days > 0 ? minutesTotal : null,
           reseller_id: resellerId,
           max_version: maxVersion.trim() || null,
+          customer_phone: customerPhone.trim(),
           daily_limit: dailyLimit,
         },
       });
@@ -2054,6 +2076,7 @@ function NewLpLicenseDialog({
       setOpen(false);
       setKey(generateSecondLicenseKey());
       setUserName("");
+      setCustomerPhone("");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -2144,8 +2167,19 @@ function NewLpLicenseDialog({
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="lpuname">Cliente</Label>
-            <Input id="lpuname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do cliente" />
+            <Label htmlFor="lpuname">Cliente *</Label>
+            <Input id="lpuname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do cliente" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lpuphone">Contato (WhatsApp) *</Label>
+            <Input
+              id="lpuphone"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              placeholder="Ex: 5511999999999 (com DDI)"
+              inputMode="tel"
+              required
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
