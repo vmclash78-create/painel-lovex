@@ -39,31 +39,28 @@ function mainService(): LicenseService {
     list: async () => {
       const { data, error } = await supabase
         .from("licenses")
-        .select("*")
+        .select("id, license_key, user_name, status, expires_at, activated_at, device_id, session_id, max_devices, duration_minutes, is_active, created_at, updated_at, reseller_id, sold_by, max_version, customer_phone, daily_prompts_used, last_prompt_date, daily_limit, last_active")
         .order("created_at", { ascending: false });
       if (error) throw error;
       const rows = (data ?? []) as License[];
-      const ids = Array.from(
+      
+      const resellerIds = Array.from(
         new Set(rows.map((r) => r.reseller_id).filter((v): v is string => !!v)),
       );
-      let nameById = new Map<string, string>();
-      if (ids.length) {
+      
+      let nameMap = new Map<string, string>();
+      if (resellerIds.length) {
         const { data: rs } = await supabase
           .from("resellers")
-          .select("id,name")
-          .in("id", ids);
-        nameById = new Map((rs ?? []).map((r: { id: string; name: string }) => [r.id, r.name]));
+          .select("id, name")
+          .in("id", resellerIds);
+        nameMap = new Map((rs ?? []).map((r) => [r.id, r.name]));
       }
-      
-      const { data: allResellers } = await supabase
-        .from("resellers")
-        .select("id,name");
-      const anyResellerMap = new Map((allResellers ?? []).map((r: { id: string; name: string }) => [r.id, r.name]));
 
       return rows.map((r) => {
-        let seller: string | null = r.sold_by && r.sold_by !== "—" ? r.sold_by : null;
+        let seller = r.sold_by && r.sold_by !== "—" ? r.sold_by : null;
         if (!seller && r.reseller_id) {
-          seller = nameById.get(r.reseller_id) || anyResellerMap.get(r.reseller_id) || null;
+          seller = nameMap.get(r.reseller_id) || null;
         }
         return {
           ...r,
@@ -108,28 +105,25 @@ function useLpService(): LicenseService {
       generateKey: () => generateSecondLicenseKey(),
       list: async () => {
         const rows = (await listFn()) as SecondLicense[];
-        const ids = Array.from(
+        const resellerIds = Array.from(
           new Set(rows.map((r) => r.reseller_id).filter((v): v is string => !!v)),
         );
-        let nameById = new Map<string, string>();
-        if (ids.length) {
+        
+        let nameMap = new Map<string, string>();
+        if (resellerIds.length) {
           const { data: rs } = await supabase
             .from("resellers")
-            .select("id,name")
-            .in("id", ids);
-          nameById = new Map(
-            (rs ?? []).map((r: { id: string; name: string }) => [r.id, r.name]),
+            .select("id, name")
+            .in("id", resellerIds);
+          nameMap = new Map(
+            (rs ?? []).map((r) => [r.id, r.name]),
           );
         }
-        const { data: allResellers } = await supabase
-          .from("resellers")
-          .select("id,name");
-        const anyResellerMap = new Map((allResellers ?? []).map((r: { id: string; name: string }) => [r.id, r.name]));
 
         return rows.map((r) => {
-          let seller: string | null = r.sold_by && r.sold_by !== "—" ? r.sold_by : null;
+          let seller = r.sold_by && r.sold_by !== "—" ? r.sold_by : null;
           if (!seller && r.reseller_id) {
-            seller = nameById.get(r.reseller_id) || anyResellerMap.get(r.reseller_id) || null;
+            seller = nameMap.get(r.reseller_id) || null;
           }
           return {
             ...r,

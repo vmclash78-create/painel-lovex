@@ -448,6 +448,7 @@ export function StatCard({
               </defs>
               <Tooltip
                 cursor={false}
+                isAnimationActive={false}
                 contentStyle={{
                   background: "var(--color-popover)",
                   border: "1px solid var(--color-border)",
@@ -464,6 +465,7 @@ export function StatCard({
                 stroke={t.stroke}
                 strokeWidth={2}
                 fill={`url(#${t.grad})`}
+                isAnimationActive={false}
               />
             </AreaChart>
           </ResponsiveContainer>

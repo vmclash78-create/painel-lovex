@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useDeferredValue } from "react";
 import { supabase, type License } from "@/integrations/external-supabase/client";
 import { computeStatus, generateLicenseKey } from "@/lib/licenses";
 import { LicenseServiceProvider, useLicenseService, useOptionalLicenseService } from "@/lib/license-service";
@@ -68,6 +68,7 @@ function MainLicensesPage() {
     gcTime: 10 * 60_000,
   });
   const [searchTerm, setSearchTerm] = useState("");
+  const deferredSearch = useDeferredValue(searchTerm);
   const [statusFilter, setStatusFilter] = useState<string>(search.status ?? "all");
   const [onlyExpiringSoon, setOnlyExpiringSoon] = useState(search.filter === "expiring");
   const [planFilter, setPlanFilter] = useState<string>("all");
@@ -103,9 +104,9 @@ function MainLicensesPage() {
   const filtered = useMemo(() => {
     return rows.filter((l) => {
       const matchSearch =
-        !searchTerm ||
-        l.license_key.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (l.user_name ?? "").toLowerCase().includes(searchTerm.toLowerCase());
+        !deferredSearch ||
+        l.license_key.toLowerCase().includes(deferredSearch.toLowerCase()) ||
+        (l.user_name ?? "").toLowerCase().includes(deferredSearch.toLowerCase());
       const matchStatus = statusFilter === "all" || computeStatus(l) === statusFilter;
       const matchExpiring = !onlyExpiringSoon || isExpiringSoon(l);
       const plan = classifyPlan(l.max_version);
@@ -113,7 +114,7 @@ function MainLicensesPage() {
       const matchPhone = !onlyNoPhone || !l.customer_phone;
       return matchSearch && matchStatus && matchExpiring && matchPlan && matchPhone;
     });
-  }, [rows, searchTerm, statusFilter, onlyExpiringSoon, planFilter, onlyNoPhone]);
+  }, [rows, deferredSearch, statusFilter, onlyExpiringSoon, planFilter, onlyNoPhone]);
 
   const revoke = useMutation({
     mutationFn: (id: string) => svc.revoke(id),
