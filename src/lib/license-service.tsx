@@ -69,8 +69,11 @@ function mainService(): LicenseService {
       });
     },
     update: async (id, patch) => {
-      const { error } = await supabase.from("licenses").update(patch).eq("id", id);
-      if (error) throw error;
+      const { error } = await supabase.from("licenses").update(patch).eq("id", id).select();
+      if (error) {
+        console.error("Update error:", error);
+        throw error;
+      }
     },
     insert: async (data) => {
       const { error } = await supabase.from("licenses").insert(data);

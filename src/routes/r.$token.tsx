@@ -150,8 +150,11 @@ function ResellerPublicPage() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("licenses")
         .update({ status: "revoked", updated_at: new Date().toISOString() })
-        .eq("id", id).eq("reseller_id", reseller.data!.id);
-      if (error) throw error;
+        .eq("id", id).eq("reseller_id", reseller.data!.id).select();
+      if (error) {
+        console.error("Revoke error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success("Licença revogada");
@@ -163,8 +166,11 @@ function ResellerPublicPage() {
   const remove = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("licenses").delete()
-        .eq("id", id).eq("reseller_id", reseller.data!.id);
-      if (error) throw error;
+        .eq("id", id).eq("reseller_id", reseller.data!.id).select();
+      if (error) {
+        console.error("Remove error:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success("Licença removida");

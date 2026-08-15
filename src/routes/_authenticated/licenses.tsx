@@ -59,13 +59,14 @@ function MainLicensesPage() {
   const qc = useQueryClient();
   const svc = useLicenseService();
   const search = Route.useSearch();
-  const { data, isLoading, isError, error } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: svc.queryKey,
     queryFn: svc.list,
     retry: 1,
     throwOnError: false,
     staleTime: 5 * 60_000,
     gcTime: 30 * 60_000,
+    refetchOnWindowFocus: true,
   });
   const [searchTerm, setSearchTerm] = useState("");
   const deferredSearch = useDeferredValue(searchTerm);
@@ -236,8 +237,9 @@ function MainLicensesPage() {
           ) : null}
 
           {isError ? (
-            <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
-              Não foi possível carregar as licenças agora. {error instanceof Error ? error.message : "Tente recarregar."}
+            <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive flex items-center justify-between">
+              <span>Não foi possível carregar as licenças agora. {error instanceof Error ? error.message : "Tente recarregar."}</span>
+              <Button variant="outline" size="sm" onClick={() => refetch()} className="h-7 text-[10px]">Tentar novamente</Button>
             </div>
           ) : null}
 
