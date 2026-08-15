@@ -115,7 +115,8 @@ function ResellerPublicPage() {
   });
 
   const [search, setSearch] = useState("");
-  const deferredSearch = useMemo(() => search, [search]); // Manual or useDeferredValue if React 18+ is consistent here
+  const [statusFilter, setStatusFilter] = useState("all");
+  const deferredSearch = useMemo(() => search, [search]);
 
   const filtered = useMemo(() => {
     const list = licenses.data ?? [];
