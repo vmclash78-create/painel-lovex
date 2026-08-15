@@ -11,6 +11,7 @@ import {
   Settings,
   Sparkles,
   Megaphone,
+  History,
 } from "lucide-react";
 
 import {
@@ -43,6 +44,7 @@ const keys: Item[] = [
   { label: "Todas as Keys", to: "/licenses", icon: KeyRound },
   { label: "Criar Key", to: "/licenses", icon: PlusCircle, search: { open: "new" } },
   { label: "Expirando", to: "/licenses", icon: Clock, search: { filter: "expiring" }, badgeKey: "expiring" },
+  { label: "Expiradas", to: "/licenses", icon: History, search: { status: "expired" } },
   { label: "Revogadas", to: "/licenses", icon: Ban, search: { status: "revoked" } },
 ];
 
