@@ -2167,8 +2167,19 @@ function NewLpLicenseDialog({
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="lpuname">Cliente</Label>
-            <Input id="lpuname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do cliente" />
+            <Label htmlFor="lpuname">Cliente *</Label>
+            <Input id="lpuname" value={userName} onChange={(e) => setUserName(e.target.value)} placeholder="Nome do cliente" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lpuphone">Contato (WhatsApp) *</Label>
+            <Input
+              id="lpuphone"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              placeholder="Ex: 5511999999999 (com DDI)"
+              inputMode="tel"
+              required
+            />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
