@@ -37,12 +37,27 @@ function mainService(): LicenseService {
     keyPrefix: "LX",
     generateKey: () => generateLicenseKey(),
     list: async () => {
-      const { data, error } = await supabase
-        .from("licenses")
-        .select("id, license_key, user_name, status, expires_at, activated_at, device_id, session_id, max_devices, duration_minutes, is_active, created_at, updated_at, reseller_id, sold_by, max_version, customer_phone, daily_prompts_used, last_prompt_date, daily_limit, last_active")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      const rows = (data ?? []) as License[];
+      // Tenta buscar com todas as colunas; se falhar, tenta sem as novas para manter a funcionalidade básica
+      try {
+        const { data, error } = await supabase
+          .from("licenses")
+          .select("id, license_key, user_name, status, expires_at, activated_at, device_id, session_id, max_devices, duration_minutes, created_at, updated_at, reseller_id, sold_by, max_version, customer_phone, daily_prompts_used, last_prompt_date, daily_limit, last_active")
+          .order("created_at", { ascending: false });
+        
+        if (error) throw error;
+        return (data ?? []) as License[];
+      } catch (err: any) {
+        console.warn("Falha ao buscar com colunas estendidas, tentando colunas básicas:", err);
+        // Fallback para colunas que existiam na v1.0
+        const { data, error } = await supabase
+          .from("licenses")
+          .select("id, license_key, user_name, status, expires_at, activated_at, device_id, session_id, max_devices, duration_minutes, created_at, updated_at, reseller_id, sold_by, max_version, customer_phone")
+          .order("created_at", { ascending: false });
+        
+        if (error) throw error;
+        return (data ?? []) as License[];
+      }
+    },
       
       const resellerIds = Array.from(
         new Set(rows.map((r) => r.reseller_id).filter((v): v is string => !!v)),
