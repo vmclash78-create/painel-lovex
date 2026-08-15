@@ -112,6 +112,8 @@ function ResellerPublicPage() {
     enabled: !!reseller.data?.id && authed,
     staleTime: 5 * 60_000,
     gcTime: 10 * 60_000,
+    refetchInterval: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const [search, setSearch] = useState("");
