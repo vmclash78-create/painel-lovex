@@ -64,8 +64,8 @@ function MainLicensesPage() {
     queryFn: svc.list,
     retry: 1,
     throwOnError: false,
-    staleTime: 5 * 60_000, // Reuse the same timing from the global options
-    gcTime: 10 * 60_000,
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
   });
   const [searchTerm, setSearchTerm] = useState("");
   const deferredSearch = useDeferredValue(searchTerm);

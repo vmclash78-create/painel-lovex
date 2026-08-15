@@ -40,7 +40,7 @@ function DashboardPage() {
     ...licensesQueryOptions, 
     enabled: db === "main",
     staleTime: 5 * 60_000,
-    gcTime: 10 * 60_000,
+    gcTime: 30 * 60_000,
   });
   const lpLicenses = useQuery({
     ...lpLicensesQueryOptions,
@@ -48,13 +48,13 @@ function DashboardPage() {
     retry: 1,
     throwOnError: false,
     staleTime: 5 * 60_000,
-    gcTime: 10 * 60_000,
+    gcTime: 30 * 60_000,
   });
   const resellers = useQuery({ 
     ...resellersQueryOptions, 
     enabled: db === "main",
     staleTime: 10 * 60_000,
-    gcTime: 20 * 60_000,
+    gcTime: 30 * 60_000,
   });
   const revenue = useQuery({
     queryKey: ["reseller-purchases", "paid"],
