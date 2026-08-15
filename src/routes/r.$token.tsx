@@ -1215,7 +1215,7 @@ function NewResellerLicenseDialog({
   const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
   const [maxDevices, setMaxDevices] = useState<number>(1);
   const [key, setKey] = useState<string>("");
-  const [maxVersion, setMaxVersion] = useState<string>("2.1");
+  const [maxVersion, setMaxVersion] = useState<string>("");
   const [dailyLimit, setDailyLimit] = useState<number>(100);
 
   const applyPreset = (

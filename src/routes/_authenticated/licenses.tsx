@@ -921,7 +921,7 @@ function NewLicenseDialog() {
   const [unit, setUnit] = useState<"minutes" | "hours" | "days">("days");
   const [maxDevices, setMaxDevices] = useState<number>(1);
   const [key, setKey] = useState<string>(svc.generateKey());
-  const [maxVersion, setMaxVersion] = useState<string>("2.1");
+  const [maxVersion, setMaxVersion] = useState<string>("");
   const [customerPhone, setCustomerPhone] = useState<string>("");
   const [dailyLimit, setDailyLimit] = useState<number>(100);
 
