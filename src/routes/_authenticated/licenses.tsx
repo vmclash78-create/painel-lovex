@@ -237,9 +237,14 @@ function MainLicensesPage() {
           ) : null}
 
           {isError ? (
-            <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive flex items-center justify-between">
-              <span>Não foi possível carregar as licenças agora. {error instanceof Error ? error.message : "Tente recarregar."}</span>
-              <Button variant="outline" size="sm" onClick={() => refetch()} className="h-7 text-[10px]">Tentar novamente</Button>
+            <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span>Não foi possível carregar as licenças agora. {error instanceof Error ? error.message : "Tente recarregar."}</span>
+                <Button variant="outline" size="sm" onClick={() => refetch()} className="h-7 text-[10px]">Tentar novamente</Button>
+              </div>
+              {error instanceof Error && error.message.includes("406") && (
+                <p className="text-[10px] opacity-70">Dica: Isso geralmente acontece se a tabela 'licenses' no banco externo não tiver as colunas novas (last_active, daily_limit, etc). Verifique o console do navegador para detalhes.</p>
+              )}
             </div>
           ) : null}
 

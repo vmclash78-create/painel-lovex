@@ -37,12 +37,25 @@ function mainService(): LicenseService {
     keyPrefix: "LX",
     generateKey: () => generateLicenseKey(),
     list: async () => {
-      const { data, error } = await supabase
-        .from("licenses")
-        .select("id, license_key, user_name, status, expires_at, activated_at, device_id, session_id, max_devices, duration_minutes, is_active, created_at, updated_at, reseller_id, sold_by, max_version, customer_phone, daily_prompts_used, last_prompt_date, daily_limit, last_active")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      const rows = (data ?? []) as License[];
+      let rows: License[] = [];
+      try {
+        const { data, error } = await supabase
+          .from("licenses")
+          .select("id, license_key, user_name, status, expires_at, activated_at, device_id, session_id, max_devices, duration_minutes, created_at, updated_at, reseller_id, sold_by, max_version, customer_phone, daily_prompts_used, last_prompt_date, daily_limit, last_active")
+          .order("created_at", { ascending: false });
+        
+        if (error) throw error;
+        rows = (data ?? []) as License[];
+      } catch (err) {
+        console.warn("Falha ao buscar com colunas estendidas, tentando colunas básicas:", err);
+        const { data, error } = await supabase
+          .from("licenses")
+          .select("id, license_key, user_name, status, expires_at, activated_at, device_id, session_id, max_devices, duration_minutes, created_at, updated_at, reseller_id, sold_by, max_version, customer_phone")
+          .order("created_at", { ascending: false });
+        
+        if (error) throw error;
+        rows = (data ?? []) as License[];
+      }
       
       const resellerIds = Array.from(
         new Set(rows.map((r) => r.reseller_id).filter((v): v is string => !!v)),
@@ -83,11 +96,12 @@ function mainService(): LicenseService {
       const { error } = await supabase
         .from("licenses")
         .update({ status: "revoked", updated_at: new Date().toISOString() })
-        .eq("id", id);
+        .eq("id", id)
+        .select();
       if (error) throw error;
     },
     remove: async (id) => {
-      const { error } = await supabase.from("licenses").delete().eq("id", id);
+      const { error } = await supabase.from("licenses").delete().eq("id", id).select();
       if (error) throw error;
     },
   };
