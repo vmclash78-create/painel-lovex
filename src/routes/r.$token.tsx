@@ -528,6 +528,30 @@ function ResellerPublicPage() {
       .sort((a, b) => new Date(b.expires_at!).getTime() - new Date(a.expires_at!).getTime());
     return (
       <>
+        {/* Alerta de Contato Faltando */}
+        {(() => {
+          const countMissing = (licenses.data ?? []).filter(l => !l.customer_phone || l.customer_phone.trim() === "").length;
+          if (countMissing === 0) return null;
+          
+          return (
+            <Card className="border-destructive/30 bg-destructive/5 shadow-neon-destructive overflow-hidden relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-destructive/10 via-transparent to-transparent opacity-50" />
+              <CardContent className="p-4 relative flex items-center gap-4">
+                <div className="flex-shrink-0 grid h-10 w-10 place-items-center rounded-xl bg-destructive/20 text-destructive shadow-neon-destructive">
+                  <AlertTriangle className="h-5 w-5 animate-pulse" />
+                </div>
+                <div className="flex-grow min-w-0">
+                  <h3 className="text-sm font-bold text-destructive uppercase tracking-tight">Aviso Crítico: Contatos Faltando</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed mt-0.5">
+                    Detectamos <span className="text-destructive font-bold">{countMissing}</span> {countMissing === 1 ? 'licença' : 'licenças'} sem número de WhatsApp cadastrado. 
+                    Por favor, informe os números para garantir o suporte e renovações dos seus clientes.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
+
         {/* Stats — same layout as admin dashboard */}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4">
           <StatCard
