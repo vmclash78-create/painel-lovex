@@ -2,28 +2,11 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { isExpectedClientDisconnect } from "./lib/client-disconnect";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
-
-function isExpectedClientDisconnect(error: unknown): boolean {
-  if (!(error instanceof Error)) return false;
-
-  const cause = "cause" in error ? error.cause : undefined;
-  const causeCode =
-    typeof cause === "object" && cause !== null && "code" in cause
-      ? String(cause.code)
-      : "";
-  const errorCode =
-    "code" in error && typeof error.code === "string" ? error.code : "";
-
-  return (
-    causeCode === "ECONNRESET" ||
-    errorCode === "ECONNRESET" ||
-    error.message.toLowerCase() === "aborted"
-  );
-}
 
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
