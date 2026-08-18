@@ -27,6 +27,8 @@ import { Route as ApiPublicClientLookupRouteImport } from './routes/api/public/c
 import { Route as ApiPublicClientPlansRouteImport } from './routes/api/public/client/plans'
 import { Route as ApiPublicClientStatusRouteImport } from './routes/api/public/client/status'
 import { Route as ApiPublicClientUpdatesRouteImport } from './routes/api/public/client/updates'
+import { Route as ApiPublicMigrationInfoRouteImport } from './routes/api/public/migration/info'
+import { Route as ApiPublicMigrationSqlRouteImport } from './routes/api/public/migration/sql'
 import { Route as ApiPublicMpCreatePaymentRouteImport } from './routes/api/public/mp/create-payment'
 import { Route as ApiPublicMpStatusRouteImport } from './routes/api/public/mp/status'
 import { Route as ApiPublicMpWebhookRouteImport } from './routes/api/public/mp/webhook'
@@ -123,6 +125,16 @@ const ApiPublicClientUpdatesRoute = ApiPublicClientUpdatesRouteImport.update({
   path: '/api/public/client/updates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicMigrationInfoRoute = ApiPublicMigrationInfoRouteImport.update({
+  id: '/api/public/migration/info',
+  path: '/api/public/migration/info',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicMigrationSqlRoute = ApiPublicMigrationSqlRouteImport.update({
+  id: '/api/public/migration/sql',
+  path: '/api/public/migration/sql',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMpCreatePaymentRoute =
   ApiPublicMpCreatePaymentRouteImport.update({
     id: '/api/public/mp/create-payment',
@@ -164,6 +176,8 @@ export interface FileRoutesByFullPath {
   '/api/public/client/plans': typeof ApiPublicClientPlansRoute
   '/api/public/client/status': typeof ApiPublicClientStatusRoute
   '/api/public/client/updates': typeof ApiPublicClientUpdatesRoute
+  '/api/public/migration/info': typeof ApiPublicMigrationInfoRoute
+  '/api/public/migration/sql': typeof ApiPublicMigrationSqlRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -187,6 +201,8 @@ export interface FileRoutesByTo {
   '/api/public/client/plans': typeof ApiPublicClientPlansRoute
   '/api/public/client/status': typeof ApiPublicClientStatusRoute
   '/api/public/client/updates': typeof ApiPublicClientUpdatesRoute
+  '/api/public/migration/info': typeof ApiPublicMigrationInfoRoute
+  '/api/public/migration/sql': typeof ApiPublicMigrationSqlRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -212,6 +228,8 @@ export interface FileRoutesById {
   '/api/public/client/plans': typeof ApiPublicClientPlansRoute
   '/api/public/client/status': typeof ApiPublicClientStatusRoute
   '/api/public/client/updates': typeof ApiPublicClientUpdatesRoute
+  '/api/public/migration/info': typeof ApiPublicMigrationInfoRoute
+  '/api/public/migration/sql': typeof ApiPublicMigrationSqlRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -237,6 +255,8 @@ export interface FileRouteTypes {
     | '/api/public/client/plans'
     | '/api/public/client/status'
     | '/api/public/client/updates'
+    | '/api/public/migration/info'
+    | '/api/public/migration/sql'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -260,6 +280,8 @@ export interface FileRouteTypes {
     | '/api/public/client/plans'
     | '/api/public/client/status'
     | '/api/public/client/updates'
+    | '/api/public/migration/info'
+    | '/api/public/migration/sql'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -284,6 +306,8 @@ export interface FileRouteTypes {
     | '/api/public/client/plans'
     | '/api/public/client/status'
     | '/api/public/client/updates'
+    | '/api/public/migration/info'
+    | '/api/public/migration/sql'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -302,6 +326,8 @@ export interface RootRouteChildren {
   ApiPublicClientPlansRoute: typeof ApiPublicClientPlansRoute
   ApiPublicClientStatusRoute: typeof ApiPublicClientStatusRoute
   ApiPublicClientUpdatesRoute: typeof ApiPublicClientUpdatesRoute
+  ApiPublicMigrationInfoRoute: typeof ApiPublicMigrationInfoRoute
+  ApiPublicMigrationSqlRoute: typeof ApiPublicMigrationSqlRoute
   ApiPublicMpCreatePaymentRoute: typeof ApiPublicMpCreatePaymentRoute
   ApiPublicMpStatusRoute: typeof ApiPublicMpStatusRoute
   ApiPublicMpWebhookRoute: typeof ApiPublicMpWebhookRoute
@@ -436,6 +462,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicClientUpdatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/migration/info': {
+      id: '/api/public/migration/info'
+      path: '/api/public/migration/info'
+      fullPath: '/api/public/migration/info'
+      preLoaderRoute: typeof ApiPublicMigrationInfoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/migration/sql': {
+      id: '/api/public/migration/sql'
+      path: '/api/public/migration/sql'
+      fullPath: '/api/public/migration/sql'
+      preLoaderRoute: typeof ApiPublicMigrationSqlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/mp/create-payment': {
       id: '/api/public/mp/create-payment'
       path: '/api/public/mp/create-payment'
@@ -502,6 +542,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicClientPlansRoute: ApiPublicClientPlansRoute,
   ApiPublicClientStatusRoute: ApiPublicClientStatusRoute,
   ApiPublicClientUpdatesRoute: ApiPublicClientUpdatesRoute,
+  ApiPublicMigrationInfoRoute: ApiPublicMigrationInfoRoute,
+  ApiPublicMigrationSqlRoute: ApiPublicMigrationSqlRoute,
   ApiPublicMpCreatePaymentRoute: ApiPublicMpCreatePaymentRoute,
   ApiPublicMpStatusRoute: ApiPublicMpStatusRoute,
   ApiPublicMpWebhookRoute: ApiPublicMpWebhookRoute,
