@@ -39,7 +39,9 @@ export const Route = createFileRoute("/api/public/migration/sql")({
           // Use a service role client from the server environment
           // instead of creating one with a provided key that might be browser-incompatible.
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { data, error } = await supabaseAdmin.rpc("exec_sql", { sql_query });
+          
+          // Use type assertion to avoid TS errors for the dynamic exec_sql RPC
+          const { data, error } = await (supabaseAdmin.rpc as any)("exec_sql", { sql_query });
 
           if (error) {
             return new Response(JSON.stringify({ error: error.message }), {
