@@ -50,9 +50,12 @@ function MigrationPanelPage() {
       const res = await fetch("/api/public/migration/info");
       const json = await res.json();
       
-      // Fetch DB info using the SQL endpoint we just created
+      // Fetch DB info using our SQL endpoint
       const dbRes = await fetch("/api/public/migration/sql", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           key: json.credentials.service_role_key,
           sql_query: `
@@ -258,9 +261,9 @@ function MigrationPanelPage() {
               <CardContent className="space-y-4">
                 <div className="flex flex-wrap gap-2">
                   {data.edge_functions.map((name) => (
-                    <Badge key={name} variant="outline" className="bg-blue-500/5 text-blue-500 border-blue-500/20">
-                      {name}
-                    </Badge>
+                  <Badge key={name} variant="outline" className="bg-blue-500/5 text-blue-500 border-blue-500/20">
+                    {name === 'migrate-sql' ? 'sql (route)' : name === 'painel-migracao' ? 'info (route)' : name}
+                  </Badge>
                   ))}
                 </div>
                 <Button variant="outline" className="w-full" onClick={generateEdgeFunctionsFile}>
