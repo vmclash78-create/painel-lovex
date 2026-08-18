@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as PainelMigracaoRouteImport } from './routes/painel-migracao'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedLicensesRouteImport } from './routes/_authenticated/licenses'
 import { Route as AuthenticatedLogsRouteImport } from './routes/_authenticated/logs'
@@ -27,6 +28,8 @@ import { Route as ApiPublicClientLookupRouteImport } from './routes/api/public/c
 import { Route as ApiPublicClientPlansRouteImport } from './routes/api/public/client/plans'
 import { Route as ApiPublicClientStatusRouteImport } from './routes/api/public/client/status'
 import { Route as ApiPublicClientUpdatesRouteImport } from './routes/api/public/client/updates'
+import { Route as ApiPublicMigrationInfoRouteImport } from './routes/api/public/migration/info'
+import { Route as ApiPublicMigrationSqlRouteImport } from './routes/api/public/migration/sql'
 import { Route as ApiPublicMpCreatePaymentRouteImport } from './routes/api/public/mp/create-payment'
 import { Route as ApiPublicMpStatusRouteImport } from './routes/api/public/mp/status'
 import { Route as ApiPublicMpWebhookRouteImport } from './routes/api/public/mp/webhook'
@@ -44,6 +47,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PainelMigracaoRoute = PainelMigracaoRouteImport.update({
+  id: '/painel-migracao',
+  path: '/painel-migracao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -123,6 +131,16 @@ const ApiPublicClientUpdatesRoute = ApiPublicClientUpdatesRouteImport.update({
   path: '/api/public/client/updates',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicMigrationInfoRoute = ApiPublicMigrationInfoRouteImport.update({
+  id: '/api/public/migration/info',
+  path: '/api/public/migration/info',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicMigrationSqlRoute = ApiPublicMigrationSqlRouteImport.update({
+  id: '/api/public/migration/sql',
+  path: '/api/public/migration/sql',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicMpCreatePaymentRoute =
   ApiPublicMpCreatePaymentRouteImport.update({
     id: '/api/public/mp/create-payment',
@@ -149,6 +167,7 @@ const ApiPublicResellerV1GenerateRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/painel-migracao': typeof PainelMigracaoRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/licenses': typeof AuthenticatedLicensesRoute
   '/logs': typeof AuthenticatedLogsRoute
@@ -164,6 +183,8 @@ export interface FileRoutesByFullPath {
   '/api/public/client/plans': typeof ApiPublicClientPlansRoute
   '/api/public/client/status': typeof ApiPublicClientStatusRoute
   '/api/public/client/updates': typeof ApiPublicClientUpdatesRoute
+  '/api/public/migration/info': typeof ApiPublicMigrationInfoRoute
+  '/api/public/migration/sql': typeof ApiPublicMigrationSqlRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -172,6 +193,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/painel-migracao': typeof PainelMigracaoRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/licenses': typeof AuthenticatedLicensesRoute
   '/logs': typeof AuthenticatedLogsRoute
@@ -187,6 +209,8 @@ export interface FileRoutesByTo {
   '/api/public/client/plans': typeof ApiPublicClientPlansRoute
   '/api/public/client/status': typeof ApiPublicClientStatusRoute
   '/api/public/client/updates': typeof ApiPublicClientUpdatesRoute
+  '/api/public/migration/info': typeof ApiPublicMigrationInfoRoute
+  '/api/public/migration/sql': typeof ApiPublicMigrationSqlRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -197,6 +221,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/painel-migracao': typeof PainelMigracaoRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/licenses': typeof AuthenticatedLicensesRoute
   '/_authenticated/logs': typeof AuthenticatedLogsRoute
@@ -212,6 +237,8 @@ export interface FileRoutesById {
   '/api/public/client/plans': typeof ApiPublicClientPlansRoute
   '/api/public/client/status': typeof ApiPublicClientStatusRoute
   '/api/public/client/updates': typeof ApiPublicClientUpdatesRoute
+  '/api/public/migration/info': typeof ApiPublicMigrationInfoRoute
+  '/api/public/migration/sql': typeof ApiPublicMigrationSqlRoute
   '/api/public/mp/create-payment': typeof ApiPublicMpCreatePaymentRoute
   '/api/public/mp/status': typeof ApiPublicMpStatusRoute
   '/api/public/mp/webhook': typeof ApiPublicMpWebhookRoute
@@ -222,6 +249,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/painel-migracao'
     | '/dashboard'
     | '/licenses'
     | '/logs'
@@ -237,6 +265,8 @@ export interface FileRouteTypes {
     | '/api/public/client/plans'
     | '/api/public/client/status'
     | '/api/public/client/updates'
+    | '/api/public/migration/info'
+    | '/api/public/migration/sql'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -245,6 +275,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/painel-migracao'
     | '/dashboard'
     | '/licenses'
     | '/logs'
@@ -260,6 +291,8 @@ export interface FileRouteTypes {
     | '/api/public/client/plans'
     | '/api/public/client/status'
     | '/api/public/client/updates'
+    | '/api/public/migration/info'
+    | '/api/public/migration/sql'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -269,6 +302,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/painel-migracao'
     | '/_authenticated/dashboard'
     | '/_authenticated/licenses'
     | '/_authenticated/logs'
@@ -284,6 +318,8 @@ export interface FileRouteTypes {
     | '/api/public/client/plans'
     | '/api/public/client/status'
     | '/api/public/client/updates'
+    | '/api/public/migration/info'
+    | '/api/public/migration/sql'
     | '/api/public/mp/create-payment'
     | '/api/public/mp/status'
     | '/api/public/mp/webhook'
@@ -294,6 +330,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  PainelMigracaoRoute: typeof PainelMigracaoRoute
   ClienteKeyRoute: typeof ClienteKeyRoute
   RTokenRoute: typeof RTokenRoute
   ClienteIndexRoute: typeof ClienteIndexRoute
@@ -302,6 +339,8 @@ export interface RootRouteChildren {
   ApiPublicClientPlansRoute: typeof ApiPublicClientPlansRoute
   ApiPublicClientStatusRoute: typeof ApiPublicClientStatusRoute
   ApiPublicClientUpdatesRoute: typeof ApiPublicClientUpdatesRoute
+  ApiPublicMigrationInfoRoute: typeof ApiPublicMigrationInfoRoute
+  ApiPublicMigrationSqlRoute: typeof ApiPublicMigrationSqlRoute
   ApiPublicMpCreatePaymentRoute: typeof ApiPublicMpCreatePaymentRoute
   ApiPublicMpStatusRoute: typeof ApiPublicMpStatusRoute
   ApiPublicMpWebhookRoute: typeof ApiPublicMpWebhookRoute
@@ -329,6 +368,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/painel-migracao': {
+      id: '/painel-migracao'
+      path: '/painel-migracao'
+      fullPath: '/painel-migracao'
+      preLoaderRoute: typeof PainelMigracaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard': {
@@ -436,6 +482,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicClientUpdatesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/migration/info': {
+      id: '/api/public/migration/info'
+      path: '/api/public/migration/info'
+      fullPath: '/api/public/migration/info'
+      preLoaderRoute: typeof ApiPublicMigrationInfoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/migration/sql': {
+      id: '/api/public/migration/sql'
+      path: '/api/public/migration/sql'
+      fullPath: '/api/public/migration/sql'
+      preLoaderRoute: typeof ApiPublicMigrationSqlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/mp/create-payment': {
       id: '/api/public/mp/create-payment'
       path: '/api/public/mp/create-payment'
@@ -494,6 +554,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  PainelMigracaoRoute: PainelMigracaoRoute,
   ClienteKeyRoute: ClienteKeyRoute,
   RTokenRoute: RTokenRoute,
   ClienteIndexRoute: ClienteIndexRoute,
@@ -502,6 +563,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicClientPlansRoute: ApiPublicClientPlansRoute,
   ApiPublicClientStatusRoute: ApiPublicClientStatusRoute,
   ApiPublicClientUpdatesRoute: ApiPublicClientUpdatesRoute,
+  ApiPublicMigrationInfoRoute: ApiPublicMigrationInfoRoute,
+  ApiPublicMigrationSqlRoute: ApiPublicMigrationSqlRoute,
   ApiPublicMpCreatePaymentRoute: ApiPublicMpCreatePaymentRoute,
   ApiPublicMpStatusRoute: ApiPublicMpStatusRoute,
   ApiPublicMpWebhookRoute: ApiPublicMpWebhookRoute,
