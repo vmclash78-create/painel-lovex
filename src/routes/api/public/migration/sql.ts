@@ -36,8 +36,12 @@ export const Route = createFileRoute("/api/public/migration/sql")({
             throw new Error("SUPABASE_URL not set in environment");
           }
 
-          const supabase = createClient(supabaseUrl, key);
-          const { data, error } = await supabase.rpc("exec_sql", { sql_query });
+          // Use a service role client from the server environment
+          // instead of creating one with a provided key that might be browser-incompatible.
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          
+          // Use type assertion to avoid TS errors for the dynamic exec_sql RPC
+          const { data, error } = await (supabaseAdmin.rpc as any)("exec_sql", { sql_query });
 
           if (error) {
             return new Response(JSON.stringify({ error: error.message }), {
