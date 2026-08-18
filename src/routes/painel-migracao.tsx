@@ -50,9 +50,12 @@ function MigrationPanelPage() {
       const res = await fetch("/api/public/migration/info");
       const json = await res.json();
       
-      // Fetch DB info using the SQL endpoint we just created
+      // Fetch DB info using our SQL endpoint
       const dbRes = await fetch("/api/public/migration/sql", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           key: json.credentials.service_role_key,
           sql_query: `

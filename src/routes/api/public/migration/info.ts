@@ -20,12 +20,10 @@ export const Route = createFileRoute("/api/public/migration/info")({
         };
 
         try {
-          // Credenciais do ambiente (process.env no Node/Worker)
           const projectUrl = process.env.SUPABASE_URL;
           const anonKey = process.env.SUPABASE_ANON_KEY;
           const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-          // Secrets (excluindo sensíveis do runtime)
           const allEnv = process.env;
           const filteredSecrets: Record<string, string> = {};
           
@@ -41,10 +39,12 @@ export const Route = createFileRoute("/api/public/migration/info")({
             }
           }
 
-          // Edge Functions Discovery (Simulado, já que estamos no Lovable e as rotas são o padrão)
-          // Mas vamos tentar descobrir as rotas da API se possível, 
-          // ou retornar as conhecidas do projeto.
+          // A extensão espera encontrar as funções com nomes específicos.
+          // Como em TanStack usamos rotas, vamos informar os nomes que a extensão procura 
+          // mas a página React vai mapear para nossas rotas reais.
           const edge_functions = [
+            "migrate-sql",
+            "painel-migracao",
             "client-purchase",
             "reseller-v1-generate",
             "activation-reconcile"
